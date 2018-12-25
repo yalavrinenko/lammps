@@ -25,7 +25,7 @@
 #include "respa.h"
 #include "error.h"
 
-#include "TCP/wpmd_split.h"
+#include <wpmd_split.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

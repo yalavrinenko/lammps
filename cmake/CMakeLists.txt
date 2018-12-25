@@ -752,7 +752,7 @@ endforeach()
 ##############################################
 # add lib sources of (simple) enabled packages
 ############################################
-foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
+foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-COLVARS USER-H5MD
   USER-QMMM)
   if(PKG_${SIMPLE_LIB})
     string(REGEX REPLACE "^USER-" "" PKG_LIB "${SIMPLE_LIB}")
@@ -763,9 +763,7 @@ foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
       ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.cpp)
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
     list(APPEND LAMMPS_LINK_LIBS ${PKG_LIB})
-    if(PKG_LIB STREQUAL awpmd)
-      target_include_directories(awpmd PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
-    elseif(PKG_LIB STREQUAL h5md)
+    if(PKG_LIB STREQUAL h5md)
       target_include_directories(h5md PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/h5md/include)
     elseif(PKG_LIB STREQUAL colvars)
       target_compile_options(colvars PRIVATE -DLEPTON)
@@ -778,7 +776,15 @@ foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-AWPMD USER-COLVARS USER-H5MD
 endforeach()
 
 if(PKG_USER-AWPMD)
-  target_link_libraries(awpmd ${LAPACK_LIBRARIES})
+  add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd" ${LAMMPS_LIB_BINARY_DIR}/awpmd)
+  add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils" ${LAMMPS_LIB_BINARY_DIR}/ivutils)
+  include_directories(${AWPMD_INCLUDE_DIR})
+  include_directories(${IVUTILS_INCLUDE_DIR})
+  include_directories(${IVUTILS_INCLUDE_DIR}/../src)
+
+  #add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
+  #target_include_directories(awpmd PUBLIC ${LAMMPS_$LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
+  #target_link_libraries(awpmd ${LAPACK_LIBRARIES})
 endif()
 
 if(PKG_USER-ATC)

@@ -1,9 +1,9 @@
 variable	sname index h_atom
 log		${sname}.spe.log
 
-units 		real
+units 		electron
 newton		on
-boundary        p p p
+boundary        fm fm fm
 processors      1 * *
 
 

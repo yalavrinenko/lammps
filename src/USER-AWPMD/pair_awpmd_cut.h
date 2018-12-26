@@ -32,48 +32,63 @@ class AWPMD_split;
 
 namespace LAMMPS_NS {
 
-class PairAWPMDCut : public Pair {
-  friend class FixNVEAwpmd;
- public:
-  PairAWPMDCut(class LAMMPS *);
-  virtual ~PairAWPMDCut();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  void min_pointers(double **, double **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
+  class PairAWPMDCut : public Pair {
+   friend class FixNVEAwpmd;
 
-  void min_xf_pointers(int, double **, double **);
-  void min_xf_get(int);
-  void min_x_set(int);
-  double memory_usage();
+  public:
+   PairAWPMDCut(class LAMMPS *);
 
- private:
+   virtual ~PairAWPMDCut();
+
+   void compute(int, int) override;
+
+   void settings(int, char **) override;
+
+   void coeff(int, char **) override;
+
+   void init_style() override;
+
+   void min_pointers(double **, double **);
+
+   double init_one(int, int) override;
+
+   void write_restart(FILE *) override;
+
+   void read_restart(FILE *) override;
+
+   void write_restart_settings(FILE *) override;
+
+   void read_restart_settings(FILE *) override;
+
+   void min_xf_pointers(int, double **, double **) override;
+
+   void min_xf_get(int) override;
+
+   void min_x_set(int) override;
+
+   double memory_usage() override;
+
+  private:
 
 
-  int flexible_pressure_flag;
-  double cut_global;
-  double **cut;
+   int flexible_pressure_flag;
+   double cut_global;
+   double **cut;
 
 
-  int nmax; // number of additional variables for minimizer
-  double *min_var,*min_varforce; // additional variables for minimizer
+   int nmax; // number of additional variables for minimizer
+   double *min_var, *min_varforce; // additional variables for minimizer
 
-  void allocate();
+   void allocate();
 
-  void virial_eradius_compute();
+   void virial_eradius_compute();
 
 
-  AWPMD_split *wpmd; // solver oybject
-  double ermscale; // scale of width mass for motion
-  double width_pbc; // setting for width pbc
-  double half_box_length; // calculated by coeff function
-};
+   AWPMD_split *wpmd; // solver oybject
+   double ermscale; // scale of width mass for motion
+   double width_pbc; // setting for width pbc
+   double half_box_length; // calculated by coeff function
+  };
 
 }
 

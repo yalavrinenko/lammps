@@ -225,7 +225,20 @@ if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   if(NOT ${LAMMPS_MEMALIGN} STREQUAL "0")
     add_definitions(-DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
   endif()
+else()
+  set(BUILD_WIN TRUE)
 endif()
+
+
+option(BUILD_WIN_NATIVE "Build with native Windows compilers" ${BUILD_WIN})
+if(BUILD_WIN_NATIVE)
+  include_directories(${LAMMPS_SOURCE_DIR}/WINDOWS/extra)
+  list(APPEND LIB_SOURCES ${LAMMPS_SOURCE_DIR}/WINDOWS/extra/sleep.cpp)
+  add_definitions(-D_USE_MATH_DEFINES -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -DWIN32_LEAN_AND_MEAN)
+  list(APPEND LAMMPS_LINK_LIBS psapi.lib)
+endif()
+
+
 
 option(LAMMPS_EXCEPTIONS "enable the use of C++ exceptions for error messages (useful for library interface)" OFF)
 if(LAMMPS_EXCEPTIONS)
@@ -347,11 +360,18 @@ endif()
 if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
   find_package(LAPACK)
   find_package(BLAS)
+  
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)
-    enable_language(Fortran)
-    file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.[fF])
-    add_library(linalg STATIC ${LAPACK_SOURCES})
-    set(LAPACK_LIBRARIES linalg)
+    find_package(MKL)
+	if(NOT MKL_FOUND)
+      enable_language(Fortran)
+      file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.[fF])
+      add_library(linalg STATIC ${LAPACK_SOURCES})
+      set(LAPACK_LIBRARIES linalg)
+    else() # using MKL
+	  include_directories(${MKL_INCLUDE_DIR})
+	  set(LAPACK_LIBRARIES ${MKL_LIBRARIES})
+	endif()
   else()
     list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})
   endif()
@@ -696,7 +716,12 @@ foreach(HEADER math.h)
   endif(NOT FOUND_${HEADER})
 endforeach(HEADER)
 
-set(MATH_LIBRARIES "m" CACHE STRING "math library")
+if(BUILD_WIN_NATIVE)  # explicit specification is not necessary
+  set(MATH_LIBRARIES "" CACHE STRING "math library")
+else()
+  set(MATH_LIBRARIES "m" CACHE STRING "math library")
+endif()
+
 mark_as_advanced( MATH_LIBRARIES )
 include(CheckLibraryExists)
 if (CMAKE_VERSION VERSION_LESS "3.4")
@@ -776,10 +801,33 @@ foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-COLVARS USER-H5MD
 endforeach()
 
 if(PKG_USER-AWPMD)
-  add_definitions(-DUNIX=1 -DFU=1)
+  
+  
+
+  if(WIN32)
+    if(${CMAKE_GENERATOR} MATCHES "Visual Studio 15 2017")
+      set(HAVE_MATH ON)
+      set(HAVE_ERF ON)
+      add_definitions("-DERF_H") # don't include erf.h
+    else()
+      set(HAVE_MATH OFF)
+      set(HAVE_ERF OFF)
+    endif()
+	add_definitions("-DFU=0")
+    
+    if(${HAVE_MATH})
+      add_definitions("-DNO_CMNMATH")
+    endif()
+  else(NOT WIN32)
+    add_definitions("-DUNIX=1") 
+    add_definitions("-DLINFO=1")
+    add_definitions("-DFU=1")
+  endif(WIN32)
+
   add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd" ${LAMMPS_LIB_BINARY_DIR}/awpmd)
   add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils" ${LAMMPS_LIB_BINARY_DIR}/ivutils)
   include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/include")
+  include_directories(${LAMMPS_SOURCE_DIR}) # should be before ivutils to find proper region.h 
   include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include")
   include_directories(${MKL_INCLUDE_DIR})
   include_directories(${IVUTILS_INCLUDE_DIR}/../src)

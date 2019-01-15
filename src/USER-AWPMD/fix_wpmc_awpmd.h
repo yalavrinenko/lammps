@@ -12,32 +12,35 @@ FixStyle(wpmc/awpmd,FixNVEAwpmd)
 #include "fix.h"
 #include "pair_awpmd_cut.h"
 
+class propAWPMC;
+
 namespace LAMMPS_NS {
 
   class FixWPMCAwpmd : public Fix {
   public:
    FixWPMCAwpmd(class LAMMPS *, int, char **);
 
-   int setmask();
+   int setmask() override{}
 
-   virtual void init();
+   virtual void init(){}
 
-   virtual void initial_integrate(int);
+   virtual void initial_integrate(int){}
 
-   virtual void final_integrate();
+   virtual void final_integrate(){}
 
-   void initial_integrate_respa(int, int, int);
+   void initial_integrate_respa(int, int, int){}
 
-   void final_integrate_respa(int, int);
+   void final_integrate_respa(int, int){}
 
-   void reset_dt();
+   void reset_dt(){}
 
   protected:
    double dtv, dtf;
    double *step_respa;
    int mass_require;
 
-   PairAWPMDCut *awpmd_pair;
+   PairAWPMDCut* awpmd_pair;
+   propAWPMC* p_awpmc;
   };
 
 }

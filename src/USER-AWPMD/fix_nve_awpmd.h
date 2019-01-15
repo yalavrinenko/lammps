@@ -27,6 +27,7 @@ FixStyle(nve/awpmd,FixNVEAwpmd)
 #include "fix.h"
 #include "pair_awpmd_cut.h"
 
+
 namespace LAMMPS_NS {
 
 class FixNVEAwpmd : public Fix {

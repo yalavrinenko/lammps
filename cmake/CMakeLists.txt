@@ -824,15 +824,29 @@ if(PKG_USER-AWPMD)
     add_definitions("-DFU=1")
   endif(WIN32)
 
+  find_package(wxWidgets REQUIRED base xml)
+  include_directories(${wxWidgets_INCLUDE_DIRS})
+  include(${wxWidgets_USE_FILE})
+  add_definitions("-DUSE_WX=1")
+  add_definitions("-DwxUSE_GUI=0")
+
+  add_definitions(-DUSE_AWPMD=1)
   add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd" ${LAMMPS_LIB_BINARY_DIR}/awpmd)
   add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils" ${LAMMPS_LIB_BINARY_DIR}/ivutils)
+  #add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/mdutils" ${LAMMPS_LIB_BINARY_DIR}/mdutils)
+
   include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/include")
   include_directories(${LAMMPS_SOURCE_DIR}) # should be before ivutils to find proper region.h 
   include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include")
+  include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/mdutils")
+  include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/mdutils/include")
+  include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/mdutils/systems/interact")
+  include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/mdutils/fitting/include/")
   include_directories(${MKL_INCLUDE_DIR})
   include_directories(${IVUTILS_INCLUDE_DIR}/../src)
   list(APPEND LAMMPS_LINK_LIBS ivutils)
   list(APPEND LAMMPS_LINK_LIBS awpmd)
+  list(APPEND LAMMPS_LINK_LIBS ${wxWidgets_LIBRARIES}) #
   #add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
   #target_include_directories(awpmd PUBLIC ${LAMMPS_$LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
 

@@ -12,8 +12,6 @@ FixStyle(wpmc/awpmd,FixNVEAwpmd)
 #include "fix.h"
 #include "pair_awpmd_cut.h"
 
-class propAWPMC;
-
 namespace LAMMPS_NS {
 
   class FixWPMCAwpmd : public Fix {
@@ -40,7 +38,6 @@ namespace LAMMPS_NS {
    int mass_require;
 
    PairAWPMDCut* awpmd_pair;
-   propAWPMC* p_awpmc;
   };
 
 }

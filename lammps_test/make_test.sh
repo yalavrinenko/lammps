@@ -2,6 +2,7 @@
 test_case (){
 	sed "s/TEST_CASE/$1/g" lmp_template/eta.in > lmp.in;
 	./l_opt -in lmp.in | grep "Step TotEng" -A1
+	mpirun -n 4 ./l_opt -in lmp.in | grep "Step TotEng" -A1
 	optirun ./e_opt $1.ini | grep "Total (Min)"
 }
 

@@ -834,8 +834,7 @@ if(PKG_USER-AWPMD)
 
   list(APPEND LAMMPS_LINK_LIBS awpmd)
   list(APPEND LAMMPS_LINK_LIBS ivutils)
-  #add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
-  #target_include_directories(awpmd PUBLIC ${LAMMPS_$LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
+
 
 endif()
 

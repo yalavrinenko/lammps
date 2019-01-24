@@ -235,15 +235,10 @@ void PairAWPMDCut::compute(int eflag, int vflag)
   wpmd->interaction(0x1|0x4|0x10, fi.data());
 
   auto full_coul_energy = wpmd->get_energy();
-  //auto ghost_coul_energy = ghost_energy();
-
-  //std::cout <<"Step TotEng" << MPI::COMM_WORLD.Get_rank() << ": " << full_coul_energy << " " << ghost_coul_energy << std::endl;
-  //full_coul_energy -= ghost_coul_energy;
 
    // get forces from the AWPMD solver object
 
- /* TODO:Uncomment this
-  * double **f = atom->f;
+  double **f = atom->f;
 
   for (auto const &ion : ions){
     auto &i_lmp = ion.lmp_index;
@@ -262,7 +257,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
       wpmd->get_wp_force(s, i_wpmd, (Vector_3 *) f[i_lmp], (Vector_3 *) (atom->vforce + 3 * i_lmp), atom->erforce + i_lmp,
                          atom->ervelforce + i_lmp, (Vector_2 *) (atom->csforce + 2 * i_lmp));
     }
-  }*/
+  }
 
   // update LAMMPS energy
   if (eflag_either) {
@@ -276,8 +271,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
       pvector[3] = wpmd->Ew;
     }
 
-    /*TODO:Uncomment this
-     * if (eflag_atom) {
+    if (eflag_atom) {
       // transfer per-atom energies here
       for (auto const &ion : ions){
         auto &i_lmp = ion.lmp_index;
@@ -294,7 +288,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
           eatom[i_lmp]=wpmd->Eep[s][i_wpmd]+wpmd->Eeip[s][i_wpmd]+wpmd->Eeep[s][i_wpmd]+wpmd->Ewp[s][i_wpmd];
         }
       }
-    }*/
+    }
   }
 
   if (vflag_fdotr) {

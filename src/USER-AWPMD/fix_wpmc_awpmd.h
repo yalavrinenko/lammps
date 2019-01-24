@@ -18,19 +18,21 @@ namespace LAMMPS_NS {
   public:
    FixWPMCAwpmd(class LAMMPS *, int, char **);
 
-   int setmask() override{}
+   int setmask() override{
+     return 0;
+   }
 
-   virtual void init(){}
+   void init() override {}
 
-   virtual void initial_integrate(int){}
+   void initial_integrate(int) override {}
 
-   virtual void final_integrate(){}
+   void final_integrate() override {}
 
-   void initial_integrate_respa(int, int, int){}
+   void initial_integrate_respa(int, int, int) override {}
 
-   void final_integrate_respa(int, int){}
+   void final_integrate_respa(int, int) override {}
 
-   void reset_dt(){}
+   void reset_dt() override {}
 
   protected:
    double dtv, dtf;

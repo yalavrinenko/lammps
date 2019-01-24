@@ -43,8 +43,8 @@ PairAWPMDCut::PairAWPMDCut(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
 
   nmax = 0;
-  min_var = NULL;
-  min_varforce = NULL;
+  min_var = nullptr;
+  min_varforce = nullptr;
   nextra = 4;
   pvector = new double[nextra];
 
@@ -76,7 +76,7 @@ PairAWPMDCut::~PairAWPMDCut()
 struct cmp_x{
   double **xx;
   double tol;
-  cmp_x(double **xx_=NULL, double tol_=1e-12):xx(xx_),tol(tol_){}
+  cmp_x(double **xx_= nullptr, double tol_=1e-12):xx(xx_),tol(tol_){}
   bool operator()(const pair<int,int> &left, const pair<int,int> &right) const {
     if(left.first==right.first){
       double d=xx[left.second][0]-xx[right.second][0];
@@ -90,10 +90,7 @@ struct cmp_x{
       else if(d>tol)
         return false;
       d=xx[left.second][2]-xx[right.second][2];
-      if(d<-tol)
-        return true;
-      else
-        return false;
+      return d < -tol;
     }
     else
       return left.first<right.first;
@@ -101,6 +98,118 @@ struct cmp_x{
 };
 
 /* ---------------------------------------------------------------------- */
+
+PairAWPMDCut::awpmd_packets PairAWPMDCut::make_packets() const {
+  int *spin = atom->spin;
+  int *etag = atom->etag;
+
+  awpmd_ions ions;
+  awpmd_electrons electrons{};
+
+  auto insert_particle = [&ions, &electrons, spin, etag, this](unsigned index){
+    if (spin[index] == 0) {
+      ions.emplace_back(awpmd_pair_index{index, 0});
+    } else if (spin[index]==1 || spin[index]==-1) {
+      electrons[etag[index]].emplace_back(awpmd_pair_index{index, 0});
+    } else {
+      error->all(FLERR,fmt("Invalid spin value (%d) for particle %d !",spin[index],index));
+    }
+  };
+
+  for (int i = 0; i < atom->nlocal + atom->nghost; ++i)
+    insert_particle(i);
+
+  return LAMMPS_NS::PairAWPMDCut::awpmd_packets{std::move(ions), std::move(electrons)};
+}
+
+
+void PairAWPMDCut::init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons) {
+  int newton_pair = force->newton_pair;
+
+  if(width_pbc<0)
+    wpmd->Lextra=2*half_box_length;
+  else
+    wpmd->Lextra=width_pbc;
+
+  wpmd->newton_pair=newton_pair;
+
+  // prepare the solver object
+  wpmd->reset();
+  wpmd->set_pbc(nullptr); // not required for LAMMPS
+
+  double **x = atom->x;
+  double **f = atom->f;
+  double *q = atom->q;
+  int *spin = atom->spin;
+  int *type = atom->type;
+  double **v = atom->v;
+
+  int nlocal = atom->nlocal;
+
+  for (auto &ion_index : ions){
+    auto &insert_index = ion_index.lmp_index;
+    ion_index.wpmd_index = (unsigned )wpmd->add_ion(q[insert_index], Vector_3(x[insert_index][0], x[insert_index][1], x[insert_index][2]),
+                                         (insert_index < nlocal ? atom->tag[insert_index] : -atom->tag[insert_index]));
+  }
+
+  for (auto &electron : electrons) {
+    auto &main_packet_index = electron.second.front().lmp_index;
+    int s = spin[main_packet_index] > 0 ? 0 : 1;
+    wpmd->add_electron(s);
+    for (auto &e_split_index : electron.second) {
+      auto &insert_index = e_split_index.lmp_index;
+      if (spin[insert_index] != spin[main_packet_index])
+        error->all(FLERR,
+                   fmt("WP splits for one electron should have the same spin (at particles %d, %d)!", insert_index,
+                       main_packet_index));
+
+      double m = atom->mass ? atom->mass[type[insert_index]] : force->e_mass;
+      Vector_3 xx = Vector_3(x[insert_index][0], x[insert_index][1], x[insert_index][2]);
+      Vector_3 rv = m * Vector_3(v[insert_index][0], v[insert_index][1], v[insert_index][2]);
+      double pv = ermscale * m * atom->ervel[insert_index];
+      Vector_2 cc = Vector_2(atom->cs[2 * insert_index], atom->cs[2 * insert_index + 1]);
+
+      e_split_index.wpmd_index = (unsigned )wpmd->add_split(xx, rv, atom->eradius[insert_index], pv, cc, 1., atom->q[insert_index],
+                                                (insert_index < nlocal ? atom->tag[insert_index] : -atom->tag[insert_index]));
+
+      v[insert_index][0] = rv[0] / m;
+      v[insert_index][1] = rv[1] / m;
+      v[insert_index][2] = rv[2] / m;
+      atom->ervel[insert_index] = pv / (m * ermscale);
+    }
+  }
+
+}
+
+double PairAWPMDCut::ghost_energy() {
+  awpmd_ions ions;
+  awpmd_electrons electrons;
+
+  std::tie(ions, electrons) = this->make_packets();
+
+  auto &local = atom->nlocal;
+
+  ions.erase(std::remove_if(ions.begin(), ions.end(), [&local](auto const &v){return v.lmp_index < local;}), ions.end());
+  for (auto it = electrons.begin(); it != electrons.end();){
+    auto &v = it->second;
+    v.erase(std::remove_if(v.begin(), v.end(), [&local](auto const &i){return i.lmp_index < local;}), v.end());
+    if (v.empty()){
+      it = electrons.erase(it);
+    } else
+      ++it;
+  }
+
+  this->init_wpmd(ions, electrons);
+
+  std::vector<Vector_3> fi;
+  if(wpmd->ni)
+    fi.resize(static_cast<unsigned long>(wpmd->ni));
+
+  wpmd->interaction(0x1|0x4|0x10, fi.data());
+
+  return wpmd->get_energy();
+}
+
 
 void PairAWPMDCut::compute(int eflag, int vflag)
 {
@@ -113,187 +222,53 @@ void PairAWPMDCut::compute(int eflag, int vflag)
   else
     evflag = vflag_fdotr = 0; //??
 
-  double **x = atom->x;
-  double **f = atom->f;
-  double *q = atom->q;
-  int *spin = atom->spin;
-  int *type = atom->type;
-  int *etag = atom->etag;
-  double **v = atom->v;
+  awpmd_ions ions;
+  awpmd_electrons electrons;
 
-  int nlocal = atom->nlocal;
-  int nghost = atom->nghost;
-  int ntot=nlocal+nghost;
+  std::tie(ions, electrons) = this->make_packets();
+  this->init_wpmd(ions, electrons);
 
-  int newton_pair = force->newton_pair;
-
-  int inum = list->inum;
-  int *ilist = list->ilist;
-  int *numneigh = list->numneigh;
-  int **firstneigh = list->firstneigh;
-
-
-
-
-  // width pbc
-  if(width_pbc<0)
-    wpmd->Lextra=2*half_box_length;
-  else
-    wpmd->Lextra=width_pbc;
-
-  wpmd->newton_pair=newton_pair;
-
-
-
-# if 1
-  // mapping of the LAMMPS numbers to the AWPMC numbers
-  vector<int> gmap(ntot,-1);
-
-  for (int ii = 0; ii < inum; ii++) {
-    int i = ilist[ii];
-    // local particles are all there
-    gmap[i]=0;
-    Vector_3 ri=Vector_3(x[i][0],x[i][1],x[i][2]);
-    int itype = type[i];
-    int *jlist = firstneigh[i];
-    int jnum = numneigh[i];
-    for (int jj = 0; jj < jnum; jj++) {
-      int j = jlist[jj];
-      j &= NEIGHMASK;
-      if(j>=nlocal){ // this is a ghost
-        Vector_3 rj=Vector_3(x[j][0],x[j][1],x[j][2]);
-        int jtype = type[j];
-        double rsq=(ri-rj).norm2();
-        if (rsq < cutsq[itype][jtype])
-          gmap[j]=0; //bingo, this ghost is really needed
-
-      }
-    }
-  }
-
-# else  // old mapping
-  // mapping of the LAMMPS numbers to the AWPMC numbers
-  vector<int> gmap(ntot,-1);
-  // map for filtering the clones out: [tag,image] -> id
-  typedef  map< pair<int,int>, int, cmp_x >  map_t;
-  cmp_x cmp(x);
-  map_t idmap(cmp);
-  for (int ii = 0; ii < inum; ii++) {
-    int i = ilist[ii];
-    // local particles are all there
-    idmap[make_pair(atom->tag[i],i)]=i;
-    bool i_local= i<nlocal ? true : false;
-    if(i_local)
-      gmap[i]=0;
-    else if(gmap[i]==0) // this is a ghost which already has been tested
-      continue;
-    Vector_3 ri=Vector_3(x[i][0],x[i][1],x[i][2]);
-    int itype = type[i];
-    int *jlist = firstneigh[i];
-    int jnum = numneigh[i];
-    for (int jj = 0; jj < jnum; jj++) {
-      int j = jlist[jj];
-      j &= NEIGHMASK;
-
-      pair<map_t::iterator,bool> res=idmap.insert(make_pair(make_pair(atom->tag[j],j),j));
-      bool have_it=!res.second;
-      if(have_it){ // the clone of this particle is already listed
-        if(res.first->second!=j) // check that was not the very same particle
-          gmap[j]=-1; // filter out
-        continue;
-      }
-
-      bool j_local= j<nlocal ? true : false;
-      if((i_local && !j_local) || (j_local && !i_local)){ // some of them is a ghost
-        Vector_3 rj=Vector_3(x[j][0],x[j][1],x[j][2]);
-        int jtype = type[j];
-        double rsq=(ri-rj).norm2();
-        if (rsq < cutsq[itype][jtype]){
-          if(!i_local){
-            gmap[i]=0; //bingo, this ghost is really needed
-            break; // don't need to continue j loop
-          }
-          else
-            gmap[j]=0; //bingo, this ghost is really needed
-        }
-      }
-    }
-  }
-# endif
-  // prepare the solver object
-  wpmd->reset();
-
-  map<int,vector<int> > etmap;
-  // add particles to the AWPMD solver object
-  for (int i = 0; i < ntot; i++) {
-    //int i = ilist[ii];
-    if(gmap[i]<0) // this particle was filtered out
-      continue;
-    if(spin[i]==0)  // this is an ion
-      gmap[i]=wpmd->add_ion(q[i], Vector_3(x[i][0],x[i][1],x[i][2]),i<nlocal ? atom->tag[i] : -atom->tag[i]);
-    else if(spin[i]==1 || spin[i]==-1){ // electron, sort them according to the tag
-      etmap[etag[i]].push_back(i);
-    }
-    else
-      error->all(FLERR,fmt("Invalid spin value (%d) for particle %d !",spin[i],i));
-  }
-  // ion force vector
-  Vector_3 *fi=NULL;
+  std::vector<Vector_3> fi;
   if(wpmd->ni)
-    fi= new Vector_3[wpmd->ni];
+    fi.resize(static_cast<unsigned long>(wpmd->ni));
 
-  // adding electrons
-  for(map<int,vector<int> >::iterator it=etmap.begin(); it!= etmap.end(); ++it){
-    vector<int> &el=it->second;
-    if(!el.size()) // should not happen
-      continue;
-    int s=spin[el[0]] >0 ? 0 : 1;
-    wpmd->add_electron(s); // starts adding the spits
-    for(size_t k=0;k<el.size();k++){
-      int i=el[k];
-      if(spin[el[0]]!=spin[i])
-        error->all(FLERR,fmt("WP splits for one electron should have the same spin (at particles %d, %d)!",el[0],i));
-      double m= atom->mass ? atom->mass[type[i]] : force->e_mass;
-      Vector_3 xx=Vector_3(x[i][0],x[i][1],x[i][2]);
-      Vector_3 rv=m*Vector_3(v[i][0],v[i][1],v[i][2]);
-      double pv=ermscale*m*atom->ervel[i];
-      Vector_2 cc=Vector_2(atom->cs[2*i],atom->cs[2*i+1]);
-      gmap[i]=wpmd->add_split(xx,rv,atom->eradius[i],pv,cc,1.,atom->q[i],i<nlocal ? atom->tag[i] : -atom->tag[i]);
-      // resetting for the case constraints were applied
-      v[i][0]=rv[0]/m;
-      v[i][1]=rv[1]/m;
-      v[i][2]=rv[2]/m;
-      atom->ervel[i]=pv/(m*ermscale);
-    }
-  }
-  wpmd->set_pbc(NULL); // not required for LAMMPS
-  wpmd->interaction(0x1|0x4|0x10,fi);
+  wpmd->interaction(0x1|0x4|0x10, fi.data());
+
+  auto full_coul_energy = wpmd->get_energy();
+  //auto ghost_coul_energy = ghost_energy();
+
+  //std::cout <<"Step TotEng" << MPI::COMM_WORLD.Get_rank() << ": " << full_coul_energy << " " << ghost_coul_energy << std::endl;
+  //full_coul_energy -= ghost_coul_energy;
 
    // get forces from the AWPMD solver object
-  for (int ii = 0; ii < inum; ii++) {
-    int i = ilist[ii];
-    if(gmap[i]<0) // this particle was filtered out
-      continue;
-    if(spin[i]==0){  // this is an ion, copying forces
-      int ion=gmap[i];
-      f[i][0]=fi[ion][0];
-      f[i][0]=fi[ion][1];
-      f[i][0]=fi[ion][2];
-    }
-    else { // electron
-      int iel=gmap[i];
-      int s=spin[i] >0 ? 0 : 1;
-      wpmd->get_wp_force(s,iel,(Vector_3 *)f[i],(Vector_3 *)(atom->vforce+3*i),atom->erforce+i,atom->ervelforce+i,(Vector_2 *)(atom->csforce+2*i));
-    }
+
+ /* TODO:Uncomment this
+  * double **f = atom->f;
+
+  for (auto const &ion : ions){
+    auto &i_lmp = ion.lmp_index;
+    auto &i_wpmd = ion.wpmd_index;
+    f[i_lmp][0] = fi[i_wpmd][0];
+    f[i_lmp][0] = fi[i_wpmd][1];
+    f[i_lmp][0] = fi[i_wpmd][2];
   }
 
-  if(fi)
-    delete [] fi;
+  for (auto const &electron : electrons){
+    for (auto const &packets : electron.second){
+      auto &i_lmp = packets.lmp_index;
+      auto &i_wpmd = packets.wpmd_index;
+
+      int s = atom->spin[i_lmp] > 0 ? 0 : 1;
+      wpmd->get_wp_force(s, i_wpmd, (Vector_3 *) f[i_lmp], (Vector_3 *) (atom->vforce + 3 * i_lmp), atom->erforce + i_lmp,
+                         atom->ervelforce + i_lmp, (Vector_2 *) (atom->csforce + 2 * i_lmp));
+    }
+  }*/
 
   // update LAMMPS energy
   if (eflag_either) {
     if (eflag_global){
-      eng_coul+= wpmd->get_energy();
+      eng_coul+= full_coul_energy;// TODO: Fix MPI and uncomment this: wpmd->get_energy();
+
       // pvector = [KE, Pauli, ecoul, radial_restraint]
       pvector[0] = wpmd->Ee[0]+wpmd->Ee[1];
       pvector[2] = wpmd->Eii+wpmd->Eei[0]+wpmd->Eei[1]+wpmd->Eee;
@@ -301,21 +276,27 @@ void PairAWPMDCut::compute(int eflag, int vflag)
       pvector[3] = wpmd->Ew;
     }
 
-    if (eflag_atom) {
+    /*TODO:Uncomment this
+     * if (eflag_atom) {
       // transfer per-atom energies here
-      for (int i = 0; i < ntot; i++) {
-        if(gmap[i]<0) // this particle was filtered out
-          continue;
-        if(spin[i]==0){
-          eatom[i]=wpmd->Eiep[gmap[i]]+wpmd->Eiip[gmap[i]];
-        }
-        else {
-          int s=spin[i] >0 ? 0 : 1;
-          eatom[i]=wpmd->Eep[s][gmap[i]]+wpmd->Eeip[s][gmap[i]]+wpmd->Eeep[s][gmap[i]]+wpmd->Ewp[s][gmap[i]];
+      for (auto const &ion : ions){
+        auto &i_lmp = ion.lmp_index;
+        auto &i_wpmd = ion.wpmd_index;
+        eatom[i_lmp]=wpmd->Eiep[i_wpmd]+wpmd->Eiip[i_wpmd];
+      }
+
+      for (auto const &electron : electrons){
+        for (auto const &packets : electron.second){
+          auto &i_lmp = packets.lmp_index;
+          auto &i_wpmd = packets.wpmd_index;
+
+          int s = atom->spin[i_lmp] > 0 ? 0 : 1;
+          eatom[i_lmp]=wpmd->Eep[s][i_wpmd]+wpmd->Eeip[s][i_wpmd]+wpmd->Eeep[s][i_wpmd]+wpmd->Ewp[s][i_wpmd];
         }
       }
-    }
+    }*/
   }
+
   if (vflag_fdotr) {
     virial_fdotr_compute();
     if (flexible_pressure_flag)
@@ -738,3 +719,4 @@ double PairAWPMDCut::memory_usage()
   bytes += 2 * nmax * sizeof(double);
   return bytes;
 }
+

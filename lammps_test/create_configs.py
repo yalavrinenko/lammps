@@ -101,10 +101,10 @@ def create_system(size, bound, id):
         electrons.append(create_single_electron(bound))
         size -= 1
 
-    e_io = eopt_io("{0}.ini".format(id))
+    e_io = eopt_io("inconfig/{0}.ini".format(id))
     e_io.store_system(ions, electrons, bound)
 
-    l_io = lammps_io("{0}.data".format(id))
+    l_io = lammps_io("inconfig/{0}.data".format(id))
     l_io.store_system(ions, electrons, bound)
 
 

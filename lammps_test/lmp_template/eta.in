@@ -9,7 +9,7 @@ processors      1 * *
 
 atom_style	wavepacket
 
-read_data  ${sname}.data
+read_data  inconfig/${sname}.data
 
 #neighbor        2.0 nsq
 

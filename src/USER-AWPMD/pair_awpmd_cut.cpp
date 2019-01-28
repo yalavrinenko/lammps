@@ -117,7 +117,7 @@ PairAWPMDCut::awpmd_packets PairAWPMDCut::make_packets() const {
   };
 
   for (int i = 0; i < atom->nlocal + atom->nghost; ++i)
-    insert_particle(i);
+    insert_particle(static_cast<unsigned int>(i));
 
   return LAMMPS_NS::PairAWPMDCut::awpmd_packets{std::move(ions), std::move(electrons)};
 }
@@ -150,6 +150,8 @@ void PairAWPMDCut::init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons) {
     auto &insert_index = ion_index.lmp_index;
     ion_index.wpmd_index = (unsigned )wpmd->add_ion(q[insert_index], Vector_3(x[insert_index][0], x[insert_index][1], x[insert_index][2]),
                                          (insert_index < nlocal ? atom->tag[insert_index] : -atom->tag[insert_index]));
+    /*std::cout << MPI::COMM_WORLD.Get_rank() << "[" << atom->nlocal << "x" << atom->nghost << "] " << ":i" << " "
+              << x[insert_index][2] << " " << (insert_index < nlocal) << std::endl;*/
   }
 
   for (auto &electron : electrons) {
@@ -181,39 +183,8 @@ void PairAWPMDCut::init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons) {
 
 }
 
-double PairAWPMDCut::ghost_energy() {
-  awpmd_ions ions;
-  awpmd_electrons electrons;
-
-  std::tie(ions, electrons) = this->make_packets();
-
-  auto &local = atom->nlocal;
-
-  ions.erase(std::remove_if(ions.begin(), ions.end(), [&local](auto const &v){return v.lmp_index < local;}), ions.end());
-  for (auto it = electrons.begin(); it != electrons.end();){
-    auto &v = it->second;
-    v.erase(std::remove_if(v.begin(), v.end(), [&local](auto const &i){return i.lmp_index < local;}), v.end());
-    if (v.empty()){
-      it = electrons.erase(it);
-    } else
-      ++it;
-  }
-
-  this->init_wpmd(ions, electrons);
-
-  std::vector<Vector_3> fi;
-  if(wpmd->ni)
-    fi.resize(static_cast<unsigned long>(wpmd->ni));
-
-  wpmd->interaction(0x1|0x4|0x10, fi.data());
-
-  return wpmd->get_energy();
-}
-
-
 void PairAWPMDCut::compute(int eflag, int vflag)
 {
-
   // pvector = [KE, Pauli, ecoul, radial_restraint]
   for (int i=0; i<4; i++) pvector[i] = 0.0;
 
@@ -235,8 +206,6 @@ void PairAWPMDCut::compute(int eflag, int vflag)
   wpmd->interaction(0x1|0x4|0x10, fi.data());
 
   auto full_coul_energy = wpmd->get_energy();
-
-   // get forces from the AWPMD solver object
 
   double **f = atom->f;
 
@@ -262,7 +231,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
   // update LAMMPS energy
   if (eflag_either) {
     if (eflag_global){
-      eng_coul+= full_coul_energy;// TODO: Fix MPI and uncomment this: wpmd->get_energy();
+      eng_coul+= full_coul_energy;
 
       // pvector = [KE, Pauli, ecoul, radial_restraint]
       pvector[0] = wpmd->Ee[0]+wpmd->Ee[1];
@@ -714,3 +683,31 @@ double PairAWPMDCut::memory_usage()
   return bytes;
 }
 
+double PairAWPMDCut::ghost_energy() {
+  awpmd_ions ions;
+  awpmd_electrons electrons;
+
+  std::tie(ions, electrons) = this->make_packets();
+
+  auto &local = atom->nlocal;
+
+  ions.erase(std::remove_if(ions.begin(), ions.end(), [&local](auto const &v){return v.lmp_index < local;}), ions.end());
+  for (auto it = electrons.begin(); it != electrons.end();){
+    auto &v = it->second;
+    v.erase(std::remove_if(v.begin(), v.end(), [&local](auto const &i){return i.lmp_index < local;}), v.end());
+    if (v.empty()){
+      it = electrons.erase(it);
+    } else
+      ++it;
+  }
+
+  this->init_wpmd(ions, electrons);
+
+  std::vector<Vector_3> fi;
+  if(wpmd->ni)
+    fi.resize(static_cast<unsigned long>(wpmd->ni));
+
+  wpmd->interaction(0x1|0x4|0x10, fi.data());
+
+  return wpmd->get_energy();
+}

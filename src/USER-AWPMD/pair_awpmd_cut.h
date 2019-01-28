@@ -77,7 +77,7 @@ namespace LAMMPS_NS {
    };
 
    using awpmd_ions = std::vector<awpmd_pair_index >;
-   using awpmd_electrons = std::unordered_map<unsigned, std::vector<awpmd_pair_index>>;
+   using awpmd_electrons = std::map<unsigned, std::vector<awpmd_pair_index>>;
    using awpmd_packets = std::tuple<awpmd_ions, awpmd_electrons>;
 
    awpmd_packets make_packets() const;

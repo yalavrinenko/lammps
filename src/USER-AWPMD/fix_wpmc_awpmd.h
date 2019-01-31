@@ -3,14 +3,15 @@
 //
 #ifdef FIX_CLASS
 
-FixStyle(wpmc/awpmd,FixNVEAwpmd)
+FixStyle(wpmc/awpmd,FixWPMCAwpmd)
 
 #else
 
 #ifndef LAMMPS_FIX_WMPC_AWPMD_H
 #define LAMMPS_FIX_WMPC_AWPMD_H
 #include "fix.h"
-#include "pair_awpmd_cut.h"
+#include "pair.h"
+#include "random_park.h"
 
 namespace LAMMPS_NS {
 
@@ -19,27 +20,30 @@ namespace LAMMPS_NS {
    FixWPMCAwpmd(class LAMMPS *, int, char **);
 
    int setmask() override{
-     return 0;
+     int mask = 0;
+     mask |= LAMMPS_NS::FixConst::INITIAL_INTEGRATE;
+     mask |= LAMMPS_NS::FixConst::POST_FORCE;
+     return mask;
    }
 
-   void init() override {}
+    void init() override;
 
-   void initial_integrate(int) override {}
+    double memory_usage() override;
 
-   void final_integrate() override {}
+    void initial_integrate(int i) override;
 
-   void initial_integrate_respa(int, int, int) override {}
+    void post_force(int i) override;
 
-   void final_integrate_respa(int, int) override {}
+    ~FixWPMCAwpmd() override;
 
-   void reset_dt() override {}
+    double compute_vector(int i) override;
 
   protected:
    double dtv, dtf;
    double *step_respa;
    int mass_require;
 
-   PairAWPMDCut* awpmd_pair;
+   Pair* awpmd_pair;
   };
 
 }

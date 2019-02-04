@@ -72,7 +72,16 @@ namespace LAMMPS_NS {
 
     auto energy_new = input->variable->compute_equal(v_id);
 
+    auto accept_local = false;
+
     if (uniform.step_approve_prob->uniform() < exp(beta*(energy_old - energy_new))){
+      accept_local = true;
+    }
+
+    auto accept_all = accept_local;
+    //MPI_Allreduce(&accept_local, &accept_all, 1, MPI_INT, MPI_MAX, world);
+
+    if (accept_all){
       output.like_vars.accept_flag = 1;
       energy_old = energy_new;
     } else {

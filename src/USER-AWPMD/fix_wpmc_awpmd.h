@@ -73,7 +73,7 @@ namespace LAMMPS_NS {
 
    double energy_old = std::numeric_limits<double>::max();
 
-   double max_displacement = 0.25;
+   double max_displacement = 0.01;
 
    int current_particles_index = -1;
    int current_particles_tag = -1;

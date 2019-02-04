@@ -33,6 +33,7 @@ class eopt_io:
 
         with open(self.path, "w") as out:
             header = "[METHOD]\nApprox = HARTREE\nDFTApprox = Void\nMeshSize = 100\nSpaceSize = {0}\n[VM]\nUpper=1\nLower=1\n".format(bound[0]*2)
+#            header = "[METHOD]\nApprox = UHF\nDFTApprox = Void\nMeshSize = 100\nSpaceSize = {0}\n[VM]\nUpper=1\nLower=1\n".format(bound[0]*2)
             out.write(header)
             out.write("[OPTIMIZATION]\nMinimize=Total\n\n")
 

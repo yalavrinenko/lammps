@@ -28,4 +28,4 @@ thermo          1
 thermo_style    custom step etotal pe ke temp v_accept v_mc_energy v_step_energy
 dump h5md1 		all h5md 100 dump_h5md.h5 position velocity
 
-run 1000000
+run 10000000

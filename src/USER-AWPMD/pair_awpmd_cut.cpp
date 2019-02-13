@@ -711,3 +711,7 @@ double PairAWPMDCut::ghost_energy() {
 
   return wpmd->get_energy();
 }
+
+AWPMD_split *PairAWPMDCut::awpmd() {
+  return wpmd;
+}

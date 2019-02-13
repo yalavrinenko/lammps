@@ -3,7 +3,7 @@
 //
 #ifdef FIX_CLASS
 
-FixStyle(wall/awpmd,FixWPMCAwpmd)
+FixStyle(wall/awpmd,FixWallAwpmd)
 
 #else
 #ifndef LAMMPS_FIX_WPMC_WALL_H

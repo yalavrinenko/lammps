@@ -69,6 +69,7 @@ namespace LAMMPS_NS {
 
    double memory_usage() override;
 
+   AWPMD_split* awpmd();
   private:
 
    struct awpmd_pair_index{

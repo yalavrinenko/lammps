@@ -10,6 +10,7 @@ FixStyle(wall/awpmd,FixWallAwpmd)
 #define LAMMPS_FIX_WPMC_WALL_H
 
 #include "fix.h"
+#include <box_hamiltonian.h>
 
 namespace LAMMPS_NS {
   class PairAWPMDCut;
@@ -22,6 +23,8 @@ namespace LAMMPS_NS {
     int setmask() override;
 
   private:
+    BoxHamiltonian construct_box(char** pString);
+
     class PairAWPMDCut* m_pair;
   };
 }

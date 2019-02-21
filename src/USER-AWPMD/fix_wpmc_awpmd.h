@@ -16,21 +16,22 @@ FixStyle(wpmc/awpmd,FixWPMCAwpmd)
 #include "random_park.h"
 #include "compute.h"
 #include "variable.h"
+#include "mc_utils.h"
 
 namespace LAMMPS_NS {
 
   class FixWPMCAwpmd : public Fix {
   public:
-   FixWPMCAwpmd(class LAMMPS *, int, char **);
+    FixWPMCAwpmd(class LAMMPS *, int, char **);
 
-   void final_integrate() override;
+    void final_integrate() override;
 
-   int setmask() override{
-     int mask = 0;
-     mask |= LAMMPS_NS::FixConst::INITIAL_INTEGRATE;
-     mask |= LAMMPS_NS::FixConst::FINAL_INTEGRATE;
-     return mask;
-   }
+    int setmask() override {
+      int mask = 0;
+      mask |= LAMMPS_NS::FixConst::INITIAL_INTEGRATE;
+      mask |= LAMMPS_NS::FixConst::FINAL_INTEGRATE;
+      return mask;
+    }
 
     void init() override;
 
@@ -43,42 +44,44 @@ namespace LAMMPS_NS {
     double compute_vector(int i) override;
 
   protected:
-   union {
-     struct {
-       double accept_flag;
-       double accepted_energy;
-       double step_energy;
-     } like_vars;
+    void reject();
 
-     double like_vector[sizeof(like_vars) / sizeof(double)];
-   } output;
+    int index_by_tag(int tag) const;
 
-   struct {
-     RanPark *coord = nullptr;
-     RanPark *particle_index = nullptr;
-     RanPark *step_approve_prob = nullptr;
-   } uniform;
+    bool test_step(double dE, double prefactor) const;
 
-   struct v_single_particle {
-     double coord[3];
-     double vel[3];
-   };
-   v_single_particle state_old;
+    union {
+      struct {
+        double accept_flag;
+        double accepted_energy;
+        double step_energy;
+        double accepted_count;
+        double rejected_count;
+      } like_vars;
 
-   void save_state(int p_index);
+      double like_vector[sizeof(like_vars) / sizeof(double)];
+    } output;
 
-   void set_state(int p_index, int tag, v_single_particle const &state);
+    RanPark* random;
 
-   int index_by_tag(int tag) const;
+    union{
+      struct {
+        mc_step coord;
+        mc_step vel;
+        mc_step width;
+        mc_step pwidth;
+      } vars;
 
-   double energy_old = std::numeric_limits<double>::max();
+      mc_step v[sizeof(vars) / sizeof(mc_step)];
+    } steppers;
 
-   double max_displacement = 0.01;
+    size_t const vars_count = sizeof(steppers) / sizeof(mc_step);
+    size_t current_stepper = -1;
 
-   int current_particles_index = -1;
-   int current_particles_tag = -1;
+    double energy_old = std::numeric_limits<double>::max();
+    int v_id = -1;
 
-   int v_id = -1;
+    double target_temperature = 1.0;
   };
 
 }

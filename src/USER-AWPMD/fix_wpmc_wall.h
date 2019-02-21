@@ -23,7 +23,7 @@ namespace LAMMPS_NS {
     int setmask() override;
 
   private:
-    BoxHamiltonian construct_box(char** pString);
+    BoxHamiltonian construct_box(char **pString, double half_box_size);
 
     class PairAWPMDCut* m_pair;
   };

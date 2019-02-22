@@ -39,6 +39,11 @@ namespace LAMMPS_NS {
       steppers.v[i].type = (mc_step::mc_type)i;
     }
 
+    if (!atom->wavepacket_flag){
+      steppers.vars.pwidth.active = false;
+      steppers.vars.width.active = false;
+    }
+
     target_temperature = force->numeric(FLERR, args[4]) * force->boltz;
     output.like_vars.accepted_count = output.like_vars.rejected_count = 0.0;
   }

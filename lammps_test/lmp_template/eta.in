@@ -1,15 +1,15 @@
-variable	sname index h_atom
+variable	sname index TEST_CASE
 log		${sname}.spe.log
 
 units 		real
 newton		on
-boundary        f f f
+boundary        fm fm fm
 processors      1 * *
 
 
 atom_style	wavepacket
 
-read_data  data.${sname}
+read_data  inconfig/${sname}.data
 
 #neighbor        2.0 nsq
 
@@ -33,8 +33,9 @@ variable        errestrain equal c_energies[4]
 compute         peratom all stress/atom NULL
 compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
 variable        press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+variable 		etotal_ev equal etotal/627.509474*27.211386
 
 thermo          1
-thermo_style    custom step etotal pe ke v_eke v_epauli v_estatics v_errestrain temp press v_press 
+thermo_style    custom step etotal v_etotal_ev pe ke v_eke v_epauli v_estatics v_errestrain temp press v_press
 
 run 		0

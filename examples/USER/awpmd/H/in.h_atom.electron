@@ -1,7 +1,7 @@
-variable	sname index h_atom
+variable	sname index h_atom.electron
 log		${sname}.spe.log
 
-units 		real
+units 		electron
 newton		on
 boundary        f f f
 processors      1 * *

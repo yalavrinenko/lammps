@@ -242,9 +242,11 @@ void Update::set_units(const char *style)
     force->qe2f = 1.94469051e-10;
     force->vxmu2f = 3.39893149e1;
     force->xxt2kmu = 3.13796367e-2;
-    force->e_mass = 0.0;    // not yet set
-    force->hhmrr2e = 0.0;
-    force->mvh2r = 0.0;
+
+    force->e_mass = 0.0005485799090700234;    // not yet set
+    force->hhmrr2e = 0.00015251063183203208;
+    force->mvh2r = 2.8986526872970475;
+
     force->angstrom = 1.88972612;
     force->femtosecond = 1.0;
     force->qelectron = 1.0;

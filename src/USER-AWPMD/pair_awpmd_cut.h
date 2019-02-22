@@ -25,7 +25,8 @@ PairStyle(awpmd/cut,PairAWPMDCut)
 #define LMP_PAIR_AWPMD_CUT_H
 
 #include "pair.h"
-
+#include <vector>
+#include <unordered_map>
 
 class AWPMD_split;
 
@@ -36,9 +37,9 @@ namespace LAMMPS_NS {
    friend class FixNVEAwpmd;
 
   public:
-   PairAWPMDCut(class LAMMPS *);
+   explicit PairAWPMDCut(class LAMMPS *);
 
-   virtual ~PairAWPMDCut();
+   ~PairAWPMDCut() override;
 
    void compute(int, int) override;
 
@@ -70,6 +71,21 @@ namespace LAMMPS_NS {
 
   private:
 
+   struct awpmd_pair_index{
+     unsigned lmp_index{};
+     unsigned wpmd_index{};
+   };
+
+   using awpmd_ions = std::vector<awpmd_pair_index >;
+   using awpmd_electrons = std::map<unsigned, std::vector<awpmd_pair_index>>;
+   using awpmd_packets = std::tuple<awpmd_ions, awpmd_electrons>;
+
+   awpmd_packets make_packets() const;
+
+   //SOME PROP FUNCTION
+   double ghost_energy();
+
+   void init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons);
 
    int flexible_pressure_flag;
    double cut_global;

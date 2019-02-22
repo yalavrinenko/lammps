@@ -15,8 +15,8 @@
 namespace LAMMPS_NS {
   FixWPMCAwpmd::FixWPMCAwpmd(LAMMPS_NS::LAMMPS *lmp, int narg, char **args) :
       Fix(lmp, narg, args){
-    if (!atom->wavepacket_flag)
-      error->all(FLERR, "Fix wpmc/awpmd requires atom style wavepacket");
+    //if (!atom->wavepacket_flag)
+      //error->all(FLERR, "Fix wpmc/awpmd requires atom style wavepacket");
 
     vector_flag = 1;
     size_vector = sizeof(output) / sizeof(double);

@@ -16,7 +16,7 @@ compute         energies all pair lj/cut
 compute         kinetik all ke
 
 variable        mc_eng equal c_energies+c_kinetik
-fix             mc all wpmc/awpmd mc_eng
+fix             mc all wpmc/awpmd mc_eng 1
 
 variable                accept equal f_mc[1]
 variable                mc_energy equal f_mc[2]

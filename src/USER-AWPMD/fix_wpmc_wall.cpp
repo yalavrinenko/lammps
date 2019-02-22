@@ -14,22 +14,17 @@ LAMMPS_NS::FixWallAwpmd::FixWallAwpmd(LAMMPS_NS::LAMMPS *lammps, int i, char **p
   if (!m_pair)
     error->all(FLERR, "Fix wall/awpmd require awpmd/cut pair_style.");
 
-  m_pair->awpmd()->w0=force->numeric(FLERR, pString[3]);
-  m_pair->awpmd()->set_harm_constr(m_pair->awpmd()->w0);
-
-
   double delx = domain->boxhi[0]-domain->boxlo[0];
   double dely = domain->boxhi[1]-domain->boxlo[1];
   double delz = domain->boxhi[2]-domain->boxlo[2];
   auto half_box_length = 0.5 * MIN(delx, MIN(dely, delz));
 
-  m_pair->awpmd()->set_box(construct_box(pString, half_box_length));
   Vector_3 box_size{delx, dely, delz};
   m_pair->awpmd()->set_pbc(&box_size, 0);
+  m_pair->awpmd()->set_box(construct_box(pString, half_box_length));
 }
 
 LAMMPS_NS::FixWallAwpmd::~FixWallAwpmd() {
-  m_pair->awpmd()->constraint = AWPMD::NONE;
   m_pair->awpmd()->use_box = false;
   m_pair->awpmd()->set_pbc(nullptr, 0);
 }

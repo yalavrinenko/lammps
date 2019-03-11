@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 
     int setmask() override {
       int mask = 0;
-      mask |= LAMMPS_NS::FixConst::INITIAL_INTEGRATE;
+      mask |= LAMMPS_NS::FixConst::PRE_FORCE;
       mask |= LAMMPS_NS::FixConst::FINAL_INTEGRATE;
       return mask;
     }
@@ -37,11 +37,11 @@ namespace LAMMPS_NS {
 
     double memory_usage() override;
 
-    void initial_integrate(int i) override;
-
     ~FixWPMCAwpmd() override;
 
     double compute_vector(int i) override;
+
+    void pre_force(int i) override;
 
   protected:
     void reject();
@@ -64,19 +64,8 @@ namespace LAMMPS_NS {
 
     RanPark* random;
 
-    union{
-      struct {
-        mc_step coord;
-        mc_step vel;
-        mc_step width;
-        mc_step pwidth;
-      } vars;
 
-      mc_step v[sizeof(vars) / sizeof(mc_step)];
-    } steppers;
-
-    size_t const vars_count = sizeof(steppers) / sizeof(mc_step);
-    size_t current_stepper = -1;
+    MCStepperSet steppers;
 
     double energy_old = std::numeric_limits<double>::max();
     int v_id = -1;

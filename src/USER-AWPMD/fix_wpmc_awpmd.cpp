@@ -33,68 +33,25 @@ namespace LAMMPS_NS {
     if (v_id == -1)
       error->all(FLERR, "Fix wpmc/awpmd requires a valid variable style");
 
-    for (auto i = 0u; i < vars_count; ++i){
-      steppers.v[i].active = true;
-      steppers.v[i].shift = 0.1;
-      steppers.v[i].type = (mc_step::mc_type)i;
-    }
-
-    if (!atom->wavepacket_flag){
-      steppers.vars.pwidth.active = false;
-      steppers.vars.width.active = false;
-    }
-
     target_temperature = force->numeric(FLERR, args[4]) * force->boltz;
     output.like_vars.accepted_count = output.like_vars.rejected_count = 0.0;
+
+    auto debug_stepper_count = 8u;
+    for (auto i = 0u; i < debug_stepper_count; ++i){
+      steppers.add(lmp, (stepper_type)i);
+      steppers.get(i).max_shift = 0.1;
+      steppers.get(i).engine.setT(target_temperature);
+    }
+
   }
 
   void FixWPMCAwpmd::init() {
   }
 
   double FixWPMCAwpmd::memory_usage() {
-    return sizeof(energy_old) + sizeof(random) + sizeof(output) + sizeof(steppers);
+    return sizeof(energy_old) + sizeof(random) + sizeof(output);
   }
 
-  void FixWPMCAwpmd::initial_integrate(int i) {
-    auto npart = atom->nlocal;
-    auto particle_index = static_cast<int>(random->uniform() * (npart - 1));
-
-    for (auto &stepper : steppers.v){
-      if (stepper.active){
-        stepper.index = particle_index;
-        stepper.tag = atom->tag[particle_index];
-
-        double **src = nullptr;
-
-        switch (stepper.type){
-          case mc_step::mc_type ::coord:
-          case mc_step::mc_type ::vel:
-            src = (stepper.type == mc_step::mc_type::coord) ? atom->x : atom->v;
-            std::copy(src[particle_index], src[particle_index] + 3, stepper.old);
-
-            for (auto k = 0u; k < 3; ++k)
-              src[particle_index][k] += (2.0 * random->uniform() - 1.0) * stepper.shift;
-
-            break;
-
-          case mc_step::mc_type ::width:
-            if (atom->spin[stepper.index] != 0) {
-              stepper.old[0] = atom->eradius[particle_index];
-              atom->eradius[particle_index] += (2.0 * random->uniform() - 1.0) * stepper.shift;
-            }
-            break;
-
-          case mc_step::mc_type ::pwidth:
-            if (atom->spin[stepper.index] != 0) {
-              stepper.old[0] = atom->ervel[particle_index];
-              atom->ervel[particle_index] += (2.0 * random->uniform() - 1.0) * stepper.shift;
-            }
-            break;
-        };
-      }
-    }
-
-  }
 
   FixWPMCAwpmd::~FixWPMCAwpmd() = default;
 
@@ -104,75 +61,27 @@ namespace LAMMPS_NS {
 
   void FixWPMCAwpmd::final_integrate() {
     auto energy_new = input->variable->compute_equal(v_id);
-    auto accept_local = test_step(energy_new - energy_old, 1.0);
+    this->output.like_vars.accept_flag = steppers.current().engine.test(energy_new - energy_old, 1.);
 
-    auto accept_all = accept_local;
-    if (accept_all){
-      output.like_vars.accept_flag = 1;
-      ++output.like_vars.accepted_count;
+    if (output.like_vars.accept_flag == 1){
+      //accepted
       energy_old = energy_new;
     } else {
-      reject();
-      output.like_vars.accept_flag = 0;
-      ++output.like_vars.rejected_count;
+      //rejected
+      steppers.current().system->restore((size_t)atom->nlocal);
     }
 
     output.like_vars.step_energy = energy_new;
-    output.like_vars.accepted_energy = energy_old;
-  }
-
-  void FixWPMCAwpmd::reject() {
-    for (auto &stepper : steppers.v) {
-      if (stepper.active) {
-        if (stepper.tag != atom->tag[stepper.index]) {
-          stepper.index = index_by_tag(stepper.tag);
-        }
-
-        double **src = nullptr;
-        switch (stepper.type) {
-          case mc_step::mc_type::coord:
-          case mc_step::mc_type::vel:
-            src = (stepper.type == mc_step::mc_type::coord) ? atom->x : atom->v;
-            std::copy(std::begin(stepper.old), std::end(stepper.old), src[stepper.index]);
-            break;
-
-          case mc_step::mc_type::width:
-            if (atom->spin[stepper.index] != 0)
-              atom->eradius[stepper.index] = stepper.old[0];
-            break;
-
-          case mc_step::mc_type::pwidth:
-            if (atom->spin[stepper.index] != 0)
-              atom->ervel[stepper.index] = stepper.old[0];
-            break;
-        };
-      }
-    }
+    output.like_vars.accepted_count += output.like_vars.accept_flag;
+    output.like_vars.accepted_energy += energy_old;
+    output.like_vars.rejected_count += (output.like_vars.accept_flag == 0);
 
   }
 
-  int FixWPMCAwpmd::index_by_tag(int tag) const {
-    auto npart = atom->nlocal + atom->nghost;
-    for (auto i = 0u; i < npart; ++i)
-      if (atom->tag[i] == tag)
-        return i;
-    return -1;
+  void FixWPMCAwpmd::pre_force(int i) {
+    steppers.current().system->save((size_t)atom->nlocal);
+    steppers.current().system->make((size_t)atom->nlocal, steppers.current());
   }
 
-  bool FixWPMCAwpmd::test_step(double dE, double prefactor) const {
-    if (dE < 0)
-      return true;
-    else {
-      double r1 = prefactor * exp(-dE / target_temperature);
-      double r2 = random->uniform();
-
-      if (r1 < 1) {
-        if (r1 >= r2)
-          return true;
-      } else
-        return true;
-    }
-    return false;
-  }
 
 }

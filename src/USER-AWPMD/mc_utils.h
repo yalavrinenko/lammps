@@ -12,6 +12,7 @@
 #include <vector>
 #include <array>
 #include "atom.h"
+#include <iterator>
 
 namespace LAMMPS_NS{
 
@@ -21,8 +22,8 @@ namespace LAMMPS_NS{
     electron_p = 2,
     electron_w = 3,
     electron_pw = 4,
-    electron_c0 = 5,
-    electron_c1 = 6,
+    electron_c0 = 5, //Not impl
+    electron_c1 = 6, //Not impl
     ion_p = 7
   };
 
@@ -56,24 +57,60 @@ namespace LAMMPS_NS{
     }
 
     void restore(size_t size) override {
+      auto insert_iterator = storage.begin();
       for (auto i = 0; i < size; ++i)
         if (_filter(i)){
-          src[i][0] = storage[i][0];
-          src[i][1] = storage[i][1];
-          src[i][2] = storage[i][2];
+          src[i][0] = (*insert_iterator)[0];
+          src[i][1] = (*insert_iterator)[1];
+          src[i][2] = (*insert_iterator)[2];
+          ++insert_iterator;
         }
     }
 
     void make(size_t size, mc_stepper &stepper) override;
 
   public:
-    MC3DVectorSystem(double** source, filter_func &&filter):
+    MC3DVectorSystem(double** &source, filter_func &&filter):
         src(source), MCSystem(std::forward<filter_func>(filter)){
     }
 
   private:
-    double** src;
+    double** &src;
     std::vector<std::array<double, 3>> storage;
+  };
+
+  class MCScalarSystem: public MCSystem{
+  public:
+    void save(size_t size) override {
+      storage.clear();
+      storage.reserve(size);
+
+      for (auto i = 0; i < size; ++i)
+        if (_filter(i)){
+          storage.push_back(src[i]);
+        }
+      storage.shrink_to_fit();
+    }
+
+    void restore(size_t size) override {
+      auto insert_iterator = storage.begin();
+      for (auto i = 0; i < size; ++i)
+        if (_filter(i)){
+          src[i] = *insert_iterator;
+          ++insert_iterator;
+        }
+    }
+
+    void make(size_t size, mc_stepper &stepper) override;
+
+  public:
+    MCScalarSystem(double* &source, filter_func &&filter):
+        src(source), MCSystem(std::forward<filter_func>(filter)){
+    }
+
+  private:
+    double* &src;
+    std::vector<double> storage;
   };
 
   struct mc_stepper{
@@ -103,6 +140,10 @@ namespace LAMMPS_NS{
       if (type == stepper_type::electron_w && v < 0)
         v = std::abs(v);
     }
+
+    void adjust(){
+      max_shift *= engine.adjust();
+    }
   };
 
   class MCStepperSet{
@@ -122,8 +163,9 @@ namespace LAMMPS_NS{
     }
 
     template <class ... Targs>
-    void add(Targs ... args){
+    mc_stepper& add(Targs ... args){
       steppers.emplace_back(args...);
+      return steppers.back();
     }
 
     size_t count() const {

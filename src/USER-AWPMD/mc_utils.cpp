@@ -13,4 +13,11 @@ namespace LAMMPS_NS{
           stepper.make_shift(src[i][j]);
       }
   }
+
+  void MCScalarSystem::make(size_t size, mc_stepper &stepper) {
+    for (auto i = 0u; i < size; ++i)
+      if (_filter(i)){
+        stepper.make_shift(src[i]);
+      }
+  }
 }

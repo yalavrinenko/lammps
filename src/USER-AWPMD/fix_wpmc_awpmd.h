@@ -44,11 +44,8 @@ namespace LAMMPS_NS {
     void pre_force(int i) override;
 
   protected:
-    void reject();
 
-    int index_by_tag(int tag) const;
-
-    bool test_step(double dE, double prefactor) const;
+    void init_mc_steppers(int argc, char** argv);
 
     union {
       struct {
@@ -63,7 +60,6 @@ namespace LAMMPS_NS {
     } output;
 
     RanPark* random;
-
 
     MCStepperSet steppers;
 

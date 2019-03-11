@@ -47,7 +47,7 @@ thermo          1
 thermo_modify	norm yes
 thermo_style    custom step etotal v_etotal_ev pe ke v_eke temp v_accept v_mc_energy v_step_energy
 dump 			h5md_dump all h5md 100 dump_h5md.h5 position velocity species box yes
-run 		1000000
+run 		10000000
 
 
 unfix ave

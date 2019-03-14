@@ -34,20 +34,20 @@ variable 		etotal_ev equal etotal/627.509474*27.211386
 
 compute         kinetik all ke
 
-variable        mc_eng equal c_energies+c_kinetik+v_eke
-fix             mc all wpmc/awpmd mc_eng 0 ix ex ew ewp ev iv
+variable        mc_eng equal c_energies
+fix             mc all wpmc/awpmd mc_eng 1 ix ex ew ewp ev iv
 
 variable        accept equal f_mc[1]
 variable        mc_energy equal f_mc[2]
 variable        step_energy equal f_mc[3]
 
-fix 			ave all ave/time 1 10 100 c_energies c_kinetik v_eke v_mc_eng v_accept file ave_mc.dat off 1
+fix 			ave all ave/time 1 10 100 c_energies c_kinetik v_eke v_accept file ave_mc.dat off 1
 
 thermo          1
 thermo_modify	norm yes
 thermo_style    custom step etotal v_etotal_ev pe ke v_eke temp v_accept v_mc_energy v_step_energy
 dump 			h5md_dump all h5md 100 dump_h5md.h5 position velocity species box yes
-run 		10000000
+run 		1000000
 
 
 unfix ave

@@ -1,4 +1,4 @@
-variable	sname index 2
+variable	sname index 4
 log		${sname}.spe.log
 
 units 		real
@@ -41,7 +41,7 @@ variable        accept equal f_mc[1]
 variable        mc_energy equal f_mc[2]
 variable        step_energy equal f_mc[3]
 
-fix 			ave all ave/time 1 10 100 c_energies c_kinetik v_eke v_accept file ave_mc.dat off 1
+fix 		ave all ave/time 1 10 100 c_energies c_kinetik v_eke v_accept file ave_mc.dat off 1
 
 thermo          1
 thermo_modify	norm yes
@@ -52,9 +52,9 @@ run 		1000000
 
 unfix ave
 unfix mc
-compute			erad all property/atom eradius
+compute		erad all property/atom eradius
 
-dump 			snap all cfg 1 dump.config.*.cfg mass type xsu ysu zsu vx vy vz c_erad id type 
+dump 		snap all cfg 1 dump.config.*.cfg mass type xsu ysu zsu vx vy vz c_erad id type 
 thermo_style    custom step etotal pe ke temp
 
 run 0

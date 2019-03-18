@@ -13,8 +13,8 @@ atom_style	wavepacket
 
 region          box block -2 2 -2 2 -2 2
 create_box      2 box
-create_atoms    1 random 32 24 box
-create_atoms	2 random 32 42 box
+create_atoms    1 random 2 24 box
+create_atoms	2 random 2 42 box
 
 mass            1 1.000794
 mass			2 0.000544616997098749

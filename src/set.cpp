@@ -48,7 +48,7 @@ enum{TYPE,TYPE_FRACTION,MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,LENGTH,TRI,
      THETA,THETA_RANDOM,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
      MESO_E,MESO_CV,MESO_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
-     SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME,VX,VY,VZ};
+     SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME,VX,VY,VZ,SPIN_WPMD};
 
 #define BIG INT_MAX
 
@@ -565,6 +565,14 @@ void Set::command(int narg, char **arg)
       set(DNAME);
       iarg += 2;
 
+    } else if (strstr(arg[iarg], "spin/wpmd") == arg[iarg]){
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else dvalue = force->numeric(FLERR,arg[iarg+1]);
+      if (!atom->spin_flag)
+        error->all(FLERR,"Cannot set this attribute for this atom style");
+      set(SPIN_WPMD);
+      iarg += 2;
     } else error->all(FLERR,"Illegal set command");
 
     // statistics
@@ -883,6 +891,12 @@ void Set::set(int keyword)
       sp[i][1] = inorm*yvalue;
       sp[i][2] = inorm*zvalue;
       sp[i][3] = dvalue;
+    }
+
+    //set spin for wavepacket atom style
+
+    else if (keyword == SPIN_WPMD){
+      atom->spin[i] = dvalue;
     }
 
     // set quaternion orientation of ellipsoid or tri or body particle

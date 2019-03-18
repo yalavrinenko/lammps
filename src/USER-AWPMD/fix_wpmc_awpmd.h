@@ -59,8 +59,6 @@ namespace LAMMPS_NS {
       double like_vector[sizeof(like_vars) / sizeof(double)];
     } output;
 
-    RanPark* random;
-
     MCStepperSet steppers;
 
     double energy_old = std::numeric_limits<double>::max();

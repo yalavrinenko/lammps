@@ -28,8 +28,6 @@ namespace LAMMPS_NS {
 
     nevery = 1;
 
-    random = new RanPark(lmp, 42);
-
     v_id = input->variable->find(args[3]);
     if (v_id == -1)
       error->all(FLERR, "Fix wpmc/awpmd requires a valid variable style");
@@ -44,7 +42,7 @@ namespace LAMMPS_NS {
   }
 
   double FixWPMCAwpmd::memory_usage() {
-    return sizeof(energy_old) + sizeof(random) + sizeof(output);
+    return sizeof(energy_old) + sizeof(output);
   }
 
   FixWPMCAwpmd::~FixWPMCAwpmd() = default;
@@ -85,27 +83,28 @@ namespace LAMMPS_NS {
     auto ion_filter =[this](int index) { return atom->spin[index] == 0; };
 
     for (auto i = ARG_SHIFT; i < argc; ++i) {
+      auto random_seed = std::abs((int)std::random_device{}());
       if (!std::strcmp(argv[i], "ix")) {
-        steppers.add(lmp, stepper_type::ion_r).assign_subsystem(
+        steppers.add(lmp, stepper_type::ion_r, random_seed).assign_subsystem(
             std::make_unique<MC3DVectorSystem>(atom->x, ion_filter));
       } else if (!std::strcmp(argv[i], "ex")) {
-        steppers.add(lmp, stepper_type::electron_r).assign_subsystem(
+        steppers.add(lmp, stepper_type::electron_r, random_seed).assign_subsystem(
             std::make_unique<MC3DVectorSystem>(atom->x, electron_filter));
       } else if (!std::strcmp(argv[i], "ev")) {
-        steppers.add(lmp, stepper_type::electron_p).assign_subsystem(
+        steppers.add(lmp, stepper_type::electron_p, random_seed).assign_subsystem(
             std::make_unique<MC3DVectorSystem>(atom->v, electron_filter));
       } else if (!std::strcmp(argv[i], "ew")) {
-        steppers.add(lmp, stepper_type::electron_w).assign_subsystem(
+        steppers.add(lmp, stepper_type::electron_w, random_seed).assign_subsystem(
             std::make_unique<MCScalarSystem>(atom->eradius, electron_filter));
       } else if (!std::strcmp(argv[i], "epw")) {
-        steppers.add(lmp, stepper_type::electron_pw).assign_subsystem(
+        steppers.add(lmp, stepper_type::electron_pw, random_seed).assign_subsystem(
             std::make_unique<MCScalarSystem>(atom->ervel, electron_filter));
       } else if (!std::strcmp(argv[i], "ec0")) {
         throw std::logic_error("Not impl yet.");
       } else if (!std::strcmp(argv[i], "ec1")) {
         throw std::logic_error("Not impl yet.");
       } else if (!std::strcmp(argv[i], "iv")) {
-        steppers.add(lmp, stepper_type::ion_p).assign_subsystem(
+        steppers.add(lmp, stepper_type::ion_p, random_seed).assign_subsystem(
             std::make_unique<MC3DVectorSystem>(atom->v, ion_filter));
       }
       steppers.get(i - ARG_SHIFT).max_shift = 0.1;

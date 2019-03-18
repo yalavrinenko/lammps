@@ -896,7 +896,7 @@ void AtomVecWavepacket::create_atom(int itype, double *coord)
   ervel[nlocal] = 0.0;
 
   etag[nlocal] = 0;
-  cs[2*nlocal] = 0.;
+  cs[2*nlocal] = 1.; //Packet should exist by default
   cs[2*nlocal+1] = 0.;
 
   atom->nlocal++;

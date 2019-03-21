@@ -13,6 +13,8 @@
 #include "modify.h"
 #include <cstring>
 
+using namespace std::string_literals;
+
 namespace LAMMPS_NS {
   FixWPMCAwpmd::FixWPMCAwpmd(LAMMPS_NS::LAMMPS *lmp, int narg, char **args) :
       Fix(lmp, narg, args){
@@ -58,7 +60,7 @@ namespace LAMMPS_NS {
     if (output.like_vars.accept_flag == 1){
       energy_old = energy_new;
     } else {
-      steppers.current().system->restore((size_t)atom->nlocal);
+      steppers.current().restore((size_t)atom->nlocal);
     }
 
     output.like_vars.step_energy = energy_new;
@@ -72,8 +74,8 @@ namespace LAMMPS_NS {
   }
 
   void FixWPMCAwpmd::pre_force(int i) {
-    steppers.current().system->save((size_t)atom->nlocal);
-    steppers.current().system->make((size_t)atom->nlocal, steppers.current());
+    steppers.current().save((size_t)atom->nlocal);
+    steppers.current().make((size_t)atom->nlocal);
   }
 
   void FixWPMCAwpmd::init_mc_steppers(int argc, char **argv) {
@@ -96,7 +98,7 @@ namespace LAMMPS_NS {
       } else if (!std::strcmp(argv[i], "ew")) {
         steppers.add(lmp, stepper_type::electron_w, random_seed).assign_subsystem(
             std::make_unique<MCScalarSystem>(atom->eradius, electron_filter));
-      } else if (!std::strcmp(argv[i], "epw")) {
+      } else if (!std::strcmp(argv[i], "ewp")) {
         steppers.add(lmp, stepper_type::electron_pw, random_seed).assign_subsystem(
             std::make_unique<MCScalarSystem>(atom->ervel, electron_filter));
       } else if (!std::strcmp(argv[i], "ec0")) {
@@ -106,11 +108,12 @@ namespace LAMMPS_NS {
       } else if (!std::strcmp(argv[i], "iv")) {
         steppers.add(lmp, stepper_type::ion_p, random_seed).assign_subsystem(
             std::make_unique<MC3DVectorSystem>(atom->v, ion_filter));
+      } else {
+        error->all(FLERR, ("Invalid stepper name"s + argv[i]).c_str());
       }
       steppers.get(i - ARG_SHIFT).max_shift = 0.1;
       steppers.get(i - ARG_SHIFT).engine.setT(target_temperature);
     }
   }
-
 
 }

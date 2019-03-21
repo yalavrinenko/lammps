@@ -35,7 +35,7 @@ variable 		etotal_ev equal etotal/627.509474*27.211386
 compute         kinetik all ke
 
 variable        mc_eng equal c_energies
-fix             mc all wpmc/awpmd mc_eng 1 ix ex ew ewp ev iv
+fix             mc all wpmc/awpmd mc_eng 1 ix ex ew ewp
 
 variable        accept equal f_mc[1]
 variable        mc_energy equal f_mc[2]

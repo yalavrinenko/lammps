@@ -112,5 +112,4 @@ namespace LAMMPS_NS {
     }
   }
 
-
 }

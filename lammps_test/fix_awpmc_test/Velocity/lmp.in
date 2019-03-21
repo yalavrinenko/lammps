@@ -28,8 +28,8 @@ set     type 2 eradius 0.86
 group ion type 1
 group electron type 2
 
-velocity        ion create 10000 87287
-velocity        electron create 5000 87287
+velocity        ion create 10000 87287 dist gaussian
+velocity        electron create 5000 87287 dist gaussian
 
 #END INIT SECTION
 
@@ -51,7 +51,7 @@ compute			ke_ion ion temp
 compute			ke_el  electron temp
 
 variable        mc_eng equal c_energies+c_kinetik
-fix             mc all wpmc/awpmd mc_eng 10000 ix ex ew ewp iv ev
+fix             mc all wpmc/awpmd mc_eng 10000 ix ex ew ewp ev
 
 variable        accept equal f_mc[1]
 variable        mc_energy equal f_mc[2]

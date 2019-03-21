@@ -129,6 +129,18 @@ namespace LAMMPS_NS{
       system = std::move(ssystem);
     }
 
+    void save(size_t system_size){
+      system->save(system_size);
+    }
+
+    void restore(size_t system_size){
+      system->restore(system_size);
+    }
+
+    void make(size_t system_size){
+      system->make(system_size, *this);
+    }
+
     inline double shift(){
       return 2.0 * max_shift * (random->uniform() - 0.5);
     }

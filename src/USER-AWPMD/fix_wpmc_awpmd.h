@@ -45,6 +45,8 @@ namespace LAMMPS_NS {
 
   protected:
 
+    void update_ghosts();
+
     void init_mc_steppers(int argc, char** argv);
 
     union {

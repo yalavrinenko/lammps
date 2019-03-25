@@ -12,7 +12,8 @@
 #include <cmath>
 #include "modify.h"
 #include <cstring>
-
+#include "comm.h"
+#include "atom_vec.h"
 using namespace std::string_literals;
 
 namespace LAMMPS_NS {
@@ -75,8 +76,30 @@ namespace LAMMPS_NS {
   }
 
   void FixWPMCAwpmd::pre_force(int i) {
+    static int iter = 0;
+//    printf("%d[%d]\tPRE_LOCAL[%d]:%lf(%d)\tGHOST[%d]:%lf(%d)\n",
+//        MPI::COMM_WORLD.Get_rank(),
+//        iter,
+//        atom->nlocal,
+//        atom->x[0][0],
+//        atom->tag[0],
+//        atom->nghost,
+//        atom->x[1][0],
+//        atom->tag[1]);
+
     steppers.current().save((size_t)atom->nlocal);
     steppers.current().make((size_t)atom->nlocal);
+    update_ghosts();
+//    printf("%d[%d]\tPOST_LOCAL[%d]:%lf(%d)\tGHOST[%d]:%lf(%d)\n",
+//           MPI::COMM_WORLD.Get_rank(),
+//           iter,
+//           atom->nlocal,
+//           atom->x[0][0],
+//           atom->tag[0],
+//           atom->nghost,
+//           atom->x[1][0],
+//           atom->tag[1]);
+    ++iter;
   }
 
   void FixWPMCAwpmd::init_mc_steppers(int argc, char **argv) {
@@ -114,6 +137,41 @@ namespace LAMMPS_NS {
       }
       steppers.get(i - ARG_SHIFT).max_shift = 0.1;
       steppers.get(i - ARG_SHIFT).engine.setT(target_temperature);
+    }
+  }
+
+  void FixWPMCAwpmd::update_ghosts() {
+    auto* avec = atom->avec;
+    double send_buf[(avec->size_border + avec->size_velocity + 1) * atom->nlocal];
+    int send_shift = 0;
+    for (auto i = 0; i < atom->nlocal; ++i)
+      send_shift += avec->pack_exchange(i, &send_buf[send_shift]);
+
+    int recv_size[comm->nprocs];
+    MPI::COMM_WORLD.Allgather(&send_shift, 1, MPI_INT, recv_size, 1, MPI_INT);
+
+    int displace[comm->nprocs];
+    displace[0] = 0;
+    for (auto i = 1; i < comm->nprocs - 1; ++i)
+      displace[i] = displace[i-1] + recv_size[i - 1];
+
+    int total_recv = (avec->size_border + avec->size_velocity + 1) * (atom->nlocal + atom->nghost);
+    double recv_buf[total_recv];
+    MPI::COMM_WORLD.Allgatherv(send_buf, send_shift, MPI_DOUBLE, recv_buf, recv_size, displace, MPI_DOUBLE);
+
+    auto tmp_nlocal = atom->nlocal;
+    auto tmp_nghost = atom->nghost;
+
+    std::unordered_map<int, int> tag_to_index;
+    for (auto i = tmp_nlocal; i < tmp_nlocal + tmp_nghost; ++i)
+      tag_to_index[atom->tag[i]] = i;
+
+    atom->nlocal += atom->nghost;
+
+    int unpuck_shift = 0;
+    while (unpuck_shift < total_recv) {
+      unpuck_shift += avec->unpack_exchange(&recv_buf[unpuck_shift]);
+      --atom->nlocal;
     }
   }
 

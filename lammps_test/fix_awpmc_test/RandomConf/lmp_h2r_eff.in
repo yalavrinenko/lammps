@@ -3,7 +3,7 @@ log		${sname}.spe.log
 
 units 		real
 newton		on
-boundary        m m m
+boundary        p p p
 processors      1 * *
 
 

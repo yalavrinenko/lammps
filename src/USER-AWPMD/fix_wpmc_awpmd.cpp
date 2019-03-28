@@ -38,6 +38,7 @@ namespace LAMMPS_NS {
     target_temperature = force->numeric(FLERR, args[4]) * force->boltz;
     output.like_vars.accepted_count = output.like_vars.rejected_count = 0.0;
 
+    srand(42);
     init_mc_steppers(narg, args);
   }
 
@@ -55,8 +56,16 @@ namespace LAMMPS_NS {
   }
 
   void FixWPMCAwpmd::final_integrate() {
+    return;
+
     auto energy_new = input->variable->compute_equal(v_id);
     this->output.like_vars.accept_flag = steppers.current().engine.test(energy_new - energy_old, 1.);
+
+    double collective_decision;
+    MPI::COMM_WORLD.Allreduce(&(output.like_vars.accept_flag), &collective_decision, 1, MPI_DOUBLE, MPI_SUM);
+
+    if (collective_decision > 0)
+      this->output.like_vars.accept_flag = true;
 
     if (output.like_vars.accept_flag == 1){
       energy_old = energy_new;
@@ -76,30 +85,10 @@ namespace LAMMPS_NS {
   }
 
   void FixWPMCAwpmd::pre_force(int i) {
-    static int iter = 0;
-//    printf("%d[%d]\tPRE_LOCAL[%d]:%lf(%d)\tGHOST[%d]:%lf(%d)\n",
-//        MPI::COMM_WORLD.Get_rank(),
-//        iter,
-//        atom->nlocal,
-//        atom->x[0][0],
-//        atom->tag[0],
-//        atom->nghost,
-//        atom->x[1][0],
-//        atom->tag[1]);
-
+    return;
     steppers.current().save((size_t)atom->nlocal);
     steppers.current().make((size_t)atom->nlocal);
     update_ghosts();
-//    printf("%d[%d]\tPOST_LOCAL[%d]:%lf(%d)\tGHOST[%d]:%lf(%d)\n",
-//           MPI::COMM_WORLD.Get_rank(),
-//           iter,
-//           atom->nlocal,
-//           atom->x[0][0],
-//           atom->tag[0],
-//           atom->nghost,
-//           atom->x[1][0],
-//           atom->tag[1]);
-    ++iter;
   }
 
   void FixWPMCAwpmd::init_mc_steppers(int argc, char **argv) {
@@ -109,7 +98,7 @@ namespace LAMMPS_NS {
     auto ion_filter =[this](int index) { return atom->spin[index] == 0; };
 
     for (auto i = ARG_SHIFT; i < argc; ++i) {
-      auto random_seed = std::abs((int)std::random_device{}());
+      auto random_seed = 42;//std::abs((int)std::random_device{}());
       if (!std::strcmp(argv[i], "ix")) {
         steppers.add(lmp, stepper_type::ion_r, random_seed).assign_subsystem(
             std::make_unique<MC3DVectorSystem>(atom->x, ion_filter));
@@ -142,7 +131,7 @@ namespace LAMMPS_NS {
 
   void FixWPMCAwpmd::update_ghosts() {
     auto* avec = atom->avec;
-    double send_buf[(avec->size_border + avec->size_velocity + 1) * atom->nlocal];
+    double send_buf[(avec->size_border + avec->size_velocity + 2) * atom->nlocal];
     int send_shift = 0;
     for (auto i = 0; i < atom->nlocal; ++i)
       send_shift += avec->pack_exchange(i, &send_buf[send_shift]);
@@ -152,10 +141,10 @@ namespace LAMMPS_NS {
 
     int displace[comm->nprocs];
     displace[0] = 0;
-    for (auto i = 1; i < comm->nprocs - 1; ++i)
+    for (auto i = 1; i < comm->nprocs; ++i)
       displace[i] = displace[i-1] + recv_size[i - 1];
 
-    int total_recv = (avec->size_border + avec->size_velocity + 1) * (atom->nlocal + atom->nghost);
+    int total_recv = (avec->size_border + avec->size_velocity + 2) * (atom->nlocal + atom->nghost);
     double recv_buf[total_recv];
     MPI::COMM_WORLD.Allgatherv(send_buf, send_shift, MPI_DOUBLE, recv_buf, recv_size, displace, MPI_DOUBLE);
 
@@ -171,8 +160,14 @@ namespace LAMMPS_NS {
     int unpuck_shift = 0;
     while (unpuck_shift < total_recv) {
       unpuck_shift += avec->unpack_exchange(&recv_buf[unpuck_shift]);
+      if (tag_to_index.count(atom->tag[atom->nlocal - 1])){
+        avec->copy(atom->nlocal - 1, tag_to_index[atom->tag[atom->nlocal - 1]], 0);
+      }
       --atom->nlocal;
     }
+
+    atom->nlocal = tmp_nlocal;
+    atom->nghost = tmp_nghost;
   }
 
 }

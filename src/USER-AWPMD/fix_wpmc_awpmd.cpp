@@ -70,8 +70,8 @@ namespace LAMMPS_NS {
     output.like_vars.rejected_count += (output.like_vars.accept_flag == 0);
 
     steppers.current().adjust();
-    if (output.like_vars.accept_flag == 1)
-      steppers.next();
+    //if (output.like_vars.accept_flag == 1)
+    steppers.next();
   }
 
   void FixWPMCAwpmd::pre_force(int i) {

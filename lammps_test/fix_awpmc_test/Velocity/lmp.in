@@ -28,8 +28,8 @@ set     type 2 eradius 0.86
 group ion type 1
 group electron type 2
 
-velocity        ion create 10000 87287
-velocity        electron create 5000 87287
+velocity        ion create 5000 87287
+velocity        electron create 5000 87283
 
 #END INIT SECTION
 
@@ -58,7 +58,7 @@ variable        mc_energy equal f_mc[2]
 variable        step_energy equal f_mc[3]
 
 compute         all_temp all temp
-fix 		ave all ave/time 1 1 1 c_energies c_kinetik c_ke_ion c_ke_el c_all_temp v_accept v_mc_eng file ave_mc.dat off 1
+fix 		ave all ave/time 1 1 1 v_etotal_ev c_energies c_kinetik c_ke_ion c_ke_el c_all_temp v_accept v_mc_eng file ave_mc.dat off 1
 
 thermo          1
 thermo_modify	norm yes

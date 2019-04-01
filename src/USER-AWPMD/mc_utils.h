@@ -121,7 +121,8 @@ namespace LAMMPS_NS{
     std::unique_ptr<MCSystem> system;
     std::unique_ptr<RanPark> random;
 
-    explicit mc_stepper(LAMMPS* lmp, stepper_type type = stepper_type::ion_r, size_t seed = 42): type(type){
+    explicit mc_stepper(LAMMPS *lmp, stepper_type type = stepper_type::ion_r, size_t seed = 42, size_t engine_seed = 42)
+        : type(type), engine(engine_seed) {
       random = std::make_unique<RanPark>(lmp, seed);
     }
 

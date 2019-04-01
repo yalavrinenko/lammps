@@ -71,7 +71,7 @@ compute		ch   all property/atom q
 dump 		snap all cfg 100 ./dumps/dump.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
 dump_modify snap element I E
 
-run 		1000000
+run 		10000
 
 unfix ave
 unfix mc

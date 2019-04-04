@@ -1,29 +1,40 @@
 import random
 
-DistanceScale = 1# 1.0 / 0.52917720859
+DistanceScale = 1  # 1.0 / 0.52917720859
+
 
 class wpacket:
 
-    def __init__(self, mass, charge, width, coord):
+    def __init__(self, mass, charge, width, coord, velocity):
         self.mass = mass
         self.charge = charge
         self.width = width
         self.x, self.y, self.z = coord
+        self.vx, self.vy, self.vz, self.vw = velocity
 
     def eopt_str(self, i, type):
         text = "[{0}{1}]\n".format(type, i) + \
                "mass={0}\n".format(self.mass) + \
                "charge={0}\n".format(self.charge) + \
                "gamma={0}\n".format(self.width) + \
-               "x={0}\ny={1}\nz={2}\n\n".format(self.x, self.y, self.z)
+               "x={0}\ny={1}\nz={2}\n".format(self.x, self.y, self.z) + \
+               "xy={0}\nvy={1}\nvz={2}\n\n".format(self.vx, self.vy, self.vz)
         return text
 
     def lammps_str(self, i, type, etag):
         text = " ".join(str(v) for v in [
-           i, type, self.charge, type-1, self.width * DistanceScale, etag, 1.0, 0.0, self.x * DistanceScale, self.y * DistanceScale, self.z * DistanceScale
+            i, type, self.charge, type - 1, self.width * DistanceScale, etag, 1.0, 0.0, self.x * DistanceScale,
+                                  self.y * DistanceScale, self.z * DistanceScale
         ])
 
-        return text+"\n"
+        return text + "\n"
+
+    def lammps_vstr(self, i, type, etag):
+        text = " ".join(str(v) for v in [
+            i, self.vx, self.vy, self.vz, self.vw
+        ])
+
+        return text + "\n"
 
 
 class eopt_io:
@@ -34,16 +45,17 @@ class eopt_io:
     def store_system(self, ions, electrons, bound):
 
         with open(self.path, "w") as out:
-            header = "[METHOD]\nApprox = HARTREE\nDFTApprox = Void\nMeshSize = 100\nSpaceSize = {0}\n[VM]\nUpper=1\nLower=1\n".format(bound[0]*2)
-#            header = "[METHOD]\nApprox = UHF\nDFTApprox = Void\nMeshSize = 100\nSpaceSize = {0}\n[VM]\nUpper=1\nLower=1\n".format(bound[0]*2)
+            header = "[METHOD]\nApprox = HARTREE\nDFTApprox = Void\nMeshSize = 100\nSpaceSize = {0}\n[VM]\nUpper=1\nLower=1\n".format(
+                bound[0] * 2)
+            #            header = "[METHOD]\nApprox = UHF\nDFTApprox = Void\nMeshSize = 100\nSpaceSize = {0}\n[VM]\nUpper=1\nLower=1\n".format(bound[0]*2)
             out.write(header)
             out.write("[OPTIMIZATION]\nMinimize=Total\n\n")
 
             pindex = 0
             while pindex < len(ions):
                 out.write(ions[pindex].eopt_str(pindex, 'I'))
-		if pindex < len(electrons):
-	                out.write(electrons[pindex].eopt_str(pindex, 'E'))
+                if pindex < len(electrons):
+                    out.write(electrons[pindex].eopt_str(pindex, 'E'))
 
                 pindex += 1
 
@@ -80,13 +92,28 @@ class lammps_io:
                 atom_index += 1
                 etag += 1
 
+            out.writelines("\nVelocities\n\n")
+
+            atom_index = 1
+            for ion in ions:
+                out.write(ion.lammps_vstr(atom_index, 1, 0))
+                atom_index += 1
+
+            etag = 1
+            for electron in electrons:
+                out.write(electron.lammps_vstr(atom_index, 2, etag))
+                atom_index += 1
+                etag += 1
+
+
 def create_single_ion(bound):
     mass = 1836
     charge = 1
     w = 1
     c = [random.uniform(-bound[i], bound[i]) for i in [0, 1, 2]]
+    v = [random.uniform(-bound[i], bound[i]) for i in [0, 1, 2, 1]]
 
-    return wpacket(mass, charge, w, c)
+    return wpacket(mass, charge, w, c, v)
 
 
 def create_single_electron(bound):
@@ -94,8 +121,9 @@ def create_single_electron(bound):
     charge = -1
     w = random.uniform(0, bound[3])
     c = [random.uniform(-bound[i], bound[i]) for i in [0, 1, 2]]
+    v = [random.uniform(-bound[i], bound[i]) for i in [0, 1, 2, 1]]
 
-    return wpacket(mass, charge, w, c)
+    return wpacket(mass, charge, w, c, v)
 
 
 def create_system(size, bound, id):

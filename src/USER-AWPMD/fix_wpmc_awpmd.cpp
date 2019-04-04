@@ -83,7 +83,7 @@ namespace LAMMPS_NS {
   void FixWPMCAwpmd::pre_force(int i) {
     steppers.current().save((size_t)atom->nlocal);
     steppers.current().make((size_t)atom->nlocal);
-    update_ghosts();
+    //update_ghosts();
   }
 
   void FixWPMCAwpmd::init_mc_steppers(int argc, char **argv) {

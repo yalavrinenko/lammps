@@ -1,4 +1,4 @@
-variable	sname index velocity
+variable	sname index random
 log		${sname}.spe.log
 
 units 		real
@@ -11,25 +11,24 @@ atom_style	wavepacket
 
 #START INIT SECTION
 
-region          box block -8 8 -8 8 -8 8
+region          box block -2 2 -2 2 -2 2
 create_box      2 box
-create_atoms    1 random 32 24 box
-create_atoms	2 random 32 42 box
+create_atoms    1 random 1 24 box
+create_atoms	2 random 2 42 box
 
 mass            1 1.000794
 mass			2 0.000544616997098749
 
-set 	type 1 charge 1
+set 	type 1 charge 2
 set 	type 2 charge -1
 set 	type 1 spin/wpmd 0
 set 	type 2 spin/wpmd 1
 set     type 2 eradius 0.86
 
-group ion type 1
-group electron type 2
+#velocity        all create 1.0 87287
 
-velocity        ion create 10000 87287 dist gaussian
-velocity        electron create 5000 87287 dist gaussian
+#group ion type 1
+#group electron type 2
 
 #END INIT SECTION
 
@@ -43,26 +42,29 @@ timestep        0.001
 comm_modify	vel yes
 
 compute         energies all pair awpmd/cut
+variable        eke equal c_energies[1]
+variable        epauli equal c_energies[2]
+variable        estatics equal c_energies[3]
+variable        errestrain equal c_energies[4]
+
+compute         peratom all stress/atom NULL
+compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
 variable 		etotal_ev equal etotal/627.509474*27.211386
 
 compute         kinetik all ke
 
-compute			ke_ion ion temp
-compute			ke_el  electron temp
-
 variable        mc_eng equal c_energies+c_kinetik
-fix             mc all wpmc/awpmd mc_eng 10000 ix ex ew ewp ev
+fix             mc all wpmc/awpmd mc_eng 10 ix ex ew ewp
 
 variable        accept equal f_mc[1]
 variable        mc_energy equal f_mc[2]
 variable        step_energy equal f_mc[3]
 
-compute         all_temp all temp
-fix 		ave all ave/time 1 1 1 v_etotal_ev c_kinetik c_ke_ion c_ke_el c_all_temp v_accept v_mc_eng file ave_mc.dat off 1
+fix 		ave all ave/time 1 10 100 c_energies c_kinetik v_eke v_accept v_mc_eng file ave_mc.dat off 1
 
 thermo          1
 thermo_modify	norm yes
-thermo_style    custom step v_etotal_ev pe ke c_ke_ion c_ke_el temp v_accept v_mc_energy v_step_energy
+thermo_style    custom step etotal v_etotal_ev pe ke temp v_accept v_mc_energy v_step_energy
 
 compute		erad all property/atom eradius
 compute		sp   all property/atom spin
@@ -71,7 +73,7 @@ compute		ch   all property/atom q
 dump 		snap all cfg 100 ./dumps/dump.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
 dump_modify snap element I E
 
-run 		1000000
+run 		100000
 
 unfix ave
 unfix mc

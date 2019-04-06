@@ -29,9 +29,11 @@ namespace LAMMPS_NS {
     int setmask() override {
       int mask = 0;
       mask |= LAMMPS_NS::FixConst::PRE_FORCE;
-      mask |= LAMMPS_NS::FixConst::FINAL_INTEGRATE;
+      //mask |= LAMMPS_NS::FixConst::FINAL_INTEGRATE;
+      mask |= LAMMPS_NS::FixConst::INITIAL_INTEGRATE;
       return mask;
     }
+    void initial_integrate(int i) override;
 
     void init() override;
 
@@ -67,6 +69,8 @@ namespace LAMMPS_NS {
     int v_id = -1;
 
     double target_temperature = 1.0;
+
+    bool is_first = true;
   };
 
 }

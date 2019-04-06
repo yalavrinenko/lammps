@@ -18,9 +18,9 @@ using namespace std::string_literals;
 
 namespace LAMMPS_NS {
   FixWPMCAwpmd::FixWPMCAwpmd(LAMMPS_NS::LAMMPS *lmp, int narg, char **args) :
-      Fix(lmp, narg, args){
+      Fix(lmp, narg, args) {
     //if (!atom->wavepacket_flag)
-      //error->all(FLERR, "Fix wpmc/awpmd requires atom style wavepacket");
+    //error->all(FLERR, "Fix wpmc/awpmd requires atom style wavepacket");
 
     vector_flag = 1;
     size_vector = sizeof(output) / sizeof(double);
@@ -55,19 +55,15 @@ namespace LAMMPS_NS {
   }
 
   void FixWPMCAwpmd::final_integrate() {
+    throw std::runtime_error("It's a wrong step!");
     auto energy_new = input->variable->compute_equal(v_id);
+    printf("OUTRY:%lf\n", energy_new);
     this->output.like_vars.accept_flag = steppers.current().engine.test(energy_new - energy_old, 1.);
 
-//    double collective_decision;
-//    MPI::COMM_WORLD.Allreduce(&(output.like_vars.accept_flag), &collective_decision, 1, MPI_DOUBLE, MPI_SUM);
-//
-//    if (collective_decision > 0)
-//      this->output.like_vars.accept_flag = true;
-
-    if (output.like_vars.accept_flag == 1){
+    if (output.like_vars.accept_flag == 1) {
       energy_old = energy_new;
     } else {
-      steppers.current().restore((size_t)atom->nlocal);
+      steppers.current().restore((size_t) atom->nlocal);
     }
 
     output.like_vars.step_energy = energy_new;
@@ -81,8 +77,9 @@ namespace LAMMPS_NS {
   }
 
   void FixWPMCAwpmd::pre_force(int i) {
-    steppers.current().save((size_t)atom->nlocal);
-    steppers.current().make((size_t)atom->nlocal);
+    auto energy_new = input->variable->compute_equal(v_id);
+    steppers.current().save((size_t) atom->nlocal);
+    steppers.current().make((size_t) atom->nlocal);
     //update_ghosts();
   }
 
@@ -90,11 +87,11 @@ namespace LAMMPS_NS {
     unsigned const ARG_SHIFT = 5u;
 
     auto electron_filter = [this](int index) { return atom->spin[index] != 0; };
-    auto ion_filter =[this](int index) { return atom->spin[index] == 0; };
+    auto ion_filter = [this](int index) { return atom->spin[index] == 0; };
     unsigned engine_seed = 1239553;
 
     for (auto i = ARG_SHIFT; i < argc; ++i) {
-      auto random_seed = std::abs((int)std::random_device{}());
+      auto random_seed = std::abs((int) std::random_device{}());
       if (!std::strcmp(argv[i], "ix")) {
         steppers.add(lmp, stepper_type::ion_r, random_seed, engine_seed).assign_subsystem(
             std::make_unique<MC3DVectorSystem>(atom->x, ion_filter));
@@ -126,7 +123,7 @@ namespace LAMMPS_NS {
   }
 
   void FixWPMCAwpmd::update_ghosts() {
-    auto* avec = atom->avec;
+    auto *avec = atom->avec;
     double send_buf[(avec->size_border + avec->size_velocity + 2) * atom->nlocal];
     int send_shift = 0;
     for (auto i = 0; i < atom->nlocal; ++i)
@@ -138,7 +135,7 @@ namespace LAMMPS_NS {
     int displace[comm->nprocs];
     displace[0] = 0;
     for (auto i = 1; i < comm->nprocs; ++i)
-      displace[i] = displace[i-1] + recv_size[i - 1];
+      displace[i] = displace[i - 1] + recv_size[i - 1];
 
     int total_recv = (avec->size_border + avec->size_velocity + 2) * (atom->nlocal + atom->nghost);
     double recv_buf[total_recv];
@@ -156,7 +153,7 @@ namespace LAMMPS_NS {
     int unpuck_shift = 0;
     while (unpuck_shift < total_recv) {
       unpuck_shift += avec->unpack_exchange(&recv_buf[unpuck_shift]);
-      if (tag_to_index.count(atom->tag[atom->nlocal - 1])){
+      if (tag_to_index.count(atom->tag[atom->nlocal - 1])) {
         avec->copy(atom->nlocal - 1, tag_to_index[atom->tag[atom->nlocal - 1]], 0);
       }
       --atom->nlocal;
@@ -166,4 +163,27 @@ namespace LAMMPS_NS {
     atom->nghost = tmp_nghost;
   }
 
+  void FixWPMCAwpmd::initial_integrate(int i) {
+    if (is_first) {
+      is_first = false;
+      return;
+    }
+    auto energy_new = input->variable->compute_equal(v_id);
+    this->output.like_vars.accept_flag = steppers.current().engine.test(energy_new - energy_old, 1.);
+
+    if (output.like_vars.accept_flag == 1) {
+      energy_old = energy_new;
+    } else {
+      steppers.current().restore((size_t) atom->nlocal);
+    }
+
+    output.like_vars.step_energy = energy_new;
+    output.like_vars.accepted_energy = energy_old;
+
+    output.like_vars.accepted_count += output.like_vars.accept_flag;
+    output.like_vars.rejected_count += (output.like_vars.accept_flag == 0);
+
+    steppers.current().adjust();
+    steppers.next();
+  }
 }

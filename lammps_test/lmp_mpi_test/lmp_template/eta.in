@@ -13,7 +13,7 @@ read_data  inconfig/${sname}.data
 
 #neighbor        2.0 nsq
 
-pair_style      awpmd/cut -1. hartree ermscale 0.99 free flex_press
+pair_style      awpmd/cut -1. hartree ermscale 1.0 free flex_press
 #pair_style      awpmd/cut -1. uhf ermscale 0.99 free flex_press
 pair_coeff 	    * *
 
@@ -34,7 +34,7 @@ variable        errestrain equal c_energies[4]
 compute         peratom all stress/atom NULL
 compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
 variable        press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
-variable 		etotal_ev equal etotal/627.509474*27.211386
+variable 	etotal_ev equal etotal/627.509474*27.211386
 
 thermo          1
 thermo_style    custom step etotal v_etotal_ev pe ke v_eke v_epauli v_estatics v_errestrain temp press v_press

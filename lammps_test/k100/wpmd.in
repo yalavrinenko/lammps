@@ -60,10 +60,10 @@ compute         ke_eup eup ke
 compute         ke_edown edown ke
 compute         energies all pair awpmd/cut
 
-variable		eng_total equal etotal#-c_ke_eup-c_ke_edown
+variable		eng_total equal etotal #etotal-c_ke_eup-c_ke_edown
 variable 		etotal_ev equal v_eng_total/627.509474*27.211386
 
-fix             mc all wpmc/awpmd eng_total 10000 ix ex ew ewp iv ev
+fix             mc all wpmc/awpmd eng_total 10000 ev #ix ex ew ewp iv ev
 variable        accept equal f_mc[1]
 variable        mc_energy equal f_mc[2]
 variable		mc_step_energy	equal f_mc[3]
@@ -83,7 +83,7 @@ fix 			histo all ave/histo 1 100 100 0 ${L} 1000 c_erad file ./${density}/width_
 
 thermo          1
 thermo_modify	norm yes
-thermo_style    custom step v_etotal_ev pe c_ke_ion temp c_t_ion c_t_elup c_t_eldown v_accept v_mc_energy v_mc_step_energy
+thermo_style    custom step v_etotal_ev pe c_ke_ion temp c_t_ion c_t_elup c_t_eldown v_accept v_mc_energy v_mc_step_energy c_ke_eup c_ke_edown
 
 #DUMP
 dump 			snap all cfg 1000 ./${density}/dump.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch

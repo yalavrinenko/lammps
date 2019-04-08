@@ -50,8 +50,8 @@ compute         kinetik all ke
 compute			ke_ion ion temp
 compute			ke_el  electron temp
 
-variable        mc_eng equal c_energies+c_kinetik
-fix             mc all wpmc/awpmd mc_eng 10000 ix ex ew ewp ev
+variable        mc_eng equal c_energies+c_kinetik-c_ke_el
+fix             mc all wpmc/awpmd mc_eng 10000 ev
 
 variable        accept equal f_mc[1]
 variable        mc_energy equal f_mc[2]
@@ -76,7 +76,7 @@ run 		10000
 unfix ave
 unfix mc
 
-thermo_style    custom step etotal v_etotal_ev pe ke temp
+thermo_style    custom step etotal v_etotal_ev c_energies c_kinetik pe ke temp
 dump 		snap_final all cfg 1 final.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
 dump_modify snap_final element I E
 

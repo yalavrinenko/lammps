@@ -160,7 +160,7 @@ void Update::set_units(const char *style)
     force->xxt2kmu = 0.1;
     force->e_mass = 1.0/1836.1527556560675;
     force->hhmrr2e = 0.0957018663603261;
-    force->mvh2r = 1.5339009481951;
+    force->mvh2r = 157.09354526883172;
     force->angstrom = 1.0;
     force->femtosecond = 1.0;
     force->qelectron = 1.0;

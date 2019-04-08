@@ -13,12 +13,13 @@ class wpacket:
         self.vx, self.vy, self.vz, self.vw = velocity
 
     def eopt_str(self, i, type):
+	tu = 10.12;
         text = "[{0}{1}]\n".format(type, i) + \
                "mass={0}\n".format(self.mass) + \
                "charge={0}\n".format(self.charge) + \
                "gamma={0}\n".format(self.width) + \
                "x={0}\ny={1}\nz={2}\n".format(self.x, self.y, self.z) + \
-               "xy={0}\nvy={1}\nvz={2}\n\n".format(self.vx, self.vy, self.vz)
+               "px={0}\npy={1}\npz={2}\n\n".format(self.vx*tu, self.vy*tu, self.vz*tu)
         return text
 
     def lammps_str(self, i, type, etag):
@@ -78,7 +79,7 @@ class lammps_io:
             out.writelines("{0} {1} zlo zhi\n".format(-bound[2], bound[2]))
 
             out.writelines("Masses\n\n")
-            out.writelines("1 1.000794\n2 0.000544616997098749\n\n")
+            out.writelines("1 1.000794\n2 0.0005446169970987488\n\n")
             out.writelines("Atoms\n\n")
 
             atom_index = 1
@@ -106,12 +107,13 @@ class lammps_io:
                 etag += 1
 
 
+
 def create_single_ion(bound):
     mass = 1836
     charge = 1
     w = 1
     c = [random.uniform(-bound[i], bound[i]) for i in [0, 1, 2]]
-    v = [random.uniform(-bound[i], bound[i]) for i in [0, 1, 2, 1]]
+    v = [0, 0, 0, 0] #[random.uniform(-bound[i], bound[i]) for i in [0, 1, 2, 1]]
 
     return wpacket(mass, charge, w, c, v)
 
@@ -121,8 +123,8 @@ def create_single_electron(bound):
     charge = -1
     w = random.uniform(0, bound[3])
     c = [random.uniform(-bound[i], bound[i]) for i in [0, 1, 2]]
-    v = [random.uniform(-bound[i], bound[i]) for i in [0, 1, 2, 1]]
-
+    v = [random.uniform(-bound[i] * 2, bound[i] * 2) for i in [0, 1, 2, 0]]
+    v[3] = 0.0
     return wpacket(mass, charge, w, c, v)
 
 

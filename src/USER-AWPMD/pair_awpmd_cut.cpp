@@ -150,10 +150,9 @@ void PairAWPMDCut::init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons) {
     auto &insert_index = ion_index.lmp_index;
     ion_index.wpmd_index = (unsigned )wpmd->add_ion(q[insert_index], Vector_3(x[insert_index][0], x[insert_index][1], x[insert_index][2]),
                                          (insert_index < nlocal ? atom->tag[insert_index] : -atom->tag[insert_index]));
-    /*std::cout << MPI::COMM_WORLD.Get_rank() << "[" << atom->nlocal << "x" << atom->nghost << "] " << ":i" << " "
-              << x[insert_index][2] << " " << (insert_index < nlocal) << std::endl;*/
   }
 
+  electron_ke_ = 0.0;
   for (auto &electron : electrons) {
     auto &main_packet_index = electron.second.front().lmp_index;
     int s = spin[main_packet_index] > 0 ? 0 : 1;
@@ -167,17 +166,14 @@ void PairAWPMDCut::init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons) {
 
       double m = atom->mass ? atom->mass[type[insert_index]] : force->e_mass;
       Vector_3 xx = Vector_3(x[insert_index][0], x[insert_index][1], x[insert_index][2]);
-      Vector_3 rv = m * Vector_3(v[insert_index][0], v[insert_index][1], v[insert_index][2]);
+      Vector_3 rv = Vector_3(v[insert_index][0], v[insert_index][1], v[insert_index][2]);
+      electron_ke_ += m * (rv * rv) / 2.0;
+
       double pv = ermscale * m * atom->ervel[insert_index];
       Vector_2 cc = Vector_2(atom->cs[2 * insert_index], atom->cs[2 * insert_index + 1]);
 
-      e_split_index.wpmd_index = (unsigned )wpmd->add_split(xx, rv, atom->eradius[insert_index], pv, cc, 1., atom->q[insert_index],
+      e_split_index.wpmd_index = (unsigned )wpmd->add_split(xx, rv, atom->eradius[insert_index], pv, cc, m, atom->q[insert_index],
                                                 (insert_index < nlocal ? atom->tag[insert_index] : -atom->tag[insert_index]));
-
-      v[insert_index][0] = rv[0] / m;
-      v[insert_index][1] = rv[1] / m;
-      v[insert_index][2] = rv[2] / m;
-      atom->ervel[insert_index] = pv / (m * ermscale);
     }
   }
 
@@ -205,7 +201,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
 
   wpmd->interaction(0x1|0x4|0x10, fi.data());
 
-  auto full_coul_energy = wpmd->get_energy();
+  auto full_coul_energy = wpmd->get_energy() - electron_ke_ * force->mvv2e;
 
   double **f = atom->f;
 

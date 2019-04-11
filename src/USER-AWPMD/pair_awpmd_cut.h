@@ -27,6 +27,7 @@ PairStyle(awpmd/cut,PairAWPMDCut)
 #include "pair.h"
 #include <vector>
 #include <unordered_map>
+#include <map>
 
 class AWPMD_split;
 

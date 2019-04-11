@@ -63,7 +63,7 @@ compute         energies all pair awpmd/cut
 variable		eng_total equal etotal #etotal-c_ke_eup-c_ke_edown
 variable 		etotal_ev equal v_eng_total/627.509474*27.211386
 
-fix             mc all wpmc/awpmd eng_total 10000 ev #ix ex ew ewp iv ev
+fix             mc all wpmc/awpmd eng_total 10000 ix ex ew ewp iv ev
 variable        accept equal f_mc[1]
 variable        mc_energy equal f_mc[2]
 variable		mc_step_energy	equal f_mc[3]
@@ -73,12 +73,12 @@ compute			t_ion ion temp
 compute			t_elup  eup temp
 compute			t_eldown  edown temp
 
-fix 			ave all ave/time 1 1 100 v_accept v_etotal_ev c_energies c_ke_ion c_all_temp c_t_ion c_t_elup c_t_eldown file ./${density}/thermo_ave.dat off 1
+fix 			ave all ave/time 1 1 10 v_accept v_etotal_ev c_energies c_ke_ion c_all_temp c_t_ion c_t_elup c_t_eldown file ./${density}/thermo_ave.dat off 1
 
 compute			erad all property/atom eradius
 compute			sp   all property/atom spin
 compute			ch   all property/atom q
-fix 			histo all ave/histo 1 100 100 0 ${L} 1000 c_erad file ./${density}/width_histo.dat mode vector ave one 
+fix 			histo all ave/histo 1 1000 1000 0 ${L} 1000 c_erad file ./${density}/width_histo.dat mode vector ave one 
 #END_FIX_SECTION
 
 thermo          1

@@ -76,6 +76,8 @@ namespace LAMMPS_NS {
     struct awpmd_pair_index {
       unsigned lmp_index{};
       unsigned wpmd_index{};
+
+      awpmd_pair_index(unsigned l_index, unsigned w_index): lmp_index(l_index), wpmd_index(w_index){}
     };
 
     using awpmd_ions = std::vector<awpmd_pair_index>;

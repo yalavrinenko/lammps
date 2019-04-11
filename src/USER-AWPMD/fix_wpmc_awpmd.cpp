@@ -130,7 +130,7 @@ namespace LAMMPS_NS {
       send_shift += avec->pack_exchange(i, &send_buf[send_shift]);
 
     int recv_size[comm->nprocs];
-    MPI::COMM_WORLD.Allgather(&send_shift, 1, MPI_INT, recv_size, 1, MPI_INT);
+    MPI_Allgather(&send_shift, 1, MPI_INT, recv_size, 1, MPI_INT, MPI_COMM_WORLD);
 
     int displace[comm->nprocs];
     displace[0] = 0;
@@ -139,7 +139,7 @@ namespace LAMMPS_NS {
 
     int total_recv = (avec->size_border + avec->size_velocity + 2) * (atom->nlocal + atom->nghost);
     double recv_buf[total_recv];
-    MPI::COMM_WORLD.Allgatherv(send_buf, send_shift, MPI_DOUBLE, recv_buf, recv_size, displace, MPI_DOUBLE);
+    MPI_Allgatherv(send_buf, send_shift, MPI_DOUBLE, recv_buf, recv_size, displace, MPI_DOUBLE, MPI_COMM_WORLD);
 
     auto tmp_nlocal = atom->nlocal;
     auto tmp_nghost = atom->nghost;

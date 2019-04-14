@@ -12,11 +12,11 @@ shell mkdir 	${density}
 
 log				${density}.spe.log
 
-units 			real
+units 			electron
 newton			on
-boundary        m m m
+boundary        p p p
 processors      1 * *
-atom_style		wavepacket
+atom_style		electron
 
 #START INIT SECTION
 region          box block -${L} ${L} -${L} ${L} -${L} ${L}
@@ -49,24 +49,22 @@ velocity        edown create ${temperature} 121346 dist gaussian
 #END INIT SECTION
 
 #PAIR_STYLE
-pair_style      awpmd/cut -1. hartree ermscale 0.99 free flex_press
-pair_coeff 	    * *
+pair_style      eff/cut ${L} pressure/evirials
+pair_coeff 	* *
 #END_PAIR_STYLE
 
 timestep        0.001
 comm_modify		vel yes
 
 #FIX_SECTION
-fix				w1 all wall/awpmd  0.861554971715096 -1 10
-
 compute         kinetik all ke
 compute         ke_ion ion ke
 compute         ke_eup eup ke
 compute         ke_edown edown ke
-compute         energies all pair awpmd/cut
+compute         energies all pair eff/cut
 
 variable		eng_total equal etotal
-variable 		etotal_ev equal v_eng_total/627.509474*27.211386
+variable 		etotal_ev equal v_eng_total*27.211386
 
 fix             mc all wpmc/awpmd eng_total ${temperature} ix ex ew ewp iv ev
 variable        accept equal f_mc[1]
@@ -78,12 +76,12 @@ compute			t_ion ion temp
 compute			t_elup  eup temp
 compute			t_eldown  edown temp
 
-fix 			ave all ave/time 1 1 10 v_accept v_etotal_ev c_energies c_kinetik c_ke_ion c_ke_eup c_ke_edown c_all_temp c_t_ion c_t_elup c_t_eldown file ./${density}/wpmd_thermo_ave.dat off 1
+fix 			ave all ave/time 1 1 10 v_accept v_etotal_ev c_energies c_kinetik c_ke_ion c_ke_eup c_ke_edown c_all_temp c_t_ion c_t_elup c_t_eldown file ./${density}/eff_thermo_ave.dat off 1
 
 compute			erad all property/atom eradius
 compute			sp   all property/atom spin
 compute			ch   all property/atom q
-fix 			histo all ave/histo 1 1000 1000 0 ${L} 1000 c_erad file ./${density}/wpmd_width_histo.dat mode vector ave one 
+fix 			histo all ave/histo 1 1000 1000 0 ${L} 1000 c_erad file ./${density}/eff_width_histo.dat mode vector ave one 
 #END_FIX_SECTION
 
 thermo          1
@@ -100,9 +98,7 @@ unfix 			ave
 unfix 			mc
 
 thermo_style    custom step v_etotal_ev pe temp c_t_ion c_t_elup c_t_eldown c_ke_ion c_ke_eup c_ke_edown 
-dump 			snap_final all cfg 1 ./${density}/wpmd_final.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
+dump 			snap_final all cfg 1 ./${density}/eff_final.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
 dump_modify 	snap_final element I EU ED
 
 run 			0
-
-unfix 			w1

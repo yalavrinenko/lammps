@@ -8,6 +8,7 @@ variable		nsteps equal 10000
 variable		nepart_half equal ${nepart}/2
 variable 		V equal ${nepart}/(${density}/1e24)
 variable		L equal (${V}^(1.0/3.0))/2.0
+variable        LCut    equal ${L}*2.0
 shell mkdir 	${density}
 
 log				${density}.spe.log
@@ -49,7 +50,7 @@ velocity        edown create ${temperature} 121346 dist gaussian
 #END INIT SECTION
 
 #PAIR_STYLE
-pair_style      awpmd/cut -1. hartree ermscale 0.99 free flex_press
+pair_style      awpmd/cut ${LCut} hartree ermscale 0.99 free flex_press
 pair_coeff 	    * *
 #END_PAIR_STYLE
 

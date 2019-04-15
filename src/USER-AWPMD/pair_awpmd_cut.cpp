@@ -167,7 +167,7 @@ void PairAWPMDCut::init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons) {
       double m = atom->mass ? atom->mass[type[insert_index]] : force->e_mass;
       Vector_3 xx = Vector_3(x[insert_index][0], x[insert_index][1], x[insert_index][2]);
       Vector_3 rv = Vector_3(v[insert_index][0], v[insert_index][1], v[insert_index][2]);
-      electron_ke_ += m * (rv * rv) / 2.0;
+      electron_ke_ += (insert_index < nlocal) ? m * (rv * rv) / 2.0 : 0.0;
 
       double pv = ermscale * m * atom->ervel[insert_index];
       Vector_2 cc = Vector_2(atom->cs[2 * insert_index], atom->cs[2 * insert_index + 1]);
@@ -230,8 +230,8 @@ void PairAWPMDCut::compute(int eflag, int vflag)
       eng_coul+= full_coul_energy;
 
       // pvector = [KE, Pauli, ecoul, radial_restraint]
-      pvector[0] = wpmd->Ee[0]+wpmd->Ee[1];
-      pvector[2] = wpmd->Eii+wpmd->Eei[0]+wpmd->Eei[1]+wpmd->Eee;
+      pvector[0] = wpmd->Ee[0] + wpmd->Ee[1];
+      pvector[2] = wpmd->Eii + wpmd->Eei[0] + wpmd->Eei[1] + wpmd->Eee;
       pvector[1] = pvector[0] + pvector[2] - wpmd->Edk - wpmd->Edc - wpmd->Eii;  // All except diagonal terms
       pvector[3] = wpmd->Ew;
     }

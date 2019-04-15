@@ -13,6 +13,7 @@
 #include <array>
 #include "atom.h"
 #include <iterator>
+#include <unordered_map>
 
 namespace LAMMPS_NS{
 
@@ -39,7 +40,9 @@ namespace LAMMPS_NS{
     virtual void save(size_t size) = 0;
     virtual void restore(size_t size) = 0;
     virtual void make(size_t size, mc_stepper& stepper) = 0;
-
+    virtual std::vector<double> pack(size_t size, int *tag) const = 0;
+    virtual size_t object_size() const = 0;
+    virtual size_t unpack(const double *data, size_t size, std::unordered_map<int, int> const &ghost_map) = 0;
   protected:
     filter_func _filter;
   };
@@ -68,6 +71,14 @@ namespace LAMMPS_NS{
     }
 
     void make(size_t size, mc_stepper &stepper) override;
+
+    std::vector<double> pack(size_t size, int *tag) const override;
+
+    size_t object_size() const override {
+      return 4;
+    }
+
+    size_t unpack(const double *data, size_t size, std::unordered_map<int, int> const &ghost_map) override;
 
   public:
     MC3DVectorSystem(double** &source, filter_func &&filter):
@@ -101,7 +112,15 @@ namespace LAMMPS_NS{
         }
     }
 
+    size_t unpack(const double *data, size_t size, std::unordered_map<int, int> const &ghost_map) override;
+
+    std::vector<double> pack(size_t size, int *tag) const override;
+
     void make(size_t size, mc_stepper &stepper) override;
+
+    size_t object_size() const override {
+      return 2;
+    }
 
   public:
     MCScalarSystem(double* &source, filter_func &&filter):
@@ -140,6 +159,14 @@ namespace LAMMPS_NS{
 
     void make(size_t system_size){
       system->make(system_size, *this);
+    }
+
+    std::vector<double> pack(size_t system_size, int *tag){
+      return system->pack(system_size, tag);
+    }
+
+    size_t unpack(double const *data, size_t size, std::unordered_map<int, int> const &ghost_map){
+      return system->unpack(data, size, ghost_map);
     }
 
     inline double shift(){

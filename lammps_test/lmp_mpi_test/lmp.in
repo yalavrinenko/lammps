@@ -1,4 +1,4 @@
-variable	sname index 20
+variable	sname index 112
 log		${sname}.spe.log
 
 units 		real
@@ -37,6 +37,6 @@ variable        press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
 variable 	etotal_ev equal etotal/627.509474*27.211386
 
 thermo          1
-thermo_style    custom step etotal v_etotal_ev pe ke v_eke v_epauli v_estatics v_errestrain temp press v_press
+thermo_style    custom step etotal v_etotal_ev pe ke v_eke v_epauli v_estatics v_errestrain
 
 run 		0

@@ -14,6 +14,7 @@
 #include <cstring>
 #include "comm.h"
 #include "atom_vec.h"
+#include <future>
 using namespace std::string_literals;
 
 namespace LAMMPS_NS {
@@ -80,7 +81,7 @@ namespace LAMMPS_NS {
     auto energy_new = input->variable->compute_equal(v_id);
     steppers.current().save((size_t) atom->nlocal);
     steppers.current().make((size_t) atom->nlocal);
-    //update_ghosts();
+    update_ghosts();
   }
 
   void FixWPMCAwpmd::init_mc_steppers(int argc, char **argv) {
@@ -123,44 +124,31 @@ namespace LAMMPS_NS {
   }
 
   void FixWPMCAwpmd::update_ghosts() {
-    auto *avec = atom->avec;
-    double send_buf[(avec->size_border + avec->size_velocity + 2) * atom->nlocal];
-    int send_shift = 0;
-    for (auto i = 0; i < atom->nlocal; ++i)
-      send_shift += avec->pack_exchange(i, &send_buf[send_shift]);
+    std::unordered_map<int, int> tag_to_index;
+    auto ghost_map = std::async(std::launch::async, [&tag_to_index, this]() {
+      for (auto i = atom->nlocal; i < atom->nghost; ++i)
+        tag_to_index[atom->tag[i]] = i;
+    });
+
+    auto particle_data = std::move(steppers.current().pack(atom->nlocal, atom->tag));
+    auto data_size = particle_data.size();
 
     int recv_size[comm->nprocs];
-    MPI_Allgather(&send_shift, 1, MPI_INT, recv_size, 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Allgather(&data_size, 1, MPI_INT, recv_size, 1, MPI_INT, MPI_COMM_WORLD);
 
     int displace[comm->nprocs];
     displace[0] = 0;
-    for (auto i = 1; i < comm->nprocs; ++i)
+    auto total_size = recv_size[comm->nprocs - 1];
+    for (auto i = 1; i < comm->nprocs; ++i) {
       displace[i] = displace[i - 1] + recv_size[i - 1];
-
-    int total_recv = (avec->size_border + avec->size_velocity + 2) * (atom->nlocal + atom->nghost);
-    double recv_buf[total_recv];
-    MPI_Allgatherv(send_buf, send_shift, MPI_DOUBLE, recv_buf, recv_size, displace, MPI_DOUBLE, MPI_COMM_WORLD);
-
-    auto tmp_nlocal = atom->nlocal;
-    auto tmp_nghost = atom->nghost;
-
-    std::unordered_map<int, int> tag_to_index;
-    for (auto i = tmp_nlocal; i < tmp_nlocal + tmp_nghost; ++i)
-      tag_to_index[atom->tag[i]] = i;
-
-    atom->nlocal += atom->nghost;
-
-    int unpuck_shift = 0;
-    while (unpuck_shift < total_recv) {
-      unpuck_shift += avec->unpack_exchange(&recv_buf[unpuck_shift]);
-      if (tag_to_index.count(atom->tag[atom->nlocal - 1])) {
-        avec->copy(atom->nlocal - 1, tag_to_index[atom->tag[atom->nlocal - 1]], 0);
-      }
-      --atom->nlocal;
+      total_size += recv_size[i - 1];
     }
 
-    atom->nlocal = tmp_nlocal;
-    atom->nghost = tmp_nghost;
+    double recv_buf[total_size];
+    MPI_Allgatherv(particle_data.data(), data_size, MPI_DOUBLE, recv_buf, recv_size, displace, MPI_DOUBLE, MPI_COMM_WORLD);
+
+    ghost_map.wait();
+    auto unpacked = steppers.current().unpack(recv_buf, total_size, tag_to_index);
   }
 
   void FixWPMCAwpmd::initial_integrate(int i) {

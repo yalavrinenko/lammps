@@ -45,7 +45,7 @@ PairAWPMDCut::PairAWPMDCut(LAMMPS *lmp) : Pair(lmp)
   nmax = 0;
   min_var = nullptr;
   min_varforce = nullptr;
-  nextra = 4;
+  nextra = 5;
   pvector = new double[nextra];
 
   ermscale=1.;
@@ -182,7 +182,7 @@ void PairAWPMDCut::init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons) {
 void PairAWPMDCut::compute(int eflag, int vflag)
 {
   // pvector = [KE, Pauli, ecoul, radial_restraint]
-  for (int i=0; i<4; i++) pvector[i] = 0.0;
+  for (int i=0; i<5; i++) pvector[i] = 0.0;
 
   if (eflag || vflag)
     ev_setup(eflag,vflag);
@@ -202,6 +202,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
   wpmd->interaction(0x1|0x4|0x10, fi.data());
 
   auto full_coul_energy = wpmd->get_energy() - electron_ke_ * force->mvv2e;
+  full_coul_energy -= (wpmd->Ebord_ion + wpmd->Ebord); //extract border energy
 
   double **f = atom->f;
 
@@ -234,6 +235,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
       pvector[2] = wpmd->Eii + wpmd->Eei[0] + wpmd->Eei[1] + wpmd->Eee;
       pvector[1] = pvector[0] + pvector[2] - wpmd->Edk - wpmd->Edc - wpmd->Eii;  // All except diagonal terms
       pvector[3] = wpmd->Ew;
+      pvector[5] = wpmd->Ebord + wpmd->Ebord_ion;
     }
 
     if (eflag_atom) {

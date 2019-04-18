@@ -1,10 +1,10 @@
 variable	density equal 1e20
 log		${density}.spe.log
 
-variable	nepart equal 64
+variable	nepart equal 1
 variable	nepart_h equal ${nepart}/2
 variable 	V equal ${nepart}/(${density}/1e24)
-variable	L equal exp(1.0/3.0*ln(${V}))/2.0
+variable	L equal 12 #exp(1.0/3.0*ln(${V}))/2.0
 
 shell mkdir ${density}
 
@@ -20,8 +20,8 @@ atom_style	electron
 region          box block -${L} ${L} -${L} ${L} -${L} ${L}
 create_box      3 box
 create_atoms    1 random ${nepart} 24 box
-create_atoms	2 random ${nepart_h} 42 box
-create_atoms    3 random ${nepart_h} 41 box
+create_atoms	2 random ${nepart} 24 box
+#create_atoms    3 random ${nepart_h} 41 box
 
 mass            1 1.000794
 mass			2 0.000544616997098749
@@ -29,7 +29,7 @@ mass            3 0.000544616997098749
 
 set 	type 1 charge 1
 set 	type 2 charge -1
-set 	type 3 charge -1
+#set 	type 3 charge -1
 set 	type 1 spin/wpmd 0
 
 set     type 2 spin/wpmd 1
@@ -40,11 +40,11 @@ set		type 3 eradius 0.86
 
 group ion type 1
 group eup type 2
-group edown type 3
+#group edown type 3
 
-velocity        ion create 10000 87287 dist gaussian
-velocity        eup create 10000 87287 dist gaussian
-velocity        edown create 10000 87287 dist gaussian
+#velocity        ion create 10000 87287 dist gaussian
+#velocity        eup create 10000 87287 dist gaussian
+#velocity        edown create 10000 87287 dist gaussian
 
 #END INIT SECTION
 
@@ -64,7 +64,7 @@ variable 		etotal_ev equal etotal/627.509474*27.211386
 compute         kinetik all ke
 
 variable        mc_eng equal c_energies+c_kinetik
-fix             mc all wpmc/awpmd mc_eng 10000 ix ex ew ewp ev
+fix             mc all wpmc/awpmd mc_eng 0 ew
 
 variable        accept equal f_mc[1]
 variable        mc_energy equal f_mc[2]
@@ -82,7 +82,7 @@ compute		ch   all property/atom q
 
 dump 		snap all cfg 100 ./${density}/dump.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
 dump_modify snap element I E_UP E_DOWN
-run 		100000000
+run 		10000
 
 unfix ave
 unfix mc

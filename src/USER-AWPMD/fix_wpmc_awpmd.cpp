@@ -81,7 +81,7 @@ namespace LAMMPS_NS {
     auto energy_new = input->variable->compute_equal(v_id);
     steppers.current().save((size_t) atom->nlocal);
     steppers.current().make((size_t) atom->nlocal);
-    update_ghosts();
+    //update_ghosts();
   }
 
   void FixWPMCAwpmd::init_mc_steppers(int argc, char **argv) {

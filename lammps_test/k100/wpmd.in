@@ -2,7 +2,7 @@
 variable		density equal 1e20
 variable 		temperature equal 10000
 variable		nepart equal 32
-variable		nsteps equal 10000
+variable		nsteps equal 1000
 #END PARAMS
 
 variable		nepart_half equal ${nepart}/2
@@ -65,6 +65,7 @@ compute         ke_ion ion ke
 compute         ke_eup eup ke
 compute         ke_edown edown ke
 compute         energies all pair awpmd/cut
+variable        ebord equal c_energies[5]
 
 variable		eng_total equal etotal
 variable 		etotal_ev equal v_eng_total/627.509474*27.211386
@@ -79,7 +80,7 @@ compute			t_ion ion temp
 compute			t_elup  eup temp
 compute			t_eldown  edown temp
 
-fix 			ave all ave/time 1 1 10 v_accept v_etotal_ev c_energies c_kinetik c_ke_ion c_ke_eup c_ke_edown c_all_temp c_t_ion c_t_elup c_t_eldown file ./${density}/wpmd_thermo_ave.dat off 1
+fix 			ave all ave/time 1 1 10 v_accept v_etotal_ev c_energies c_kinetik c_ke_ion c_ke_eup c_ke_edown c_all_temp c_t_ion c_t_elup c_t_eldown v_ebord file ./${density}/wpmd_thermo_ave.dat off 1
 
 compute			erad all property/atom eradius
 compute			sp   all property/atom spin
@@ -89,7 +90,7 @@ fix 			histo all ave/histo 1 1000 1000 0 ${L} 1000 c_erad file ./${density}/wpmd
 
 thermo          1
 thermo_modify	norm yes
-thermo_style    custom step v_etotal_ev pe temp c_t_ion c_t_elup c_t_eldown v_accept v_mc_energy v_mc_step_energy c_ke_ion c_ke_eup c_ke_edown
+thermo_style    custom step v_etotal_ev pe temp c_t_ion c_t_elup c_t_eldown v_accept v_mc_energy v_mc_step_energy c_ke_ion c_ke_eup c_ke_edown v_ebord
 
 #DUMP
 dump 			snap all cfg 10000 ./${density}/dump.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
@@ -100,7 +101,7 @@ run 			${nsteps}
 unfix 			ave
 unfix 			mc
 
-thermo_style    custom step v_etotal_ev pe temp c_t_ion c_t_elup c_t_eldown c_ke_ion c_ke_eup c_ke_edown 
+thermo_style    custom step v_etotal_ev pe temp c_t_ion c_t_elup c_t_eldown c_ke_ion c_ke_eup c_ke_edown v_ebord
 dump 			snap_final all cfg 1 ./${density}/wpmd_final.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
 dump_modify 	snap_final element I EU ED
 

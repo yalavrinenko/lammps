@@ -41,12 +41,16 @@ BoxHamiltonian LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double hal
   auto floor = half_box_length;
   auto eigenwp = half_box_length / 10.0;
 
+  auto me=force->e_mass;
+  auto h2_me=force->hhmrr2e/force->e_mass;
+  auto one_h=force->mvh2r;
+
 
   if(eigenE>0.){
-    eigenwp = sqrt(3./2/m_electron/eigenE)*h_plank;
+    eigenwp = sqrt(3./2/me/eigenE) / one_h;
   }
   else
-    eigenE = 3./2*h_sq/m_electron/(eigenwp*eigenwp);
+    eigenE = 3./2 * h2_me/(eigenwp*eigenwp);
 
 
   double floorYtoX=1., floorZtoX=1., widthYtoX=1., widthZtoX=1.;
@@ -54,7 +58,7 @@ BoxHamiltonian LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double hal
   Vector_3 gamma(eigenwp, eigenwp*widthYtoX, eigenwp*widthZtoX), force_k;
 
   for(int i=0; i<3; ++i){
-    force_k[i] = 9./8*h_sq/m_electron/(gamma[i]*gamma[i]*gamma[i]*gamma[i]);
+    force_k[i] = 9./8 * h2_me/(gamma[i]*gamma[i]*gamma[i]*gamma[i]);
   }
 
   Vector_3 bound(floor,floor*floorYtoX,floor*floorZtoX);

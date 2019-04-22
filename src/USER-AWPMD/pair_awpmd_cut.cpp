@@ -100,7 +100,8 @@ struct cmp_x {
 
 PairAWPMDCut::awpmd_packets PairAWPMDCut::make_packets() const {
   int *spin = atom->spin;
-  int *etag = atom->etag;
+  //int *etag = atom->etag;
+  int *etag = atom->tag;
 
   awpmd_ions ions;
   awpmd_electrons electrons{};

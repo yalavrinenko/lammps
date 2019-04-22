@@ -42,6 +42,7 @@ set				type 3 eradius 0.86
 group 			ion type 1
 group 			eup type 2
 group 			edown type 3
+group 			electrons type 2 3
 
 velocity        ion create ${temperature} 877785 dist gaussian
 velocity        eup create ${temperature} 872464 dist gaussian
@@ -81,7 +82,7 @@ fix 			ave all ave/time 1 1 10 v_accept v_etotal_ev c_energies c_kinetik c_ke_io
 compute			erad all property/atom eradius
 compute			sp   all property/atom spin
 compute			ch   all property/atom q
-fix 			histo all ave/histo 1 1000 1000 0 ${L} 1000 c_erad file ./${density}/eff_width_histo.dat mode vector ave one 
+fix 			histo electrons ave/histo 1 1000 1000 0 ${L} 1000 c_erad file ./${density}/eff_width_histo.dat mode vector ave one 
 #END_FIX_SECTION
 
 thermo          1

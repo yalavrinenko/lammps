@@ -90,7 +90,9 @@ namespace LAMMPS_NS {
 
     auto electron_filter = [this](int index) { return atom->spin[index] != 0; };
     auto ion_filter = [this](int index) { return atom->spin[index] == 0; };
-    unsigned engine_seed = 1239553;
+    unsigned long engine_seed =  std::random_device{}();
+    if (comm->nprocs > 1)
+      MPI_Bcast(&engine_seed, 1, MPI_UNSIGNED_LONG, 0, MPI_COMM_WORLD);
 
     for (auto i = ARG_SHIFT; i < argc; ++i) {
       auto random_seed = std::abs((int) std::random_device{}());

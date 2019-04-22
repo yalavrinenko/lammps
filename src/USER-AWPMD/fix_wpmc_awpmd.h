@@ -58,6 +58,7 @@ namespace LAMMPS_NS {
         double step_energy;
         double accepted_count;
         double rejected_count;
+        double stepper_id;
       } like_vars;
 
       double like_vector[sizeof(like_vars) / sizeof(double)];

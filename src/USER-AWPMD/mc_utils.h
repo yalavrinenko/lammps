@@ -215,6 +215,10 @@ namespace LAMMPS_NS{
     mc_stepper& get(size_t index){
       return steppers[index];
     }
+
+    size_t current_stepped_id() const{
+      return current_stepper;
+    }
   private:
     stepper_container steppers;
     size_t current_stepper{0};

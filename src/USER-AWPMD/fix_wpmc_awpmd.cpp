@@ -173,6 +173,7 @@ namespace LAMMPS_NS {
 
     output.like_vars.accepted_count += output.like_vars.accept_flag;
     output.like_vars.rejected_count += (output.like_vars.accept_flag == 0);
+    output.like_vars.stepper_id = steppers.current_stepped_id();
 
     steppers.current().adjust();
     steppers.next();

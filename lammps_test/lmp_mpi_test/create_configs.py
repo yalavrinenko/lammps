@@ -1,7 +1,8 @@
 import random
 
 DistanceScale = 1  # 1.0 / 0.52917720859
-
+WP_coeff = 1.0
+suffix=""
 
 class wpacket:
 
@@ -13,7 +14,7 @@ class wpacket:
         self.vx, self.vy, self.vz, self.vw = velocity
 
     def eopt_str(self, i, type):
-	tu = 10.12;
+        tu = 10.12;
         text = "[{0}{1}]\n".format(type, i) + \
                "mass={0}\n".format(self.mass) + \
                "charge={0}\n".format(self.charge) + \
@@ -24,7 +25,15 @@ class wpacket:
 
     def lammps_str(self, i, type, etag):
         text = " ".join(str(v) for v in [
-            i, type, self.charge, type - 1, self.width * DistanceScale, etag, 1.0, 0.0, self.x * DistanceScale,
+            i, type, self.charge, type - 1, self.width * DistanceScale * WP_coeff, etag, 1.0, 0.0, self.x * DistanceScale,
+                                  self.y * DistanceScale, self.z * DistanceScale
+        ])
+
+        return text + "\n"
+
+    def eff_str(self, i, type, etag):
+        text = " ".join(str(v) for v in [
+            i, type, self.charge, type - 1, self.width * DistanceScale * WP_coeff, self.x * DistanceScale,
                                   self.y * DistanceScale, self.z * DistanceScale
         ])
 
@@ -66,7 +75,7 @@ class lammps_io:
     def __init__(self, path):
         self.path = path
 
-    def store_system(self, ions, electrons, bound):
+    def store_system(self, ions, electrons, bound, is_eff):
         with open(self.path, "w") as out:
             out.writelines("Create by autotest system\n")
             out.writelines("{0} atoms\n".format(len(ions) + len(electrons)))
@@ -84,12 +93,19 @@ class lammps_io:
 
             atom_index = 1
             for ion in ions:
-                out.write(ion.lammps_str(atom_index, 1, 0))
+            	if not is_eff:
+                	out.write(ion.lammps_str(atom_index, 1, 0))
+                else:
+                	out.write(ion.lammps_str(atom_index, 1, 0))
+
                 atom_index += 1
 
             etag = 1
             for electron in electrons:
-                out.write(electron.lammps_str(atom_index, 2, etag))
+            	if not is_eff:
+                	out.write(electron.lammps_str(atom_index, 2, etag))
+                else:
+                	out.write(electron.lammps_str(atom_index, 2, etag))
                 atom_index += 1
                 etag += 1
 
@@ -125,6 +141,7 @@ def create_single_electron(bound):
     c = [random.uniform(-bound[i], bound[i]) for i in [0, 1, 2]]
     v = [random.uniform(-bound[i] * 2, bound[i] * 2) for i in [0, 1, 2, 0]]
     v[3] = 0.0
+    v = [0, 0, 0, 0]
     return wpacket(mass, charge, w, c, v)
 
 
@@ -140,9 +157,14 @@ def create_system(size, bound, id):
     e_io = eopt_io("inconfig/{0}.ini".format(id))
     e_io.store_system(ions, electrons, bound)
 
-    l_io = lammps_io("inconfig/{0}.data".format(id))
-    l_io.store_system(ions, electrons, bound)
+    l_io = lammps_io("inconfig/{0}.data".format(id,suffix))
+    l_io.store_system(ions, electrons, bound, False)
 
+    global WP_coeff
+    WP_coeff = 2.0 / (3.0 ** 0.5)
+
+    l_io = lammps_io("inconfig/{0}_eff.data".format(id,suffix))
+    l_io.store_system(ions, electrons, bound, True)
 
 import sys
 

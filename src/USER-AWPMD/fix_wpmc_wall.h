@@ -11,6 +11,7 @@ FixStyle(wall/awpmd,FixWallAwpmd)
 
 #include "fix.h"
 #include <box_hamiltonian.h>
+#include <memory>
 
 namespace LAMMPS_NS {
   class PairAWPMDCut;
@@ -23,9 +24,18 @@ namespace LAMMPS_NS {
     int setmask() override;
 
   private:
-    BoxHamiltonian construct_box(char **pString, double half_box_size);
+  public:
+    void pre_reverse(int i, int i1) override;
+
+  private:
+    std::unique_ptr<BoxHamiltonian> construct_box(char **pString, double half_box_size);
 
     class PairAWPMDCut* m_pair;
+
+    std::unique_ptr<BoxHamiltonian> box = nullptr;
+    double wall_energy = 0;
+  public:
+    double compute_scalar() override;
   };
 }
 

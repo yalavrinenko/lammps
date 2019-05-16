@@ -77,6 +77,10 @@ void LAMMPS_NS::FixWallAwpmd::pre_reverse(int, int) {
       return std::complex<double>(3.0 / (4.0 * gamma_wpmd * gamma_wpmd), -pgamma * gamma_wpmd / (2.0 * gamma_wpmd) * one_h);
     };
 
+    auto da_coeff = [gamma_scale, one_h](double gamma, double pgamma){
+
+    };
+
     auto b_coeff = [one_h](std::complex<double> const &a, Vector_3 const &r, Vector_3 const &p) {
       return cVector_3{
           2.0 * a * r[0] + std::complex<double>(0, p[0] * one_h),

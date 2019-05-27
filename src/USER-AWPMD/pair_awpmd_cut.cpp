@@ -34,6 +34,8 @@
 
 #include <wpmd_split.h>
 
+
+#include <chrono>
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -202,7 +204,10 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   if (wpmd->ni)
     fi.resize(static_cast<unsigned long>(wpmd->ni));
 
+  auto begin = std::chrono::high_resolution_clock::now();
   wpmd->interaction(0x1 | 0x4 | 0x10, fi.data());
+  auto eng = std::chrono::high_resolution_clock::now();
+  std::cerr << std::chrono::duration_cast<std::chrono::milliseconds>(eng - begin).count() << std::endl;
 
   auto full_coul_energy = wpmd->get_energy() - electron_ke_ * force->mvv2e;
 

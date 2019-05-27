@@ -1,4 +1,4 @@
-variable	sname index 800
+variable	sname index TEST_CASE
 log		${sname}.spe.log
 
 units 		real
@@ -9,23 +9,21 @@ processors      1 * *
 
 atom_style	wavepacket
 
-read_data  inconfig/${sname}.data
+read_data       inconfig/${sname}_eff.data
 
 #neighbor        2.0 nsq
 
-pair_style      awpmd/cut 8. hartree ermscale 1.0 free flex_press
-#pair_style      awpmd/cut -1. uhf ermscale 0.99 free flex_press
+pair_style       wpmd/cut 200. pressure/evirials
+#pair_style      wpmd/cut -1. uhf ermscale 0.99 free flex_press
 pair_coeff 	    * *
 
 
 
 timestep        0.001
 
-fix             1 all nve/awpmd
-
 comm_modify	vel yes
 
-compute         energies all pair awpmd/cut
+compute         energies all pair wpmd/cut
 variable        eke equal c_energies[1]
 variable        epauli equal c_energies[2]
 variable        estatics equal c_energies[3]

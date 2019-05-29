@@ -801,9 +801,6 @@ foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-COLVARS USER-H5MD
 endforeach()
 
 if(PKG_USER-AWPMD)
-  
-  
-
   if(WIN32)
     if(${CMAKE_GENERATOR} MATCHES "Visual Studio 15 2017")
       set(HAVE_MATH ON)
@@ -832,10 +829,17 @@ if(PKG_USER-AWPMD)
   include_directories(${MKL_INCLUDE_DIR})
   include_directories(${IVUTILS_INCLUDE_DIR}/../src)
 
+  if (PKG_USER-AWPMD-DFT)
+    set(ISCPU ON)
+    set(BUILD_DFT_WPMD ON)
+
+    add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft" ${LAMMPS_LIB_BINARY_DIR}/awpmd/awpmd-dft)
+    include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft")
+    list(APPEND LAMMPS_LINK_LIBS awpmd_dft)
+  endif()
+
   list(APPEND LAMMPS_LINK_LIBS awpmd)
   list(APPEND LAMMPS_LINK_LIBS ivutils)
-
-
 endif()
 
 if(PKG_USER-ATC)

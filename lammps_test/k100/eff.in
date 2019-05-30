@@ -1,0 +1,106 @@
+#PARAMETER SECTION
+variable		density equal 1e20
+variable 		temperature equal 10000
+variable		nepart equal 32
+variable		nsteps equal 10000
+#END PARAMS
+
+variable		nepart_half equal ${nepart}/2
+variable 		V equal ${nepart}/(${density}/1e24)
+variable		L equal (${V}^(1.0/3.0))/2.0
+shell mkdir 	${density}
+
+log				${density}.spe.log
+
+units 			electron
+newton			on
+boundary        p p p
+processors      1 * *
+atom_style		electron
+
+#START INIT SECTION
+region          box block -${L} ${L} -${L} ${L} -${L} ${L}
+create_box      3 box
+create_atoms    1 random ${nepart} 24 box
+create_atoms	2 random ${nepart_half} 42 box
+create_atoms    3 random ${nepart_half} 41 box
+
+mass         	1 1.000794
+set 			type 1 charge 1
+set 			type 1 spin/wpmd 0
+
+mass	     	2 0.000544616997098749
+set 			type 2 charge -1
+set     		type 2 spin/wpmd 1
+set     		type 2 eradius 0.86
+
+mass         	3 0.000544616997098749
+set 			type 3 charge -1
+set				type 3 spin/wpmd -1
+set				type 3 eradius 0.86
+
+group 			ion type 1
+group 			eup type 2
+group 			edown type 3
+group 			electrons type 2 3
+
+velocity        ion create ${temperature} 877785 dist gaussian
+velocity        eup create ${temperature} 872464 dist gaussian
+velocity        edown create ${temperature} 121346 dist gaussian
+#END INIT SECTION
+
+#PAIR_STYLE
+pair_style      eff/cut ${L} pressure/evirials
+pair_coeff 	* *
+#END_PAIR_STYLE
+
+timestep        0.001
+comm_modify		vel yes
+
+#FIX_SECTION
+compute         kinetik all ke
+compute         ke_ion ion ke
+compute         ke_eup eup ke
+compute         ke_edown edown ke
+compute         energies all pair eff/cut
+
+variable		eng_total equal etotal
+variable 		etotal_ev equal v_eng_total*27.211386
+
+fix             mc all wpmc/awpmd eng_total ${temperature} ix ex ew ewp iv ev
+variable        accept equal f_mc[1]
+variable        mc_energy equal f_mc[2]
+variable		mc_step_energy	equal f_mc[3]
+variable        mc_steppe_id equal  f_mc[6]
+
+compute			all_temp all temp
+compute			t_ion ion temp
+compute			t_elup  eup temp
+compute			t_eldown  edown temp
+
+fix 			ave all ave/time 1 1 10 v_accept v_etotal_ev c_energies c_kinetik c_ke_ion c_ke_eup c_ke_edown c_all_temp c_t_ion c_t_elup c_t_eldown file ./${density}/eff_thermo_ave.dat off 1
+
+compute			erad all property/atom eradius
+compute			sp   all property/atom spin
+compute			ch   all property/atom q
+fix 			histo electrons ave/histo 1 1000 1000 0 ${L} 1000 c_erad file ./${density}/eff_width_histo.dat mode vector ave one 
+#END_FIX_SECTION
+
+thermo          1
+thermo_modify	norm yes
+thermo_style    custom step v_etotal_ev pe temp c_t_ion c_t_elup c_t_eldown v_accept v_mc_energy v_mc_step_energy c_ke_ion c_ke_eup c_ke_edown v_mc_steppe_id
+
+#DUMP
+dump 			snap all cfg 10000 ./${density}/dump.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
+dump_modify 	snap element I EU ED
+
+run 			${nsteps}
+
+unfix 			ave
+unfix 			mc
+
+thermo_style    custom step v_etotal_ev pe temp c_t_ion c_t_elup c_t_eldown c_ke_ion c_ke_eup c_ke_edown 
+dump 			snap_final all cfg 1 ./${density}/eff_final.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
+dump_modify 	snap_final element I EU ED
+
+run 			0

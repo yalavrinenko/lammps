@@ -1269,7 +1269,7 @@ else()
 endif()
 
 if(BUILD_EXE)
-  add_executable(lmp ${LMP_SOURCES})
+  add_executable(lmp ${LMP_SOURCES} ../src/USER-AWPMD/fix_wpmc_wall.cpp ../src/USER-AWPMD/fix_wpmc_wall.h ../src/USER-AWPMD/mc_utils.h)
   if(BUILD_LIB)
     target_link_libraries(lmp lammps)
   else()

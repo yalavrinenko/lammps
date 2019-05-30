@@ -1,0 +1,87 @@
+variable	sname index random
+log		${sname}.spe.log
+
+units 		real
+newton		on
+boundary        m m m
+processors      1 * *
+
+
+atom_style	wavepacket
+
+#START INIT SECTION
+
+region          box block -2 2 -2 2 -2 2
+create_box      2 box
+create_atoms    1 random 1 24 box
+create_atoms	2 random 2 42 box
+
+mass            1 1.000794
+mass			2 0.000544616997098749
+
+set 	type 1 charge 2
+set 	type 2 charge -1
+set 	type 1 spin/wpmd 0
+set 	type 2 spin/wpmd 1
+set     type 2 eradius 0.86
+
+#velocity        all create 1.0 87287
+
+#group ion type 1
+#group electron type 2
+
+#END INIT SECTION
+
+pair_style      awpmd/cut -1. hartree ermscale 0.99 free flex_press
+pair_coeff 	    * *
+
+fix		w1 all wall/awpmd  0.861554971715096 -1 10
+
+timestep        0.001
+
+comm_modify	vel yes
+
+compute         energies all pair awpmd/cut
+variable        eke equal c_energies[1]
+variable        epauli equal c_energies[2]
+variable        estatics equal c_energies[3]
+variable        errestrain equal c_energies[4]
+
+compute         peratom all stress/atom NULL
+compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable 		etotal_ev equal etotal/627.509474*27.211386
+
+compute         kinetik all ke
+
+variable        mc_eng equal c_energies+c_kinetik
+fix             mc all wpmc/awpmd mc_eng 10 ix ex ew ewp
+
+variable        accept equal f_mc[1]
+variable        mc_energy equal f_mc[2]
+variable        step_energy equal f_mc[3]
+
+fix 		ave all ave/time 1 10 100 c_energies c_kinetik v_eke v_accept v_mc_eng file ave_mc.dat off 1
+
+thermo          1
+thermo_modify	norm yes
+thermo_style    custom step etotal v_etotal_ev pe ke temp v_accept v_mc_energy v_step_energy
+
+compute		erad all property/atom eradius
+compute		sp   all property/atom spin
+compute		ch   all property/atom q
+
+dump 		snap all cfg 100 ./dumps/dump.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
+dump_modify snap element I E
+
+run 		100000
+
+unfix ave
+unfix mc
+
+thermo_style    custom step etotal v_etotal_ev pe ke temp
+dump 		snap_final all cfg 1 final.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
+dump_modify snap_final element I E
+
+run 0
+
+unfix w1

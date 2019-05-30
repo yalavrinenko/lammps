@@ -1,0 +1,62 @@
+variable	sname index 4
+log		${sname}.spe.log
+
+units 		real
+newton		on
+boundary        m m m
+processors      1 * *
+
+
+atom_style	wavepacket
+
+read_data  	${sname}.data
+
+#neighbor        2.0 nsq
+
+pair_style      awpmd/cut -1. hartree ermscale 0.99 free flex_press
+pair_coeff 	    * *
+
+fix		w1 all wall/awpmd  0.861554971715096 -1 10
+
+timestep        0.001
+
+comm_modify	vel yes
+
+compute         energies all pair awpmd/cut
+variable        eke equal c_energies[1]
+variable        epauli equal c_energies[2]
+variable        estatics equal c_energies[3]
+variable        errestrain equal c_energies[4]
+
+compute         peratom all stress/atom NULL
+compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable 		etotal_ev equal etotal/627.509474*27.211386
+
+compute         kinetik all ke
+
+variable        mc_eng equal c_energies
+fix             mc all wpmc/awpmd mc_eng 1 ix ex ew ewp
+
+variable        accept equal f_mc[1]
+variable        mc_energy equal f_mc[2]
+variable        step_energy equal f_mc[3]
+
+fix 		ave all ave/time 1 10 100 c_energies c_kinetik v_eke v_accept file ave_mc.dat off 1
+
+thermo          1
+thermo_modify	norm yes
+thermo_style    custom step etotal v_etotal_ev pe ke v_eke temp v_accept v_mc_energy v_step_energy
+dump 		h5md_dump all h5md 100 dump_h5md.h5 position velocity species charge box yes
+run 		100000
+
+
+unfix ave
+unfix mc
+compute		erad all property/atom eradius
+
+dump 		snap all cfg 1 dump.config.*.cfg mass type xs ys zs x y z vx vy vz c_erad id type 
+thermo_style    custom step etotal pe ke temp
+
+run 0
+
+unfix w1

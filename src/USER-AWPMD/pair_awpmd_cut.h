@@ -27,6 +27,7 @@ PairStyle(awpmd/cut,PairAWPMDCut)
 #include "pair.h"
 #include <vector>
 #include <unordered_map>
+#include <map>
 
 class AWPMD_split;
 
@@ -34,76 +35,84 @@ class AWPMD_split;
 namespace LAMMPS_NS {
 
   class PairAWPMDCut : public Pair {
-   friend class FixNVEAwpmd;
+    friend class FixNVEAwpmd;
 
   public:
-   explicit PairAWPMDCut(class LAMMPS *);
+    explicit PairAWPMDCut(class LAMMPS *);
 
-   ~PairAWPMDCut() override;
+    ~PairAWPMDCut() override;
 
-   void compute(int, int) override;
+    void compute(int, int) override;
 
-   void settings(int, char **) override;
+    void settings(int, char **) override;
 
-   void coeff(int, char **) override;
+    void coeff(int, char **) override;
 
-   void init_style() override;
+    void init_style() override;
 
-   void min_pointers(double **, double **);
+    void min_pointers(double **, double **);
 
-   double init_one(int, int) override;
+    double init_one(int, int) override;
 
-   void write_restart(FILE *) override;
+    void write_restart(FILE *) override;
 
-   void read_restart(FILE *) override;
+    void read_restart(FILE *) override;
 
-   void write_restart_settings(FILE *) override;
+    void write_restart_settings(FILE *) override;
 
-   void read_restart_settings(FILE *) override;
+    void read_restart_settings(FILE *) override;
 
-   void min_xf_pointers(int, double **, double **) override;
+    void min_xf_pointers(int, double **, double **) override;
 
-   void min_xf_get(int) override;
+    void min_xf_get(int) override;
 
-   void min_x_set(int) override;
+    void min_x_set(int) override;
 
-   double memory_usage() override;
+    double memory_usage() override;
+
+    AWPMD_split *awpmd();
 
   private:
 
-   struct awpmd_pair_index{
-     unsigned lmp_index{};
-     unsigned wpmd_index{};
-   };
+    struct awpmd_pair_index {
+      unsigned lmp_index{};
+      unsigned wpmd_index{};
 
-   using awpmd_ions = std::vector<awpmd_pair_index >;
-   using awpmd_electrons = std::map<unsigned, std::vector<awpmd_pair_index>>;
-   using awpmd_packets = std::tuple<awpmd_ions, awpmd_electrons>;
+      awpmd_pair_index(unsigned l_index, unsigned w_index): lmp_index(l_index), wpmd_index(w_index){}
+    };
 
-   awpmd_packets make_packets() const;
+    using awpmd_ions = std::vector<awpmd_pair_index>;
+    using awpmd_electrons = std::map<unsigned, std::vector<awpmd_pair_index>>;
+    using awpmd_packets = std::tuple<awpmd_ions, awpmd_electrons>;
 
-   //SOME PROP FUNCTION
-   double ghost_energy();
+    awpmd_packets make_packets() const;
 
-   void init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons);
+    //SOME PROP FUNCTION
+    double ghost_energy();
 
-   int flexible_pressure_flag;
-   double cut_global;
-   double **cut;
+    void init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons);
 
-
-   int nmax; // number of additional variables for minimizer
-   double *min_var, *min_varforce; // additional variables for minimizer
-
-   void allocate();
-
-   void virial_eradius_compute();
+    int flexible_pressure_flag;
+    double cut_global;
+    double **cut;
 
 
-   AWPMD_split *wpmd; // solver oybject
-   double ermscale; // scale of width mass for motion
-   double width_pbc; // setting for width pbc
-   double half_box_length; // calculated by coeff function
+    int nmax; // number of additional variables for minimizer
+    double *min_var, *min_varforce; // additional variables for minimizer
+
+    void allocate();
+
+    void virial_eradius_compute();
+
+
+    AWPMD_split *wpmd; // solver oybject
+    double ermscale; // scale of width mass for motion
+    double width_pbc; // setting for width pbc
+    double half_box_length; // calculated by coeff function
+    double electron_ke_;
+
+    double const time_unit = 1; //10.12;
+    double const ev_to_energy = 1; //1.0 / 27.211386 * 627.509474;
   };
 
 }

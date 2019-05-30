@@ -1,0 +1,91 @@
+variable	density equal 1e20
+log		${density}.spe.log
+
+variable	nepart equal 128
+variable 	V equal ${nepart}/(${density}/1e24)
+variable	L equal exp(1.0/3.0*ln(${V}))/2.0
+
+shell mkdir ${density}
+
+units 		real
+newton		on
+boundary        m m m
+processors      1 * *
+
+
+atom_style	wavepacket
+
+#START INIT SECTION
+
+region          box block -${L} ${L} -${L} ${L} -${L} ${L}
+create_box      2 box
+create_atoms    1 random ${nepart} 24 box
+create_atoms	2 random ${nepart} 42 box
+
+mass            1 1.000794
+mass			2 0.000544616997098749
+
+set 	type 1 charge 1
+set 	type 2 charge -1
+set 	type 1 spin/wpmd 0
+set 	type 2 spin/wpmd 1
+set     type 2 eradius 0.86
+
+group ion type 1
+group electron type 2
+
+velocity        ion create 10000 87287
+velocity        electron create 10000 87283
+
+#END INIT SECTION
+
+pair_style      awpmd/cut -1. hartree ermscale 0.99 free flex_press
+pair_coeff 	    * *
+
+fix		w1 all wall/awpmd  0.861554971715096 -1 10
+
+timestep        0.001
+
+comm_modify	vel yes
+
+compute         energies all pair awpmd/cut
+variable 		etotal_ev equal etotal/627.509474*27.211386
+
+compute         kinetik all ke
+
+compute			ke_ion ion temp
+compute			ke_el  electron temp
+
+variable        mc_eng equal c_energies+c_kinetik
+fix             mc all wpmc/awpmd mc_eng 10000 ix ex ew ewp iv ev #ix ex ew ewp iv ev
+
+variable        accept equal f_mc[1]
+variable        mc_energy equal f_mc[2]
+variable        step_energy equal f_mc[3]
+
+compute         all_temp all temp
+fix 		ave all ave/time 1 1 1 v_etotal_ev c_energies c_kinetik c_ke_ion c_ke_el c_all_temp v_accept v_mc_eng file ave_${density}.dat off 1
+
+thermo          1
+thermo_modify	norm yes
+thermo_style    custom step v_etotal_ev pe ke c_ke_ion c_ke_el temp v_accept v_mc_energy v_step_energy
+
+compute		erad all property/atom eradius
+compute		sp   all property/atom spin
+compute		ch   all property/atom q
+
+dump 		snap all cfg 100 ./${density}/dump.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
+dump_modify snap element I E
+
+run 		10000
+
+unfix ave
+unfix mc
+
+thermo_style    custom step etotal v_etotal_ev pe ke temp
+dump 		snap_final all cfg 1 /${density}/final.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
+dump_modify snap_final element I E
+
+run 0
+
+unfix w1

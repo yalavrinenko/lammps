@@ -14,14 +14,28 @@ FixStyle(dft/awpmd,FixDftAwpmd)
 #include "compute.h"
 #include "variable.h"
 #include "mc_utils.h"
+#include <awpmd-dft.hpp>
 
 namespace LAMMPS_NS{
   class FixDftAwpmd: public Fix{
   public:
     FixDftAwpmd(class LAMMPS *lammps, int i, char **pString);
 
-  public:
     int setmask() override;
+
+    ~FixDftAwpmd() override {
+      delete xc_energy_;
+    }
+
+    void pre_reverse(int i, int i1) override;
+
+  protected:
+    XCEnergy* xc_energy_;
+
+    struct {
+      double distance_to_bohr = 1.0;
+      double hartree_to_energy = 1.0;
+    } UnitsScale;
   };
 }
 

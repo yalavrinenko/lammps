@@ -80,4 +80,8 @@ void LAMMPS_NS::FixDftAwpmd::pre_reverse(int, int) {
     }
   }
 
+  std::cout << e_sup.size() << "\t" << e_sdown.size() << std::endl;
+  auto energy = xc_energy_->energy(e_sup, e_sdown, {});
+  std::cout << energy.energy << "\t" << energy.kinetic_energy << "\t" << energy.eng.potential << std::endl;
+
 }

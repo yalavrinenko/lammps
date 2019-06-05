@@ -33,6 +33,7 @@
 #include "error.h"
 
 #include <wpmd_split.h>
+#include "timemetrics.h"
 
 using namespace LAMMPS_NS;
 
@@ -202,7 +203,12 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   if (wpmd->ni)
     fi.resize(static_cast<unsigned long>(wpmd->ni));
 
-  wpmd->interaction(0x1 | 0x4 | 0x10, fi.data());
+  {
+    TimeMetrics metric;
+    metric.make_tick("Begin interaction");
+    wpmd->interaction(0x1 | 0x4 | 0x10, fi.data());
+    metric.make_tick("End interaction");
+  }
 
   auto full_coul_energy = wpmd->get_energy() - electron_ke_ * force->mvv2e;
 
@@ -354,6 +360,7 @@ void PairAWPMDCut::settings(int narg, char **arg) {
   ermscale = 1.;
   width_pbc = 0.;
 
+  wpmd->calc_ee = wpmd->calc_ei = wpmd->calc_ii = true;
   for (int i = 1; i < narg; i++) {
     // reading commands
     if (!strcmp(arg[i], "hartree"))
@@ -391,6 +398,12 @@ void PairAWPMDCut::settings(int narg, char **arg) {
       ermscale = force->numeric(FLERR, arg[i]);
     } else if (!strcmp(arg[i], "flex_press"))
       flexible_pressure_flag = 1;
+    else if (!strcmp(arg[i], "disable_ii"))
+      wpmd->calc_ii = false;
+    else if (!strcmp(arg[i], "disable_ei"))
+      wpmd->calc_ei = false;
+    else if (!strcmp(arg[i], "disable_ee"))
+      wpmd->calc_ee = false;
   }
 }
 
@@ -494,7 +507,7 @@ void PairAWPMDCut::init_style() {
   wpmd->one_h = force->mvh2r;
   wpmd->coul_pref = force->qqrd2e;
 
-  wpmd->calc_ii = 1;
+  //wpmd->calc_ii = 1;
 }
 
 /* ----------------------------------------------------------------------

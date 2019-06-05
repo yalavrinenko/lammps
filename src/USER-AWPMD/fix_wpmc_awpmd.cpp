@@ -17,6 +17,8 @@
 #include <future>
 using namespace std::string_literals;
 
+#include "timemetrics.h"
+
 namespace LAMMPS_NS {
   FixWPMCAwpmd::FixWPMCAwpmd(LAMMPS_NS::LAMMPS *lmp, int narg, char **args) :
       Fix(lmp, narg, args) {
@@ -78,9 +80,13 @@ namespace LAMMPS_NS {
   }
 
   void FixWPMCAwpmd::pre_force(int i) {
+    TimeMetrics tm;
     auto energy_new = input->variable->compute_equal(v_id);
+    tm.make_tick("1");
     steppers.current().save((size_t) atom->nlocal);
+    tm.make_tick("2");
     steppers.current().make((size_t) atom->nlocal);
+    tm.make_tick("3");
     if (comm->nprocs > 1)
       update_ghosts();
   }

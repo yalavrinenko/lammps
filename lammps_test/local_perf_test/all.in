@@ -1,5 +1,5 @@
-variable	sname index 2048
-log		${sname}.spe.log
+variable	sname index in
+log		none
 
 units 		real
 newton		on

@@ -136,10 +136,10 @@ namespace LAMMPS_NS {
     auto particle_data = std::move(steppers.current().pack(atom->nlocal, atom->tag));
     auto data_size = particle_data.size();
 
-    int recv_size[comm->nprocs];
-    MPI_Allgather(&data_size, 1, MPI_INT, recv_size, 1, MPI_INT, MPI_COMM_WORLD);
+    std::vector<int> recv_size(comm->nprocs);
+    MPI_Allgather(&data_size, 1, MPI_INT, &recv_size[0], 1, MPI_INT, MPI_COMM_WORLD);
 
-    int displace[comm->nprocs];
+    std::vector<int> displace(comm->nprocs);
     displace[0] = 0;
     auto total_size = recv_size[comm->nprocs - 1];
     for (auto i = 1; i < comm->nprocs; ++i) {
@@ -147,11 +147,11 @@ namespace LAMMPS_NS {
       total_size += recv_size[i - 1];
     }
 
-    double recv_buf[total_size];
-    MPI_Allgatherv(particle_data.data(), data_size, MPI_DOUBLE, recv_buf, recv_size, displace, MPI_DOUBLE, MPI_COMM_WORLD);
+    vector<double> recv_buf(total_size);
+    MPI_Allgatherv(particle_data.data(), data_size, MPI_DOUBLE, &recv_buf[0], &recv_size[0], &displace[0], MPI_DOUBLE, MPI_COMM_WORLD);
 
     ghost_map.wait();
-    auto unpacked = steppers.current().unpack(recv_buf, total_size, tag_to_index);
+    auto unpacked = steppers.current().unpack(&recv_buf[0], total_size, tag_to_index);
   }
 
   void FixWPMCAwpmd::initial_integrate(int i) {

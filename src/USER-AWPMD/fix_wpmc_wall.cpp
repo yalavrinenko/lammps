@@ -34,6 +34,7 @@ LAMMPS_NS::FixWallAwpmd::~FixWallAwpmd() {
 
 int LAMMPS_NS::FixWallAwpmd::setmask() {
   //return LAMMPS_NS::FixConst::PRE_REVERSE;
+  return 0;
 }
 
 std::unique_ptr<BoxHamiltonian> LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length) {

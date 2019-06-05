@@ -201,17 +201,47 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   awpmd_electrons electrons;
   std::vector<Vector_3> fi;
 
-//  std::tie(ions, electrons) = this->make_packets();
-//  this->init_wpmd(ions, electrons);
-//
-//  if (wpmd->ni)
-//    fi.resize(static_cast<unsigned long>(wpmd->ni));
-//
-//  wpmd->interaction(0/*0x1 | 0x4 | 0x10*/, fi.data());
-//
-//  auto eta_eng = wpmd->get_energy() - electron_ke_;
+  std::tie(ions, electrons) = this->make_packets();
+  this->init_wpmd(ions, electrons);
 
-  /*****LOOP OVER PAIRS*************/
+  if (wpmd->ni)
+    fi.resize(static_cast<unsigned long>(wpmd->ni));
+
+  wpmd->calc_ee = wpmd->calc_ei = wpmd->calc_ii = false;
+  wpmd->interaction(0x1 | 0x4 | 0x10, fi.data());
+
+  auto eta_eng = wpmd->get_energy() - electron_ke_;
+  //update_force(ions, electrons, fi);
+  //update_energy(eta_eng, ions, electrons);
+
+  auto interaction_energy = this->compute_pair();
+  auto full_coul_energy = interaction_energy.sum();
+
+  double **f = atom->f;
+  for (auto const &ion : ions) {
+    auto &i_lmp = ion.lmp_index;
+    auto &i_wpmd = ion.wpmd_index;
+    std::cout << f[i_lmp][0] << "-" << fi[i_wpmd][0] << " " <<  f[i_lmp][1] << "-" << fi[i_wpmd][1] << " " << f[i_lmp][2] << "-" << fi[i_wpmd][2] << std::endl;
+  }
+
+  if (eflag_global) {
+    eng_coul += full_coul_energy;
+
+    pvector[0] = interaction_energy.ii;
+    pvector[2] = interaction_energy.ei;
+    pvector[1] = interaction_energy.ee;
+    pvector[3] = interaction_energy.ke;
+    pvector[4] = interaction_energy.border;
+  }
+
+  if (vflag_fdotr) {
+    virial_fdotr_compute();
+    if (flexible_pressure_flag)
+      virial_eradius_compute();
+  }
+}
+
+PairAWPMDCut::awpmd_energies PairAWPMDCut::compute_pair() {
   auto inum = list->inum;
   auto ilist = list->ilist;
   auto numneigh = list->numneigh;
@@ -240,17 +270,7 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
     }
   }
 
-  struct {
-    double ke{};
-    double ee{};
-    double ei{};
-    double ii{};
-    double border{};
-
-    double sum() const {
-      return ke + ee + ei + ii + border;
-    }
-  } interaction_energy{};
+  awpmd_energies interaction_energy{};
 
   for (auto ii = 0; ii < inum; ii++) {
     auto i = ilist[ii];
@@ -260,9 +280,9 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
 
     if (wpmd->use_box){
       if (atom->spin[i] == 0){
-        interaction_energy.border += wpmd->interaction_border_ion(i, atom->x, nullptr);
+        interaction_energy.border += wpmd->interaction_border_ion(i, atom->x[i], atom->f[i]);
       } else {
-        interaction_energy.border += wpmd->interaction_border_electron(packets[i]);
+        interaction_energy.border += wpmd->interaction_border_electron(packets[i], nullptr, nullptr);
       }
     }
 
@@ -270,42 +290,22 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
       auto j = firstneigh[i][jj];
       j &= NEIGHMASK;
 
-      if (atom->spin[i] == 0 && atom->spin[j] == 0) {
-        interaction_energy.ii += wpmd->interation_ii_single(i, j, atom->x, atom->q, nullptr);
+      if (atom->spin[i] == 0 && atom->spin[j] == 0 && wpmd->calc_ii) {
+        interaction_energy.ii += wpmd->interation_ii_single(i, j, atom->x, atom->q, atom->f);
       } else
-      if (atom->spin[i] != 0 && atom->spin[j] != 0) {
+      if (atom->spin[i] != 0 && atom->spin[j] != 0 && wpmd->calc_ee) {
         interaction_energy.ee += wpmd->interaction_ee_single(packets[i], packets[j]);
       } else
-      if (atom->spin[i] == 0 && atom->spin[j] != 0) {
-        interaction_energy.ei += wpmd->interaction_ei_single(i, atom->x, atom->q, packets[j], atom->spin[j], nullptr);
+      if (atom->spin[i] == 0 && atom->spin[j] != 0 && wpmd->calc_ei) {
+        interaction_energy.ei += wpmd->interaction_ei_single(i, atom->x, atom->q, packets[j], atom->spin[j], atom->f[i]);
       } else
-      if (atom->spin[i] != 0 && atom->spin[j] == 0){
-        interaction_energy.ei += wpmd->interaction_ei_single(j, atom->x, atom->q, packets[i], atom->spin[i], nullptr);
+      if (atom->spin[i] != 0 && atom->spin[j] == 0 && wpmd->calc_ei){
+        interaction_energy.ei += wpmd->interaction_ei_single(j, atom->x, atom->q, packets[i], atom->spin[i], atom->f[j]);
       }
     }
   }
 
-  auto full_coul_energy = interaction_energy.sum();
-
-  update_force(ions, electrons, fi);
-
-  if (eflag_global) {
-    eng_coul += full_coul_energy;
-
-    pvector[0] = interaction_energy.ii;
-    pvector[2] = interaction_energy.ei;
-    pvector[1] = interaction_energy.ee;
-    pvector[3] = interaction_energy.ke;
-    pvector[4] = interaction_energy.border;
-  }
-
-  update_energy(full_coul_energy, ions, electrons);
-
-  if (vflag_fdotr) {
-    virial_fdotr_compute();
-    if (flexible_pressure_flag)
-      virial_eradius_compute();
-  }
+  return interaction_energy;
 }
 
 void PairAWPMDCut::update_energy(double full_coul_energy, awpmd_ions const &ions, awpmd_electrons const &electrons) {

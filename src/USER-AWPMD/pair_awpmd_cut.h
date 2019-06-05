@@ -76,6 +76,18 @@ namespace LAMMPS_NS {
 
   protected:
 
+    struct awpmd_energies{
+      double ke{};
+      double ee{};
+      double ei{};
+      double ii{};
+      double border{};
+
+      double sum() const {
+        return ke + ee + ei + ii + border;
+      }
+    };
+
     struct awpmd_pair_index {
       int tag{};
       unsigned lmp_index{};
@@ -95,10 +107,9 @@ namespace LAMMPS_NS {
 
     awpmd_packets make_packets() const;
 
-    //SOME PROP FUNCTION
-    double ghost_energy();
-
     void init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons);
+
+    awpmd_energies compute_pair();
 
     int flexible_pressure_flag;
     double cut_global;

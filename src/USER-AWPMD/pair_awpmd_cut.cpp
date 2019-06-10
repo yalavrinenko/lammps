@@ -185,7 +185,7 @@ void PairAWPMDCut::init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons) {
 
 void PairAWPMDCut::compute(int eflag, int vflag) {
   // pvector = [KE, Pauli, ecoul, radial_restraint]
-  for (int i = 0; i < 5; i++) pvector[i] = 0.0;
+  for (int i = 0; i < nextra; i++) pvector[i] = 0.0;
 
   if (eflag || vflag)
     ev_setup(eflag, vflag);
@@ -206,28 +206,18 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
 
   auto full_coul_energy = wpmd->get_energy() - electron_ke_ * force->mvv2e;
 
-  double **f = atom->f;
+  update_force(ions, electrons, fi);
 
-  for (auto const &ion : ions) {
-    auto &i_lmp = ion.lmp_index;
-    auto &i_wpmd = ion.wpmd_index;
-    f[i_lmp][0] = fi[i_wpmd][0];
-    f[i_lmp][0] = fi[i_wpmd][1];
-    f[i_lmp][0] = fi[i_wpmd][2];
+  update_energy(full_coul_energy, ions, electrons);
+
+  if (vflag_fdotr) {
+    virial_fdotr_compute();
+    if (flexible_pressure_flag)
+      virial_eradius_compute();
   }
+}
 
-  for (auto const &electron : electrons) {
-    for (auto const &packets : electron.second) {
-      auto &i_lmp = packets.lmp_index;
-      auto &i_wpmd = packets.wpmd_index;
-
-      int s = atom->spin[i_lmp] > 0 ? 0 : 1;
-      wpmd->get_wp_force(s, i_wpmd, (Vector_3 *) f[i_lmp], (Vector_3 *) (atom->vforce + 3 * i_lmp),
-                         atom->erforce + i_lmp,
-                         atom->ervelforce + i_lmp, (Vector_2 *) (atom->csforce + 2 * i_lmp));
-    }
-  }
-
+void PairAWPMDCut::update_energy(double full_coul_energy, awpmd_ions const &ions, awpmd_electrons const &electrons) {
   // update LAMMPS energy
   if (eflag_either) {
     if (eflag_global) {
@@ -261,10 +251,29 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
     }
   }
 
-  if (vflag_fdotr) {
-    virial_fdotr_compute();
-    if (flexible_pressure_flag)
-      virial_eradius_compute();
+}
+
+void PairAWPMDCut::update_force(awpmd_ions const &ions, awpmd_electrons const &electrons, std::vector<Vector_3> const &fi){
+  double **f = atom->f;
+
+  for (auto const &ion : ions) {
+    auto &i_lmp = ion.lmp_index;
+    auto &i_wpmd = ion.wpmd_index;
+    f[i_lmp][0] = fi[i_wpmd][0];
+    f[i_lmp][0] = fi[i_wpmd][1];
+    f[i_lmp][0] = fi[i_wpmd][2];
+  }
+
+  for (auto const &electron : electrons) {
+    for (auto const &packets : electron.second) {
+      auto &i_lmp = packets.lmp_index;
+      auto &i_wpmd = packets.wpmd_index;
+
+      int s = atom->spin[i_lmp] > 0 ? 0 : 1;
+      wpmd->get_wp_force(s, i_wpmd, (Vector_3 *) f[i_lmp], (Vector_3 *) (atom->vforce + 3 * i_lmp),
+                         atom->erforce + i_lmp,
+                         atom->ervelforce + i_lmp, (Vector_2 *) (atom->csforce + 2 * i_lmp));
+    }
   }
 }
 

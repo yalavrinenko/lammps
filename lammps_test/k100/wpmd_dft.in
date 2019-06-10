@@ -51,7 +51,7 @@ velocity        edown create ${temperature} 121346 dist gaussian
 #END INIT SECTION
 
 #PAIR_STYLE
-pair_style      awpmd/cut ${LCut} hartree ermscale 0.99 free flex_press
+pair_style      awpmd/dft/cut ${LCut} hartree ermscale 0.99 free flex_press
 pair_coeff 	    * *
 #END_PAIR_STYLE
 
@@ -59,14 +59,13 @@ timestep        0.001
 comm_modify		vel yes
 
 #FIX_SECTION
-fix             dft1 all dft/awpmd
 fix				w1 all wall/awpmd  0.861554971715096 -1 10
 
 compute         kinetik all ke
 compute         ke_ion ion ke
 compute         ke_eup eup ke
 compute         ke_edown edown ke
-compute         energies all pair awpmd/cut
+compute         energies all pair awpmd/dft/cut
 variable        ebord equal c_energies[5]
 
 variable		eng_total equal etotal

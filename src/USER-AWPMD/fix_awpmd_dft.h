@@ -36,6 +36,18 @@ namespace LAMMPS_NS{
       double distance_to_bohr = 1.0;
       double hartree_to_energy = 1.0;
     } UnitsScale;
+  public:
+    double compute_vector(int i) override;
+
+  protected:
+    union {
+      struct {
+        double xc_energy;
+        double kinetic_energy;
+      } like_vars;
+
+      double like_vector[sizeof(like_vars) / sizeof(double)];
+    } output;
   };
 }
 

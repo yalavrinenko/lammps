@@ -28,6 +28,7 @@ PairStyle(awpmd/cut,PairAWPMDCut)
 #include <vector>
 #include <unordered_map>
 #include <map>
+#include <vector_3.h>
 
 class AWPMD_split;
 
@@ -72,7 +73,7 @@ namespace LAMMPS_NS {
 
     AWPMD_split *awpmd();
 
-  private:
+  protected:
 
     struct awpmd_pair_index {
       unsigned lmp_index{};
@@ -100,10 +101,13 @@ namespace LAMMPS_NS {
     int nmax; // number of additional variables for minimizer
     double *min_var, *min_varforce; // additional variables for minimizer
 
+    void update_energy(double full_coul_energy, awpmd_ions const &ions, awpmd_electrons const &electrons);
+
+    void update_force(awpmd_ions const &ions, awpmd_electrons const &electrons, std::vector<Vector_3> const &fi);
+
     void allocate();
 
     void virial_eradius_compute();
-
 
     AWPMD_split *wpmd; // solver oybject
     double ermscale; // scale of width mass for motion

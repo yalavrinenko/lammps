@@ -1,33 +1,24 @@
 //
-// Created by yalavrinenko on 29.05.19.
+// Created by yalavrinenko on 10.06.19.
 //
 
-#include "fix_awpmd_dft.h"
-#include "atom.h"
-#include <LSDA.hpp>
-#include <DataTypes.hpp>
-#include <comm.h>
-#include <domain.h>
+#include "pair_awpmd_dft_cut.h"
+#include <atom.h>
 #include <force.h>
-#include <style_fix.h>
+#include <DataTypes.hpp>
+#include <LSDA.hpp>
+#include <domain.h>
+#include <comm.h>
+#include <wpmd_split.h>
+#include <style_pair.h>
 
-int LAMMPS_NS::FixDftAwpmd::setmask() {
-  return LAMMPS_NS::FixConst::PRE_REVERSE;
-}
+LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps) : PairAWPMDCut(lammps) {
+  delete []pvector;
+  nextra = 7;
+  pvector = new double[nextra];
 
-LAMMPS_NS::FixDftAwpmd::FixDftAwpmd(LAMMPS_NS::LAMMPS *lammps, int i, char **pString) : Fix(lammps, i, pString) {
   auto electron_count = std::count_if(atom->spin, atom->spin + atom->nlocal + atom->nghost,
                                       [](auto &spin) { return std::abs(spin) == 1; });
-
-  vector_flag = 1;
-  size_vector = sizeof(output) / sizeof(double);
-
-  global_freq = 1;
-  extvector = 0;
-  time_depend = 1;
-
-  nevery = 1;
-
   const double SPACE_MESH_SCALE = 1.5;
   DFTConfig mesh_config;
   mesh_config.packet_number = electron_count;
@@ -61,41 +52,14 @@ LAMMPS_NS::FixDftAwpmd::FixDftAwpmd(LAMMPS_NS::LAMMPS *lammps, int i, char **pSt
   UnitsScale.hartree_to_energy = 627.509474; //only for real
 }
 
-void LAMMPS_NS::FixDftAwpmd::pre_reverse(int, int) {
-  auto one_h=force->mvh2r;
+void LAMMPS_NS::PairAWPMD_DFTCut::compute(int i, int i1) {
+  PairAWPMDCut::compute(i, i1);
 
-  auto electrons_count = atom->nlocal + atom->nghost;
-  std::vector<WavePacket> e_sup, e_sdown;
-  e_sup.reserve(electrons_count), e_sdown.reserve(electrons_count);
-
-  for (auto i = 0u; i < electrons_count; ++i){
-    if (std::abs(atom->spin[i]) == 1){
-      WavePacket packet;
-
-      double width = atom->eradius[i] * UnitsScale.distance_to_bohr;
-      Vector_3 r{atom->x[i][0], atom->x[i][1], atom->x[i][2]}, p{atom->v[i][0], atom->v[i][1], atom->v[i][2]};
-      r *= UnitsScale.distance_to_bohr;
-      p *= UnitsScale.distance_to_bohr * one_h * atom->mass[i];
-
-      double pw = atom->ervel[i];
-      pw *= UnitsScale.distance_to_bohr * one_h * atom->mass[i];
-
-      packet.init(width, r, p, pw);
-
-      if (atom->spin[i] == 1)
-        e_sup.emplace_back(packet);
-      else
-        e_sdown.emplace_back(packet);
-    }
-  }
-
-  auto energy = xc_energy_->energy(e_sup, e_sdown, {});
+  auto energy = xc_energy_->energy(wpmd->wp[0], wpmd->wp[1], {});
   output.like_vars.xc_energy = UnitsScale.hartree_to_energy * energy.eng.potential;
   output.like_vars.kinetic_energy = UnitsScale.hartree_to_energy * energy.eng.kinetic;
 
   force->pair->eng_coul += output.like_vars.xc_energy + output.like_vars.kinetic_energy;
-}
-
-double LAMMPS_NS::FixDftAwpmd::compute_vector(int i) {
-  return output.like_vector[i];
+  pvector[5] = output.like_vars.xc_energy;
+  pvector[6] = output.like_vars.kinetic_energy;
 }

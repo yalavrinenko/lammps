@@ -52,10 +52,37 @@ LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps) : PairA
   UnitsScale.hartree_to_energy = 627.509474; //only for real
 }
 
-void LAMMPS_NS::PairAWPMD_DFTCut::compute(int i, int i1) {
-  PairAWPMDCut::compute(i, i1);
+void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
+  PairAWPMDCut::compute(_i, _i1);
 
-  auto energy = xc_energy_->energy(wpmd->wp[0], wpmd->wp[1], {});
+  auto one_h=force->mvh2r;
+
+  auto electrons_count = atom->nlocal + atom->nghost;
+  std::vector<WavePacket> e_sup, e_sdown;
+  e_sup.reserve(electrons_count), e_sdown.reserve(electrons_count);
+
+  for (auto i = 0u; i < electrons_count; ++i){
+    if (std::abs(atom->spin[i]) == 1){
+      WavePacket packet;
+
+      double width = atom->eradius[i] * UnitsScale.distance_to_bohr;
+      Vector_3 r{atom->x[i][0], atom->x[i][1], atom->x[i][2]}, p{atom->v[i][0], atom->v[i][1], atom->v[i][2]};
+      r *= UnitsScale.distance_to_bohr;
+      p *= UnitsScale.distance_to_bohr * one_h * atom->mass[i];
+
+      double pw = atom->ervel[i];
+      pw *= UnitsScale.distance_to_bohr * one_h * atom->mass[i];
+
+      packet.init(width, r, p, pw);
+
+      if (atom->spin[i] == 1)
+        e_sup.emplace_back(packet);
+      else
+        e_sdown.emplace_back(packet);
+    }
+  }
+
+  auto energy = xc_energy_->energy(e_sup, e_sdown, {});
   output.like_vars.xc_energy = UnitsScale.hartree_to_energy * energy.eng.potential;
   output.like_vars.kinetic_energy = UnitsScale.hartree_to_energy * energy.eng.kinetic;
 

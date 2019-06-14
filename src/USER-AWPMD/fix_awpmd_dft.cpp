@@ -10,6 +10,7 @@
 #include <domain.h>
 #include <force.h>
 #include <style_fix.h>
+#include <awpmd-dft-cpu.hpp>
 
 int LAMMPS_NS::FixDftAwpmd::setmask() {
   return LAMMPS_NS::FixConst::PRE_REVERSE;
@@ -55,7 +56,7 @@ LAMMPS_NS::FixDftAwpmd::FixDftAwpmd(LAMMPS_NS::LAMMPS *lammps, int i, char **pSt
                              domain->boxlo[1] * SPACE_MESH_SCALE + my_grid_pos.y * mesh_config.space_size.y,
                              domain->boxlo[2] * SPACE_MESH_SCALE + my_grid_pos.z * mesh_config.space_size.z};
 
-  xc_energy_ = new XCEnergy(electron_count, mesh_config);
+  xc_energy_ = new XCEnergy_cpu(electron_count, mesh_config);
 
   UnitsScale.distance_to_bohr = 1.0 / (0.52917721092 * force->angstrom);
   UnitsScale.hartree_to_energy = 627.509474; //only for real

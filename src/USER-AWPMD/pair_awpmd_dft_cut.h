@@ -11,15 +11,25 @@ PairStyle(awpmd/dft/cut,PairAWPMD_DFTCut)
 
 #include "pair_awpmd_cut.h"
 #include <awpmd-dft.hpp>
+#include <force.h>
 
 namespace LAMMPS_NS {
   class PairAWPMD_DFTCut : public PairAWPMDCut{
   public:
     explicit PairAWPMD_DFTCut(class LAMMPS *lammps);
 
+    PairAWPMD_DFTCut(class LAMMPS *lammps, XCEnergy* xc_energy_ptr);
+
     void compute(int i, int i1) override;
 
   protected:
+    DFTConfig make_dft_config();
+
+    void set_units(){
+      UnitsScale.distance_to_bohr = 1.0 / (0.52917721092 * force->angstrom);
+      UnitsScale.hartree_to_energy = 627.509474; //only for real
+    }
+
     XCEnergy* xc_energy_;
 
     struct {

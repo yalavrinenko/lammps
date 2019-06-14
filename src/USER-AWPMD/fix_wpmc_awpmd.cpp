@@ -15,6 +15,7 @@
 #include "comm.h"
 #include "atom_vec.h"
 #include <future>
+#include <memory>
 using namespace std::string_literals;
 
 namespace LAMMPS_NS {

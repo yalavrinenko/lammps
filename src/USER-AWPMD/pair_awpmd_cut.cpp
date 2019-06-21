@@ -108,9 +108,9 @@ PairAWPMDCut::awpmd_packets PairAWPMDCut::make_packets() const {
 
   auto insert_particle = [&ions, &electrons, spin, etag, this](unsigned index) {
     if (spin[index] == 0) {
-      ions.emplace_back(awpmd_pair_index{index, 0});
+      ions.emplace_back(index, 0, etag[index]);
     } else if (spin[index] == 1 || spin[index] == -1) {
-      electrons[etag[index]].emplace_back(awpmd_pair_index{index, 0});
+      electrons[etag[index]].emplace_back(index, 0, etag[index]);
     } else {
       error->all(FLERR, fmt("Invalid spin value (%d) for particle %d !", spin[index], index));
     }
@@ -146,17 +146,20 @@ void PairAWPMDCut::init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons) {
 
   int nlocal = atom->nlocal;
 
+  std::sort(ions.begin(), ions.end());
   for (auto &ion_index : ions) {
     auto &insert_index = ion_index.lmp_index;
     ion_index.wpmd_index = (unsigned) wpmd->add_ion(q[insert_index], Vector_3(x[insert_index][0], x[insert_index][1],
                                                                               x[insert_index][2]),
                                                     (insert_index < nlocal ? atom->tag[insert_index]
                                                                            : -atom->tag[insert_index]));
+    std::cout << comm->me << "\t" << (insert_index < nlocal ? atom->tag[insert_index]: -atom->tag[insert_index]) << std::endl;
   }
 
   electron_ke_ = 0.0;
   for (auto &electron : electrons) {
-    auto &main_packet_index = electron.second.front().lmp_index;
+    std::sort(electron.second.begin(), electron.second.end());
+    auto &main_packet_index = electron.second.begin()->lmp_index;
     int s = spin[main_packet_index] > 0 ? 0 : 1;
     wpmd->add_electron(s);
     for (auto &e_split_index : electron.second) {
@@ -178,6 +181,8 @@ void PairAWPMDCut::init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons) {
                                                             atom->q[insert_index],
                                                             (insert_index < nlocal ? atom->tag[insert_index]
                                                                                    : -atom->tag[insert_index]));
+
+      std::cout << comm->me << "\t" << (insert_index < nlocal ? atom->tag[insert_index]: -atom->tag[insert_index]) << std::endl;
     }
   }
 

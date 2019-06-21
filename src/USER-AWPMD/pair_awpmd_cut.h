@@ -26,7 +26,6 @@ PairStyle(awpmd/cut,PairAWPMDCut)
 
 #include "pair.h"
 #include <vector>
-#include <unordered_map>
 #include <map>
 #include <vector_3.h>
 
@@ -78,10 +77,16 @@ namespace LAMMPS_NS {
   protected:
 
     struct awpmd_pair_index {
+      int tag{};
       unsigned lmp_index{};
       unsigned wpmd_index{};
 
-      awpmd_pair_index(unsigned l_index, unsigned w_index): lmp_index(l_index), wpmd_index(w_index){}
+      awpmd_pair_index(unsigned l_index, unsigned w_index, int tag) : lmp_index(l_index), wpmd_index(w_index),
+                                                                           tag(tag) {}
+
+      bool operator < (awpmd_pair_index const &v) const{
+        return this->tag < v.tag;
+      }
     };
 
     using awpmd_ions = std::vector<awpmd_pair_index>;

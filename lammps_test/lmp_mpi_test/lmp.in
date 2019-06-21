@@ -1,4 +1,4 @@
-variable	sname index 2
+variable	sname index 32
 log		${sname}.spe.log
 
 units 		real

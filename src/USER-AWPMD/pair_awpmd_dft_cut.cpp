@@ -77,7 +77,6 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config() {
   mesh_config.packet_number = electron_count;
   mesh_config.calc_derivs = false;
   mesh_config.approximation = new LSDA();
-  mesh_config.mesh_size.size.as_struct = {100, 100, 100};
 
   double3 domain_size {(domain->boxhi[0] - domain->boxlo[0]) * SPACE_MESH_SCALE,
                        (domain->boxhi[1] - domain->boxlo[1]) * SPACE_MESH_SCALE,
@@ -98,6 +97,8 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config() {
   mesh_config.space_shift = {domain->boxlo[0] * SPACE_MESH_SCALE + my_grid_pos.x * mesh_config.space_size.x,
                              domain->boxlo[1] * SPACE_MESH_SCALE + my_grid_pos.y * mesh_config.space_size.y,
                              domain->boxlo[2] * SPACE_MESH_SCALE + my_grid_pos.z * mesh_config.space_size.z};
+
+  mesh_config.mesh_size.size.as_struct = {100 / grid_size.x, 100 / grid_size.y, 100 / grid_size.z};
 
   return mesh_config;
 }

@@ -21,9 +21,9 @@ LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps) : PairA
   auto electron_count = std::count_if(atom->spin, atom->spin + atom->nlocal + atom->nghost,
                                       [](auto &spin) { return std::abs(spin) == 1; });
 
-  xc_energy_ = new XCEnergy_cpu(electron_count, make_dft_config());
-
   set_units();
+
+  xc_energy_ = new XCEnergy_cpu(electron_count, make_dft_config());
 }
 
 void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
@@ -63,7 +63,7 @@ void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
 
 //  output.like_vars.xc_energy = energy.eng.potential;
 //  output.like_vars.kinetic_energy = energy.eng.kinetic;
-//  force->pair->eng_coul = output.like_vars.xc_energy + output.like_vars.kinetic_energy;
+//  force->pair->eng_coul += output.like_vars.xc_energy + output.like_vars.kinetic_energy;
 
   pvector[5] = output.like_vars.xc_energy;
   pvector[6] = output.like_vars.kinetic_energy;
@@ -72,7 +72,7 @@ void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
 DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config() {
   auto electron_count = std::count_if(atom->spin, atom->spin + atom->nlocal + atom->nghost,
                                       [](auto &spin) { return std::abs(spin) == 1; });
-  const double SPACE_MESH_SCALE = 1.5;
+  const double SPACE_MESH_SCALE = 1.5 * UnitsScale.distance_to_bohr;
   DFTConfig mesh_config;
   mesh_config.packet_number = electron_count;
   mesh_config.calc_derivs = false;

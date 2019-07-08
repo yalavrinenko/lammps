@@ -12,6 +12,7 @@
 #include <wpmd_split.h>
 #include <style_pair.h>
 #include <awpmd-dft-cpu.hpp>
+#include "neigh_list.h"
 
 LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps) : PairAWPMDCut(lammps) {
   delete []pvector;

@@ -260,8 +260,8 @@ void PairAWPMDCut::update_force(awpmd_ions const &ions, awpmd_electrons const &e
     auto &i_lmp = ion.lmp_index;
     auto &i_wpmd = ion.wpmd_index;
     f[i_lmp][0] = fi[i_wpmd][0];
-    f[i_lmp][0] = fi[i_wpmd][1];
-    f[i_lmp][0] = fi[i_wpmd][2];
+    f[i_lmp][1] = fi[i_wpmd][1];
+    f[i_lmp][2] = fi[i_wpmd][2];
   }
 
   for (auto const &electron : electrons) {
@@ -269,10 +269,14 @@ void PairAWPMDCut::update_force(awpmd_ions const &ions, awpmd_electrons const &e
       auto &i_lmp = packets.lmp_index;
       auto &i_wpmd = packets.wpmd_index;
 
-      int s = atom->spin[i_lmp] > 0 ? 0 : 1;
-      wpmd->get_wp_force(s, i_wpmd, (Vector_3 *) f[i_lmp], (Vector_3 *) (atom->vforce + 3 * i_lmp),
-                         atom->erforce + i_lmp,
-                         atom->ervelforce + i_lmp, (Vector_2 *) (atom->csforce + 2 * i_lmp));
+//      int s = atom->spin[i_lmp] > 0 ? 0 : 1;
+//      Vector_3 fv;
+//      wpmd->get_wp_force(s, i_wpmd, &fv, (Vector_3 *) (atom->vforce + 3 * i_lmp),
+//                         atom->erforce + i_lmp,
+//                         atom->ervelforce + i_lmp, (Vector_2 *) (atom->csforce + 2 * i_lmp));
+//      f[i_lmp][0] = fv[0];
+//      f[i_lmp][1] = fv[1];
+//      f[i_lmp][2] = fv[2];
     }
   }
 }
@@ -492,7 +496,7 @@ void PairAWPMDCut::init_style() {
   //error->warning(FLERR,"Not using real units with pair reax");
 
   int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->newton = 2;
+  neighbor->requests[irequest]->newton = 0;
 
   if (force->e_mass == 0. || force->hhmrr2e == 0. || force->mvh2r == 0.)
     error->all(FLERR,
@@ -708,4 +712,28 @@ double PairAWPMDCut::ghost_energy() {
 
 AWPMD_split *PairAWPMDCut::awpmd() {
   return wpmd;
+}
+
+void PairAWPMDCut::extract_interaction_tags() {
+  auto inum = list->inum;
+  auto ilist = list->ilist;
+  auto numneigh = list->numneigh;
+  auto firstneigh = list->firstneigh;
+
+  for (auto ii = 0; ii < inum; ii++) {
+    auto i = ilist[ii];
+    auto tag_i = atom->tag[i];
+
+    auto jlist = firstneigh[i];
+    auto jnum = numneigh[i];
+    std::cout << comm->me << "\t" << tag_i << "\t===\t";
+    for (auto jj = 0; jj < jnum; jj++){
+      auto j = jlist[jj];
+      j &= NEIGHMASK;
+
+      auto tag_j = atom->tag[j];
+      std::cout << tag_j << "\t";
+    }
+    std::cout << std::endl;
+  }
 }

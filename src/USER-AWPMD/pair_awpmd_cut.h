@@ -73,6 +73,8 @@ namespace LAMMPS_NS {
 
     AWPMD_split *awpmd();
 
+    void extract_interaction_tags();
+
   protected:
 
     struct awpmd_pair_index {

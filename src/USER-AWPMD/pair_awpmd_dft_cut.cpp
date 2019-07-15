@@ -66,6 +66,8 @@ void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
 //  output.like_vars.kinetic_energy = energy.eng.kinetic;
 //  force->pair->eng_coul += output.like_vars.xc_energy + output.like_vars.kinetic_energy;
 
+  //std::cout << "ENG:" << comm->me << "\t" << energy.energy << "\t" << energy.kinetic_energy << "\t" << electrons_count << std::endl;
+
   pvector[5] = output.like_vars.xc_energy;
   pvector[6] = output.like_vars.kinetic_energy;
 }

@@ -202,6 +202,8 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   if (wpmd->ni)
     fi.resize(static_cast<unsigned long>(wpmd->ni));
 
+  //this->extract_interaction_tags(wpmd->interaction_tags);
+
   wpmd->interaction(0x1 | 0x4 | 0x10, fi.data());
 
   auto full_coul_energy = wpmd->get_energy() - electron_ke_ * force->mvv2e;
@@ -714,7 +716,9 @@ AWPMD_split *PairAWPMDCut::awpmd() {
   return wpmd;
 }
 
-void PairAWPMDCut::extract_interaction_tags() {
+void PairAWPMDCut::extract_interaction_tags(std::map<int, std::map<int, bool>> &interaction_map) {
+  interaction_map.clear();
+
   auto inum = list->inum;
   auto ilist = list->ilist;
   auto numneigh = list->numneigh;
@@ -726,14 +730,12 @@ void PairAWPMDCut::extract_interaction_tags() {
 
     auto jlist = firstneigh[i];
     auto jnum = numneigh[i];
-    std::cout << comm->me << "\t" << tag_i << "\t===\t";
     for (auto jj = 0; jj < jnum; jj++){
       auto j = jlist[jj];
       j &= NEIGHMASK;
 
       auto tag_j = atom->tag[j];
-      std::cout << tag_j << "\t";
+      interaction_map[tag_i][tag_j] = true;
     }
-    std::cout << std::endl;
   }
 }

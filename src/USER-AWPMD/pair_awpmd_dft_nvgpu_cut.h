@@ -15,6 +15,8 @@ namespace LAMMPS_NS {
   class PairAWPMD_DFT_NVGPUCut : public PairAWPMD_DFTCut {
   public:
     explicit PairAWPMD_DFT_NVGPUCut(class LAMMPS *lammps);
+
+    void settings(int i, char **pString) override;
   };
 
 }

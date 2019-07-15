@@ -153,7 +153,7 @@ void PairAWPMDCut::init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons) {
                                                                               x[insert_index][2]),
                                                     (insert_index < nlocal ? atom->tag[insert_index]
                                                                            : -atom->tag[insert_index]));
-    std::cout << comm->me << "\t" << (insert_index < nlocal ? atom->tag[insert_index]: -atom->tag[insert_index]) << std::endl;
+    //std::cout << comm->me << "\t" << (insert_index < nlocal ? atom->tag[insert_index]: -atom->tag[insert_index]) << std::endl;
   }
 
   electron_ke_ = 0.0;
@@ -182,7 +182,7 @@ void PairAWPMDCut::init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons) {
                                                             (insert_index < nlocal ? atom->tag[insert_index]
                                                                                    : -atom->tag[insert_index]));
 
-      std::cout << comm->me << "\t" << (insert_index < nlocal ? atom->tag[insert_index]: -atom->tag[insert_index]) << std::endl;
+      //std::cout << comm->me << "\t" << (insert_index < nlocal ? atom->tag[insert_index]: -atom->tag[insert_index]) << std::endl;
     }
   }
 

@@ -219,6 +219,7 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   wpmd->Ebord = wpmd->Eext = wpmd->Eee = wpmd->Ew = 0.;
   wpmd->Ee[0] = wpmd->Ee[1] = 0.;
   wpmd->Eei[0] = wpmd->Eei[1] = 0.;
+  wpmd->Ebord_ion = 0;
   electron_ke_ = 0;
 
   std::vector<WavePacket> packets(atom->nlocal + atom->nghost);
@@ -242,6 +243,14 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
 
     if (atom->spin[i] != 0)
       auto e_energy = wpmd->interaction_electron_kinetic(packets[i], atom->spin[i] + 1);
+
+    if (wpmd->use_box){
+      if (atom->spin[i] == 0){
+        auto border_i = wpmd->interaction_border_ion(i, atom->x, nullptr);
+      } else {
+        auto border_e = wpmd->interaction_border_electron(packets[i]);
+      }
+    }
 
     for (auto jj = 0; jj < numneigh[i]; jj++) {
       auto j = firstneigh[i][jj];

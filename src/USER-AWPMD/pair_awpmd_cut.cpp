@@ -209,7 +209,7 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
 
   //this->extract_interaction_tags(wpmd->interaction_tags);
 
-  wpmd->interaction(0x1 | 0x4 | 0x10, fi.data());
+  wpmd->interaction(0/*0x1 | 0x4 | 0x10*/, fi.data());
 
   auto full_coul_energy = wpmd->get_energy() - electron_ke_ * force->mvv2e;
 

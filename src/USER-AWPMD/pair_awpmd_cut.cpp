@@ -199,17 +199,39 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
 
   awpmd_ions ions;
   awpmd_electrons electrons;
-
-  std::tie(ions, electrons) = this->make_packets();
-  this->init_wpmd(ions, electrons);
-
   std::vector<Vector_3> fi;
-  if (wpmd->ni)
-    fi.resize(static_cast<unsigned long>(wpmd->ni));
 
-  this->extract_interaction_tags(wpmd->interaction_tags);
+//  std::tie(ions, electrons) = this->make_packets();
+//  this->init_wpmd(ions, electrons);
+//
+//  if (wpmd->ni)
+//    fi.resize(static_cast<unsigned long>(wpmd->ni));
+//
+//  wpmd->interaction(0/*0x1 | 0x4 | 0x10*/, fi.data());
 
-  wpmd->interaction(0/*0x1 | 0x4 | 0x10*/, fi.data());
+  /*****LOOP OVER PAIRS*************/
+  auto inum = list->inum;
+  auto ilist = list->ilist;
+  auto numneigh = list->numneigh;
+  auto firstneigh = list->firstneigh;
+
+  wpmd->Eii = 0;
+  for (auto ii = 0; ii < inum; ii++) {
+    auto i = ilist[ii];
+
+    auto jlist = firstneigh[i];
+    auto jnum = numneigh[i];
+
+    for (auto jj = 0; jj < jnum; jj++){
+      auto j = jlist[jj];
+      j &= NEIGHMASK;
+
+      if (atom->spin[i] == 0 && atom->spin[j] == 0){
+        auto interaction = wpmd->interation_ii_single({*(Vector_3*)atom->x[i], atom->q[i]},
+                                                      {*(Vector_3*)atom->x[j], atom->q[j]});
+      }
+    }
+  }
 
   auto full_coul_energy = wpmd->get_energy() - electron_ke_ * force->mvv2e;
 
@@ -693,36 +715,6 @@ double PairAWPMDCut::memory_usage() {
   bytes += maxvatom * 6 * sizeof(double);
   bytes += 2 * nmax * sizeof(double);
   return bytes;
-}
-
-double PairAWPMDCut::ghost_energy() {
-  awpmd_ions ions;
-  awpmd_electrons electrons;
-
-  std::tie(ions, electrons) = this->make_packets();
-
-  auto &local = atom->nlocal;
-
-  ions.erase(std::remove_if(ions.begin(), ions.end(), [&local](auto const &v) { return v.lmp_index < local; }),
-             ions.end());
-  for (auto it = electrons.begin(); it != electrons.end();) {
-    auto &v = it->second;
-    v.erase(std::remove_if(v.begin(), v.end(), [&local](auto const &i) { return i.lmp_index < local; }), v.end());
-    if (v.empty()) {
-      it = electrons.erase(it);
-    } else
-      ++it;
-  }
-
-  this->init_wpmd(ions, electrons);
-
-  std::vector<Vector_3> fi;
-  if (wpmd->ni)
-    fi.resize(static_cast<unsigned long>(wpmd->ni));
-
-  wpmd->interaction(0x1 | 0x4 | 0x10, fi.data());
-
-  return wpmd->get_energy();
 }
 
 AWPMD_split *PairAWPMDCut::awpmd() {

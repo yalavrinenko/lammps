@@ -207,8 +207,7 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
 //  if (wpmd->ni)
 //    fi.resize(static_cast<unsigned long>(wpmd->ni));
 //
-//  wpmd->Eiip.resize(wpmd->ni);
-//  wpmd->interaction_ii(0/*0x1 | 0x4 | 0x10*/, fi.data());
+//  wpmd->interaction(0/*0x1 | 0x4 | 0x10*/, fi.data());
 
   /*****LOOP OVER PAIRS*************/
   auto inum = list->inum;
@@ -217,20 +216,50 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   auto firstneigh = list->firstneigh;
 
   wpmd->Eii = 0;
+  wpmd->Ebord = wpmd->Eext = wpmd->Eee = wpmd->Ew = 0.;
+  wpmd->Ee[0] = wpmd->Ee[1] = 0.;
+  wpmd->Eei[0] = wpmd->Eei[1] = 0.;
+  electron_ke_ = 0;
+
+  std::vector<WavePacket> packets(atom->nlocal + atom->nghost);
+  auto one_h=force->mvh2r;
+
+  for (auto i = 0; i < atom->nlocal + atom->nghost; ++i){
+    if (atom->spin[i] != 0) {
+      double width = atom->eradius[i];
+      Vector_3 r{atom->x[i][0], atom->x[i][1], atom->x[i][2]}, p{atom->v[i][0], atom->v[i][1], atom->v[i][2]};
+      p *= one_h * atom->mass[atom->type[i]];
+
+      double pw = atom->ervel[i];
+      pw *= one_h * atom->mass[atom->type[i]];
+
+      packets[i].init(width, r, p, pw);
+    }
+  }
+
   for (auto ii = 0; ii < inum; ii++) {
     auto i = ilist[ii];
 
-    if (atom->spin[i] == 0) {
-      for (auto jj = 0; jj < numneigh[i]; jj++) {
-        auto j = firstneigh[i][jj];
-        j &= NEIGHMASK;
+    if (atom->spin[i] != 0)
+      auto e_energy = wpmd->interaction_electron_kinetic(packets[i], atom->spin[i] + 1);
 
-        if (atom->spin[j] == 0) {
-          wpmd->interation_ii_single(i, j, atom->x, atom->q, eatom, atom->f);
-        }
+    for (auto jj = 0; jj < numneigh[i]; jj++) {
+      auto j = firstneigh[i][jj];
+      j &= NEIGHMASK;
+
+      if (atom->spin[i] == 0 && atom->spin[j] == 0) {
+        auto ii_energy = wpmd->interation_ii_single(i, j, atom->x, atom->q, nullptr);
+      } else
+      if (atom->spin[i] != 0 && atom->spin[j] != 0) {
+        auto ee_energy = wpmd->interaction_ee_single(packets[i], packets[j]);
+      } else
+      if (atom->spin[i] == 0 && atom->spin[j] != 0) {
+        auto ei_energy = wpmd->interaction_ei_single(i, atom->x, atom->q, packets[j], atom->spin[j], nullptr);
+      } else
+      if (atom->spin[i] != 0 && atom->spin[j] == 0){
+        auto ei_energy = wpmd->interaction_ei_single(j, atom->x, atom->q, packets[i], atom->spin[i], nullptr);
       }
     }
-
   }
 
   auto full_coul_energy = wpmd->get_energy() - electron_ke_ * force->mvv2e;
@@ -282,7 +311,8 @@ void PairAWPMDCut::update_energy(double full_coul_energy, awpmd_ions const &ions
 
 }
 
-void PairAWPMDCut::update_force(awpmd_ions const &ions, awpmd_electrons const &electrons, std::vector<Vector_3> const &fi){
+void
+PairAWPMDCut::update_force(awpmd_ions const &ions, awpmd_electrons const &electrons, std::vector<Vector_3> const &fi) {
   double **f = atom->f;
 
   for (auto const &ion : ions) {
@@ -735,7 +765,7 @@ void PairAWPMDCut::extract_interaction_tags(std::map<int, std::map<int, bool>> &
 
     auto jlist = firstneigh[i];
     auto jnum = numneigh[i];
-    for (auto jj = 0; jj < jnum; jj++){
+    for (auto jj = 0; jj < jnum; jj++) {
       auto j = jlist[jj];
       j &= NEIGHMASK;
 

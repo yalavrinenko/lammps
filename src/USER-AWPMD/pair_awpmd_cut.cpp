@@ -201,38 +201,38 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   awpmd_electrons electrons;
   std::vector<Vector_3> fi;
 
-  std::tie(ions, electrons) = this->make_packets();
-  this->init_wpmd(ions, electrons);
-
-  if (wpmd->ni)
-    fi.resize(static_cast<unsigned long>(wpmd->ni));
-
-  wpmd->Eiip.resize(wpmd->ni);
-  wpmd->interaction_ii(0/*0x1 | 0x4 | 0x10*/, fi.data());
+//  std::tie(ions, electrons) = this->make_packets();
+//  this->init_wpmd(ions, electrons);
+//
+//  if (wpmd->ni)
+//    fi.resize(static_cast<unsigned long>(wpmd->ni));
+//
+//  wpmd->Eiip.resize(wpmd->ni);
+//  wpmd->interaction_ii(0/*0x1 | 0x4 | 0x10*/, fi.data());
 
   /*****LOOP OVER PAIRS*************/
-//  auto inum = list->inum;
-//  auto ilist = list->ilist;
-//  auto numneigh = list->numneigh;
-//  auto firstneigh = list->firstneigh;
-//
-//  wpmd->Eii = 0;
-//  for (auto ii = 0; ii < inum; ii++) {
-//    auto i = ilist[ii];
-//
-//    auto jlist = firstneigh[i];
-//    auto jnum = numneigh[i];
-//
-//    for (auto jj = 0; jj < jnum; jj++){
-//      auto j = jlist[jj];
-//      j &= NEIGHMASK;
-//
-//      if (atom->spin[i] == 0 && atom->spin[j] == 0){
-//        auto interaction = wpmd->interation_ii_single({*(Vector_3*)atom->x[i], atom->q[i]},
-//                                                      {*(Vector_3*)atom->x[j], atom->q[j]});
-//      }
-//    }
-//  }
+  auto inum = list->inum;
+  auto ilist = list->ilist;
+  auto numneigh = list->numneigh;
+  auto firstneigh = list->firstneigh;
+
+  wpmd->Eii = 0;
+  for (auto ii = 0; ii < inum; ii++) {
+    auto i = ilist[ii];
+
+    auto jlist = firstneigh[i];
+    auto jnum = numneigh[i];
+
+    for (auto jj = 0; jj < jnum; jj++){
+      auto j = jlist[jj];
+      j &= NEIGHMASK;
+
+      if (atom->spin[i] == 0 && atom->spin[j] == 0){
+        auto interaction = wpmd->interation_ii_single({*(Vector_3*)atom->x[i], atom->q[i]},
+                                                      {*(Vector_3*)atom->x[j], atom->q[j]});
+      }
+    }
+  }
 
   auto full_coul_energy = wpmd->get_energy() - electron_ke_ * force->mvv2e;
 

@@ -374,6 +374,8 @@ void PairAWPMDCut::settings(int narg, char **arg) {
   ermscale = 1.;
   width_pbc = 0.;
 
+  wpmd->calc_ei = wpmd->calc_ii = wpmd->calc_ee = true;
+
   for (int i = 1; i < narg; i++) {
     // reading commands
     if (!strcmp(arg[i], "hartree"))
@@ -411,6 +413,12 @@ void PairAWPMDCut::settings(int narg, char **arg) {
       ermscale = force->numeric(FLERR, arg[i]);
     } else if (!strcmp(arg[i], "flex_press"))
       flexible_pressure_flag = 1;
+    else if (!strcmp(arg[i], "disable_ii"))
+      wpmd->calc_ii = false;
+    else if (!strcmp(arg[i], "disable_ei"))
+      wpmd->calc_ei = false;
+    else if (!strcmp(arg[i], "disable_ee"))
+      wpmd->calc_ee = false;
   }
 }
 

@@ -207,7 +207,7 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   if (wpmd->ni)
     fi.resize(static_cast<unsigned long>(wpmd->ni));
 
-  //this->extract_interaction_tags(wpmd->interaction_tags);
+  this->extract_interaction_tags(wpmd->interaction_tags);
 
   wpmd->interaction(0/*0x1 | 0x4 | 0x10*/, fi.data());
 

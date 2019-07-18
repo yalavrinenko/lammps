@@ -220,18 +220,17 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   for (auto ii = 0; ii < inum; ii++) {
     auto i = ilist[ii];
 
-    auto jlist = firstneigh[i];
-    auto jnum = numneigh[i];
+    if (atom->spin[i] == 0) {
+      for (auto jj = 0; jj < numneigh[i]; jj++) {
+        auto j = firstneigh[i][jj];
+        j &= NEIGHMASK;
 
-    for (auto jj = 0; jj < jnum; jj++){
-      auto j = jlist[jj];
-      j &= NEIGHMASK;
-
-      if (atom->spin[i] == 0 && atom->spin[j] == 0){
-        auto interaction = wpmd->interation_ii_single({*(Vector_3*)atom->x[i], atom->q[i]},
-                                                      {*(Vector_3*)atom->x[j], atom->q[j]});
+        if (atom->spin[j] == 0) {
+          wpmd->interation_ii_single(i, j, atom->x, atom->q, eatom, atom->f);
+        }
       }
     }
+
   }
 
   auto full_coul_energy = wpmd->get_energy() - electron_ke_ * force->mvv2e;

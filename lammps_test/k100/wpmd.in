@@ -2,7 +2,7 @@
 variable		density equal 1e20
 variable 		temperature equal 10000
 variable		nepart equal 32
-variable		nsteps equal 1000
+variable		nsteps equal 100000
 #END PARAMS
 
 variable		nepart_half equal ${nepart}/2

@@ -279,7 +279,7 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
     }
   }
 
-  auto full_coul_energy = wpmd->get_energy();
+  auto full_coul_energy = wpmd->get_energy() + interaction_energy.border;
 
   update_force(ions, electrons, fi);
 

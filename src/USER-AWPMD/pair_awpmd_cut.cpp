@@ -208,6 +208,8 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
 //    fi.resize(static_cast<unsigned long>(wpmd->ni));
 //
 //  wpmd->interaction(0/*0x1 | 0x4 | 0x10*/, fi.data());
+//
+//  auto eta_eng = wpmd->get_energy() - electron_ke_;
 
   /*****LOOP OVER PAIRS*************/
   auto inum = list->inum;
@@ -244,6 +246,10 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
     double ei{};
     double ii{};
     double border{};
+
+    double sum() const {
+      return ke + ee + ei + ii + border;
+    }
   } interaction_energy{};
 
   for (auto ii = 0; ii < inum; ii++) {
@@ -279,7 +285,7 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
     }
   }
 
-  auto full_coul_energy = wpmd->get_energy() + interaction_energy.border;
+  auto full_coul_energy = interaction_energy.sum();
 
   update_force(ions, electrons, fi);
 

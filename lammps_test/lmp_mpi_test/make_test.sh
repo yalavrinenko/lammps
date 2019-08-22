@@ -17,7 +17,7 @@ test_case_eff (){
 
 test_case_eta (){
 	echo "ETA:" 
-	optirun $1 inconfig/$2.ini | grep "Total (Min)"
+	 $1 inconfig/$2.ini | grep "Total (Min)"
 }
 
 

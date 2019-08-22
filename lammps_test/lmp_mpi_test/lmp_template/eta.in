@@ -13,7 +13,7 @@ read_data  inconfig/${sname}.data
 
 #neighbor        2.0 nsq
 
-pair_style      awpmd/cut 8. hartree ermscale 1.0 free flex_press
+pair_style      awpmd/cut 200. hartree ermscale 1.0 free flex_press
 #pair_style      awpmd/cut -1. uhf ermscale 0.99 free flex_press
 pair_coeff 	    * *
 

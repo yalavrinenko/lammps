@@ -282,7 +282,7 @@ PairAWPMDCut::awpmd_energies PairAWPMDCut::compute_pair() {
       if (atom->spin[i] == 0){
         interaction_energy.border += wpmd->interaction_border_ion(i, atom->x[i], atom->f[i]);
       } else {
-        interaction_energy.border += wpmd->interaction_border_electron(packets[i], nullptr, nullptr);
+        interaction_energy.border += wpmd->interaction_border_electron(packets[i], atom->f[i], &atom->erforce[i]);
       }
     }
 

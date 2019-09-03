@@ -6,6 +6,7 @@
 #include <GPU-CUDA/awpmd-dft-nvgpu.hpp>
 #include <atom.h>
 #include <comm.h>
+#include <cstring>
 
 LAMMPS_NS::PairAWPMD_DFT_NVGPUCut::PairAWPMD_DFT_NVGPUCut(LAMMPS_NS::LAMMPS *lammps) :
   PairAWPMD_DFTCut(lammps, nullptr) {
@@ -20,7 +21,7 @@ void LAMMPS_NS::PairAWPMD_DFT_NVGPUCut::settings(int argc, char **pString) {
   int gpu_per_node = 1;
 
   for (auto i = 0; i < argc; ++i){
-    if (!strcmp(pString[i], "gppn")){
+    if (!std::strcmp(pString[i], "gppn")){
       gpu_per_node = force->numeric(FLERR, pString[i+1]);
     }
   }

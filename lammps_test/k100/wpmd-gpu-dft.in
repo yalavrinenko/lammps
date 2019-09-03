@@ -51,7 +51,7 @@ velocity        edown create ${temperature} 121346 dist gaussian
 #END INIT SECTION
 
 #PAIR_STYLE
-pair_style      awpmd/dft-nvgpu/cut ${LCut} hartree ermscale 0.99 free flex_press
+pair_style      awpmd/dft-nvgpu/cut ${LCut} hartree ermscale 0.99 free flex_press gppn 1
 pair_coeff 	    * *
 #END_PAIR_STYLE
 
@@ -105,7 +105,7 @@ thermo_modify	norm yes
 thermo_style    custom step v_etotal_ev pe temp c_t_ion c_t_elup c_t_eldown v_accept v_mc_energy v_mc_step_energy c_ke_ion c_ke_eup c_ke_edown v_ebord v_mc_steppe_id
 
 #DUMP
-dump 			snap all cfg 10000 ./${density}/dump.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
+dump 			snap all cfg 1000000 ./${density}/dump.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
 dump_modify 	snap element I EU ED
 
 run 			${nsteps}

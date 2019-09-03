@@ -1,5 +1,5 @@
 #PARAMETER SECTION
-variable		density equal 1e20
+variable        density world 1e+19 5e+19 1e+20 5e+20 1e+21 5e+21 1e+22 5e+22 7.5E+22 1e+23 5e+23 1e+24
 log				${density}.spe.log
 
 variable 		temperature equal 10000

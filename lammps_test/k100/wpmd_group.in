@@ -1,10 +1,10 @@
 #PARAMETER SECTION
-variable		density equal 1e20
-log				${density}.spe.log
+variable        density world 1e+19 5e+19 1e+20 5e+20 1e+21 5e+21 1e+22 5e+22 7.5E+22 1e+23 5e+23 1e+24
+log             ${density}.log
 
 variable 		temperature equal 10000
-variable		nepart equal 32
-variable		nsteps equal 1
+variable		nepart equal 64
+variable		nsteps equal 100000
 #END PARAMS
 
 variable		nepart_half equal ${nepart}/2
@@ -51,7 +51,7 @@ velocity        edown create ${temperature} 121346 dist gaussian
 #END INIT SECTION
 
 #PAIR_STYLE
-pair_style      awpmd/dft/cut ${LCut} hartree ermscale 0.99 free flex_press
+pair_style      awpmd/cut ${LCut} hartree ermscale 0.99 free flex_press
 pair_coeff 	    * *
 #END_PAIR_STYLE
 
@@ -65,14 +65,12 @@ compute         kinetik all ke
 compute         ke_ion ion ke
 compute         ke_eup eup ke
 compute         ke_edown edown ke
-compute         energies all pair awpmd/dft/cut
+compute         energies all pair awpmd/cut
 variable        ebord equal c_energies[5]
 variable        int_ii equal c_energies[1]
 variable        int_ei equal c_energies[2]
 variable        int_ee equal c_energies[3]
 variable        int_ke equal c_energies[4]
-variable        dft_xc equal c_energies[6]
-variable        dft_ke equal c_energies[7]
 
 variable		eng_total equal etotal
 variable 		etotal_ev equal v_eng_total/627.509474*27.211386
@@ -88,11 +86,7 @@ compute			t_ion ion temp
 compute			t_elup  eup temp
 compute			t_eldown  edown temp
 
-fix 			ave all ave/time 1 1 10 v_accept v_etotal_ev c_energies c_kinetik c_ke_ion c_ke_eup c_ke_edown &
-                c_all_temp c_t_ion c_t_elup c_t_eldown &
-                v_int_ii v_int_ei v_int_ee v_int_ke v_ebord &
-                v_dft_xc v_dft_ke &
-                file ./${density}/wpmd_thermo_ave.dat off 1
+fix 			ave all ave/time 1 1 10 v_accept v_etotal_ev c_energies c_kinetik c_ke_ion c_ke_eup c_ke_edown c_all_temp c_t_ion c_t_elup c_t_eldown v_int_ii v_int_ei v_int_ee v_int_ke v_ebord file ./${density}/wpmd_thermo_ave.dat off 1
 
 compute			erad all property/atom eradius
 compute			sp   all property/atom spin

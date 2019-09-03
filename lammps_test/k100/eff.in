@@ -1,5 +1,7 @@
 #PARAMETER SECTION
 variable		density equal 1e20
+log             ${density}.log
+
 variable 		temperature equal 10000
 variable		nepart equal 32
 variable		nsteps equal 10000
@@ -8,9 +10,8 @@ variable		nsteps equal 10000
 variable		nepart_half equal ${nepart}/2
 variable 		V equal ${nepart}/(${density}/1e24)
 variable		L equal (${V}^(1.0/3.0))/2.0
+variable        LCut equal ${L}*1.5
 shell mkdir 	${density}
-
-log				${density}.spe.log
 
 units 			electron
 newton			on
@@ -50,7 +51,7 @@ velocity        edown create ${temperature} 121346 dist gaussian
 #END INIT SECTION
 
 #PAIR_STYLE
-pair_style      eff/cut ${L} pressure/evirials
+pair_style      eff/cut ${LCut} pressure/evirials
 pair_coeff 	* *
 #END_PAIR_STYLE
 

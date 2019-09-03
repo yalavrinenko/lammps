@@ -256,7 +256,7 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
     auto i = ilist[ii];
 
     if (atom->spin[i] != 0)
-      interaction_energy.ke += wpmd->interaction_electron_kinetic(packets[i], atom->spin[i] + 1);
+      interaction_energy.ke += wpmd->interaction_electron_kinetic(packets[i], atom->spin[i] + 1, nullptr);
 
     if (wpmd->use_box){
       if (atom->spin[i] == 0){

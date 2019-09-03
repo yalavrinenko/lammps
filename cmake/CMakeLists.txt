@@ -845,6 +845,7 @@ if(PKG_USER-AWPMD)
   endif()
 
   if (PKG_USER-AWPMD-NVGPU-DFT)
+    add_definitions(-DAWPMD_ENABLE_GPU)
     set(ISCUDA ON)
     if (GPU_NO_TEX_MEM)
       set(DFT_DISABLE_CUDA_TEXTURE ON)

@@ -1,6 +1,7 @@
 //
 // Created by yalavrinenko on 10.06.19.
 //
+#ifdef AWPMD_ENABLE_GPU
 #ifdef PAIR_CLASS
 
 PairStyle(awpmd/dft-nvgpu/cut,PairAWPMD_DFT_NVGPUCut)
@@ -22,4 +23,5 @@ namespace LAMMPS_NS {
 }
 
 #endif //LAMMPS_PAIR_AWPMD_DFT_NVGPU_CUT_H
+#endif
 #endif

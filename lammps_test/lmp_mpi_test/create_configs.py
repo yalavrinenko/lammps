@@ -140,8 +140,8 @@ def create_single_electron(bound):
     w = random.uniform(0, bound[3])
     c = [random.uniform(-bound[i], bound[i]) for i in [0, 1, 2]]
     v = [random.uniform(-bound[i] * 2, bound[i] * 2) for i in [0, 1, 2, 0]]
-    v[3] = 0.0
-    v = [0, 0, 0, 0]
+  #  v[3] = 0.0
+  #  v = [0, 0, 0, 0]
     return wpacket(mass, charge, w, c, v)
 
 

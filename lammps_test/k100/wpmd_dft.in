@@ -10,7 +10,7 @@ variable		nsteps equal 1
 variable		nepart_half equal ${nepart}/2
 variable 		V equal ${nepart}/(${density}/1e24)
 variable		L equal (${V}^(1.0/3.0))/2.0
-variable        LCut    equal ${L}*2.0
+variable        LCut    equal ${L}*4.0
 shell mkdir 	${density}
 
 units 			real

@@ -196,75 +196,17 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   else
     evflag = vflag_fdotr = 0; //??
 
-  awpmd_ions ions;
-  awpmd_electrons electrons;
-  std::vector<Vector_3> fi;
-
   //update_force(ions, electrons, fi);
   //update_energy(eta_eng, ions, electrons);
 
-  wpmd->calc_ee = wpmd->calc_ii = false;
-  wpmd->calc_ei = true;
+//  wpmd->calc_ee = true;
+//  wpmd->calc_ii = false;
+//  wpmd->calc_ei = true;
 
   auto interaction_energy = this->compute_pair();
   auto full_coul_energy = interaction_energy.sum();
 
-  //****************************Verification section*********************
-  auto round_diff = [](auto a, auto b){
-    if (std::abs(a - b) < 1e-9) {
-      return "OK"s;
-    } else {
-      return std::to_string(a) + "-"s + std::to_string(b) + "=" + std::to_string(a - b);
-    }
-  };
-
-  std::tie(ions, electrons) = this->make_packets();
-  this->init_wpmd(ions, electrons);
-
-  if (wpmd->ni)
-    fi.resize(static_cast<unsigned long>(wpmd->ni));
-
-  wpmd->interaction(0x1 | 0x4 | 0x10, fi.data());
-  wpmd->forces2phys();
-
-  auto eta_eng = wpmd->get_energy() - electron_ke_;
-
-  double **f = atom->f;
-  for (auto const &ion : ions) {
-    auto &i_lmp = ion.lmp_index;
-    auto &i_wpmd = ion.wpmd_index;
-    std::cout << "I " << round_diff(f[i_lmp][0], fi[i_wpmd][0])
-      << " " << round_diff(f[i_lmp][1], fi[i_wpmd][1])
-      << " " << round_diff(f[i_lmp][2], fi[i_wpmd][2]) << std::endl;
-  }
-
-  for (auto const &electron : electrons) {
-    for (auto const &packets : electron.second) {
-      auto i_lmp = packets.lmp_index;
-      auto i_wpmd = packets.wpmd_index;
-
-      int s = atom->spin[i_lmp] > 0 ? 0 : 1;
-      Vector_3 fv;
-      Vector_3 vforce;
-
-      double erforce;
-      double ervelforce;
-
-      Vector_2 csforce;
-      wpmd->get_wp_force(s, i_wpmd, &fv, &vforce,
-                         &erforce,
-                         &ervelforce, &csforce, 0);
-
-      std::cout << "E " << round_diff(f[i_lmp][0], fv[0])
-        << " " <<  round_diff(f[i_lmp][1], fv[1])
-        << " " << round_diff(f[i_lmp][2], fv[2])
-        << " " << round_diff(atom->erforce[i_lmp], erforce)
-        << " " << round_diff(atom->ervelforce[i_lmp], ervelforce) << std::endl;
-    }
-  }
-
-  std::cout << "ENG:" << eta_eng << "-" << full_coul_energy << std::endl;
-  //*********************************************************************
+  //check_with_native_wpmd(full_coul_energy);
 
   if (eflag_global) {
     eng_coul += full_coul_energy;
@@ -337,7 +279,9 @@ PairAWPMDCut::awpmd_energies PairAWPMDCut::compute_pair() {
         interaction_energy.ii += wpmd->interation_ii_single(i, j, atom->x, atom->q, atom->f);
       } else
       if (atom->spin[i] != 0 && atom->spin[j] != 0 && wpmd->calc_ee) {
-        interaction_energy.ee += wpmd->interaction_ee_single(packets[i], packets[j]);
+        double* eforce_ptrs[] = {atom->f[i], atom->f[j]};
+        double* erforce_ptrs[] = {&atom->erforce[i], &atom->erforce[j]};
+        interaction_energy.ee += wpmd->interaction_ee_single(packets[i], packets[j], eforce_ptrs, erforce_ptrs);
       } else
       if (atom->spin[i] == 0 && atom->spin[j] != 0 && wpmd->calc_ei) {
         interaction_energy.ei += wpmd->interaction_ei_single(i, atom->x, atom->q, packets[j], atom->spin[j], atom->f[i],
@@ -840,4 +784,67 @@ void PairAWPMDCut::extract_interaction_tags(std::map<int, std::map<int, bool>> &
       interaction_map[tag_i][tag_j] = true;
     }
   }
+}
+
+void PairAWPMDCut::check_with_native_wpmd(double coul_energy) {
+  //****************************Verification section*********************
+  awpmd_ions ions;
+  awpmd_electrons electrons;
+  std::vector<Vector_3> fi;
+
+  auto round_diff = [](auto a, auto b){
+    if (std::abs(a - b) < 1e-9) {
+      return "OK"s;
+    } else {
+      return std::to_string(a) + "-"s + std::to_string(b) + "=" + std::to_string(a - b);
+    }
+  };
+
+  std::tie(ions, electrons) = this->make_packets();
+  this->init_wpmd(ions, electrons);
+
+  if (wpmd->ni)
+    fi.resize(static_cast<unsigned long>(wpmd->ni));
+
+  wpmd->interaction(0x1 | 0x4 | 0x10, fi.data());
+  wpmd->forces2phys();
+
+  auto eta_eng = wpmd->get_energy() - electron_ke_;
+
+  double **f = atom->f;
+  for (auto const &ion : ions) {
+    auto &i_lmp = ion.lmp_index;
+    auto &i_wpmd = ion.wpmd_index;
+    std::cout << "I " << round_diff(f[i_lmp][0], fi[i_wpmd][0])
+      << " " << round_diff(f[i_lmp][1], fi[i_wpmd][1])
+      << " " << round_diff(f[i_lmp][2], fi[i_wpmd][2]) << std::endl;
+  }
+
+  for (auto const &electron : electrons) {
+    for (auto const &packets : electron.second) {
+      auto i_lmp = packets.lmp_index;
+      auto i_wpmd = packets.wpmd_index;
+
+      int s = atom->spin[i_lmp] > 0 ? 0 : 1;
+      Vector_3 fv;
+      Vector_3 vforce;
+
+      double erforce;
+      double ervelforce;
+
+      Vector_2 csforce;
+      wpmd->get_wp_force(s, i_wpmd, &fv, &vforce,
+                         &erforce,
+                         &ervelforce, &csforce, 0);
+
+      std::cout << "E " << round_diff(f[i_lmp][0], fv[0])
+        << " " <<  round_diff(f[i_lmp][1], fv[1])
+        << " " << round_diff(f[i_lmp][2], fv[2])
+        << " " << round_diff(atom->erforce[i_lmp], erforce)
+        << " " << round_diff(atom->ervelforce[i_lmp], ervelforce) << std::endl;
+    }
+  }
+
+  std::cout << "ENG:" << eta_eng << "-" << coul_energy << std::endl;
+  //*********************************************************************
 }

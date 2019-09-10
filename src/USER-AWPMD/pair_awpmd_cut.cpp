@@ -200,13 +200,13 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   //update_energy(eta_eng, ions, electrons);
 
 //  wpmd->calc_ee = true;
-//  wpmd->calc_ii = false;
+//  wpmd->calc_ii = true;
 //  wpmd->calc_ei = true;
 
   auto interaction_energy = this->compute_pair();
   auto full_coul_energy = interaction_energy.sum();
 
-  //check_with_native_wpmd(full_coul_energy);
+  check_with_native_wpmd(full_coul_energy);
 
   if (eflag_global) {
     eng_coul += full_coul_energy;

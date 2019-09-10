@@ -206,7 +206,7 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   auto interaction_energy = this->compute_pair();
   auto full_coul_energy = interaction_energy.sum();
 
-  check_with_native_wpmd(full_coul_energy);
+  //check_with_native_wpmd(full_coul_energy);
 
   if (eflag_global) {
     eng_coul += full_coul_energy;

@@ -200,8 +200,8 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   //update_energy(eta_eng, ions, electrons);
 
 //  wpmd->calc_ee = true;
-//  wpmd->calc_ii = true;
-//  wpmd->calc_ei = true;
+//  wpmd->calc_ii = false;
+//  wpmd->calc_ei = false;
 
   auto interaction_energy = this->compute_pair();
   auto full_coul_energy = interaction_energy.sum();
@@ -267,7 +267,7 @@ PairAWPMDCut::awpmd_energies PairAWPMDCut::compute_pair() {
       if (atom->spin[i] == 0){
         interaction_energy.border += wpmd->interaction_border_ion(i, atom->x[i], atom->f[i]);
       } else {
-        interaction_energy.border += wpmd->interaction_border_electron(packets[i], atom->f[i], &atom->erforce[i]);
+        interaction_energy.border += wpmd->interaction_border_electron(packets[i], nullptr, nullptr);
       }
     }
 
@@ -279,8 +279,8 @@ PairAWPMDCut::awpmd_energies PairAWPMDCut::compute_pair() {
         interaction_energy.ii += wpmd->interation_ii_single(i, j, atom->x, atom->q, atom->f);
       } else
       if (atom->spin[i] != 0 && atom->spin[j] != 0 && wpmd->calc_ee) {
-        double* eforce_ptrs[] = {atom->f[i], atom->f[j]};
-        double* erforce_ptrs[] = {&atom->erforce[i], &atom->erforce[j]};
+        double* eforce_ptrs[]{atom->f[i], atom->f[j]};
+        double* erforce_ptrs[]{&atom->erforce[i], &atom->erforce[j]};
         interaction_energy.ee += wpmd->interaction_ee_single(packets[i], packets[j], eforce_ptrs, erforce_ptrs);
       } else
       if (atom->spin[i] == 0 && atom->spin[j] != 0 && wpmd->calc_ei) {

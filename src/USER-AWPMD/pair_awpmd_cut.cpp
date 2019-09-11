@@ -199,7 +199,7 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   //update_force(ions, electrons, fi);
   //update_energy(eta_eng, ions, electrons);
 
-//  wpmd->calc_ee = true;
+//  wpmd->calc_ee = false;
 //  wpmd->calc_ii = false;
 //  wpmd->calc_ei = false;
 
@@ -267,7 +267,7 @@ PairAWPMDCut::awpmd_energies PairAWPMDCut::compute_pair() {
       if (atom->spin[i] == 0){
         interaction_energy.border += wpmd->interaction_border_ion(i, atom->x[i], atom->f[i]);
       } else {
-        interaction_energy.border += wpmd->interaction_border_electron(packets[i], nullptr, nullptr);
+        interaction_energy.border += wpmd->interaction_border_electron(packets[i], atom->f[i], &atom->erforce[i]);
       }
     }
 
@@ -284,11 +284,11 @@ PairAWPMDCut::awpmd_energies PairAWPMDCut::compute_pair() {
         interaction_energy.ee += wpmd->interaction_ee_single(packets[i], packets[j], eforce_ptrs, erforce_ptrs);
       } else
       if (atom->spin[i] == 0 && atom->spin[j] != 0 && wpmd->calc_ei) {
-        interaction_energy.ei += wpmd->interaction_ei_single(i, atom->x, atom->q, packets[j], atom->spin[j], atom->f[i],
+        interaction_energy.ei += wpmd->interaction_ei_single(atom->x[i], atom->q[i], packets[j], atom->spin[j], atom->f[i],
                                                              atom->f[j], &atom->erforce[j]);
       } else
       if (atom->spin[i] != 0 && atom->spin[j] == 0 && wpmd->calc_ei){
-        interaction_energy.ei += wpmd->interaction_ei_single(j, atom->x, atom->q, packets[i], atom->spin[i], atom->f[j],
+        interaction_energy.ei += wpmd->interaction_ei_single(atom->x[j], atom->q[j], packets[i], atom->spin[i], atom->f[j],
                                                              atom->f[i], &atom->erforce[i]);
       }
     }
@@ -762,30 +762,6 @@ AWPMD_split *PairAWPMDCut::awpmd() {
   return wpmd;
 }
 
-void PairAWPMDCut::extract_interaction_tags(std::map<int, std::map<int, bool>> &interaction_map) {
-  interaction_map.clear();
-
-  auto inum = list->inum;
-  auto ilist = list->ilist;
-  auto numneigh = list->numneigh;
-  auto firstneigh = list->firstneigh;
-
-  for (auto ii = 0; ii < inum; ii++) {
-    auto i = ilist[ii];
-    auto tag_i = atom->tag[i];
-
-    auto jlist = firstneigh[i];
-    auto jnum = numneigh[i];
-    for (auto jj = 0; jj < jnum; jj++) {
-      auto j = jlist[jj];
-      j &= NEIGHMASK;
-
-      auto tag_j = atom->tag[j];
-      interaction_map[tag_i][tag_j] = true;
-    }
-  }
-}
-
 void PairAWPMDCut::check_with_native_wpmd(double coul_energy) {
   //****************************Verification section*********************
   awpmd_ions ions;
@@ -793,7 +769,7 @@ void PairAWPMDCut::check_with_native_wpmd(double coul_energy) {
   std::vector<Vector_3> fi;
 
   auto round_diff = [](auto a, auto b){
-    if (std::abs(a - b) < 1e-9) {
+    if (std::abs(a) - std::abs(b) < 1e-9) {
       return "OK"s;
     } else {
       return std::to_string(a) + "-"s + std::to_string(b) + "=" + std::to_string(a - b);

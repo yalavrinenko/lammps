@@ -72,8 +72,6 @@ namespace LAMMPS_NS {
 
     AWPMD_split *awpmd();
 
-    void extract_interaction_tags(std::map<int, std::map<int, bool>> &interaction_map);
-
   protected:
 
     struct awpmd_energies{

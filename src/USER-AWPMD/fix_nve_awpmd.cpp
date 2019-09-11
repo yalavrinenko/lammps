@@ -75,8 +75,6 @@ void FixNVEAwpmd::init()
 
 void FixNVEAwpmd::initial_integrate(int vflag)
 {
-
-
   // update v,vr and x,radius of atoms in group
 
   double **x = atom->x;
@@ -102,11 +100,15 @@ void FixNVEAwpmd::initial_integrate(int vflag)
       double dtfm = dtf / mass[type[i]];
       double dtfmr=dtfm;
       for(int j=0;j<3;j++){
-        x[i][j] += dtv*vforce[3*i+j];
         v[i][j] += dtfm*f[i][j];
+        x[i][j] += dtv*v[i][j];
       }
-      eradius[i]+= dtv*ervelforce[i];
-      ervel[i] += dtfmr*erforce[i];
+
+      if (atom->spin[i] != 0) {
+        eradius[i] += -dtfmr * erforce[i];
+        ervel[i] += -dtv * ervelforce[i];
+      }
+
     }
   }
 
@@ -114,7 +116,35 @@ void FixNVEAwpmd::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAwpmd::final_integrate(){}
+void FixNVEAwpmd::final_integrate(){
+//  double dtfm;
+//
+//  double **v = atom->v;
+//  double *ervel = atom->ervel;
+//  double *erforce = atom->erforce;
+//  double **f = atom->f;
+//  double *mass = atom->mass;
+//  int *spin = atom->spin;
+//  int *type = atom->type;
+//  int *mask = atom->mask;
+//  int nlocal = atom->nlocal;
+//  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+//
+//  // dyn_v[i] += m * dt * dyn_f[i];
+//
+//  if (mass) {
+//    for (int i = 0; i < nlocal; i++) {
+//      if (mask[i] & groupbit) {
+//        dtfm = dtf / mass[type[i]];
+//        v[i][0] += dtfm * f[i][0];
+//        v[i][1] += dtfm * f[i][1];
+//        v[i][2] += dtfm * f[i][2];
+//        if (abs(spin[i]) != 0)
+//          ervel[i] += dtfm * erforce[i];
+//      }
+//    }
+//  }
+}
 
 /* ---------------------------------------------------------------------- */
 

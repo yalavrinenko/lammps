@@ -206,7 +206,7 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   auto interaction_energy = this->compute_pair();
   auto full_coul_energy = interaction_energy.sum();
 
-  //check_with_native_wpmd(full_coul_energy);
+//  check_with_native_wpmd(full_coul_energy);
 
   if (eflag_global) {
     eng_coul += full_coul_energy;
@@ -769,7 +769,7 @@ void PairAWPMDCut::check_with_native_wpmd(double coul_energy) {
   std::vector<Vector_3> fi;
 
   auto round_diff = [](auto a, auto b){
-    if (std::abs(a) - std::abs(b) < 1e-9) {
+    if (std::abs(a) - std::abs(b) < 1e-6) {
       return "OK"s;
     } else {
       return std::to_string(a) + "-"s + std::to_string(b) + "=" + std::to_string(a - b);

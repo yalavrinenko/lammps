@@ -105,8 +105,8 @@ void FixNVEAwpmd::initial_integrate(int vflag)
       }
 
       if (atom->spin[i] != 0) {
-      //  eradius[i] += dtv * ervel[i]; //select correct integration scheme
-      //  ervel[i] += -dtfmr * erforce[i]; //and for this too
+        ervel[i] += -dtfm * erforce[i];
+        atom->eradius[i] += dtv * atom->ervel[i];
       }
 
     }
@@ -140,7 +140,7 @@ void FixNVEAwpmd::final_integrate(){
         v[i][1] += dtfm * f[i][1];
         v[i][2] += dtfm * f[i][2];
         if (abs(spin[i]) != 0) {
-        //  ervel[i] += -dtfm * erforce[i];
+          ervel[i] += -dtfm * erforce[i];
         }
       }
     }

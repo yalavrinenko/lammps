@@ -95,7 +95,6 @@ PairAWPMDCut::awpmd_packets PairAWPMDCut::make_packets() const {
   return LAMMPS_NS::PairAWPMDCut::awpmd_packets{std::move(ions), std::move(electrons)};
 }
 
-
 void PairAWPMDCut::init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons) {
   int newton_pair = force->newton_pair;
 

@@ -24,6 +24,7 @@ LAMMPS_NS::FixWallAwpmd::FixWallAwpmd(LAMMPS_NS::LAMMPS *lammps, int i, char **p
 
   this->vector_flag = true;
   this->size_vector = 2;
+  this->virial_flag = 1;
 }
 
 LAMMPS_NS::FixWallAwpmd::~FixWallAwpmd() {
@@ -32,7 +33,7 @@ LAMMPS_NS::FixWallAwpmd::~FixWallAwpmd() {
 }
 
 int LAMMPS_NS::FixWallAwpmd::setmask() {
-  return LAMMPS_NS::FixConst::PRE_REVERSE;
+  return LAMMPS_NS::FixConst::POST_FORCE;
 }
 
 std::unique_ptr<BoxHamiltonian> LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length) {
@@ -66,7 +67,7 @@ std::unique_ptr<BoxHamiltonian> LAMMPS_NS::FixWallAwpmd::construct_box(char **pS
   return std::unique_ptr<BoxHamiltonian>(new BoxHamiltonian(bound,force_k,(int)prj_ord));
 }
 
-void LAMMPS_NS::FixWallAwpmd::pre_reverse(int, int) {
+void LAMMPS_NS::FixWallAwpmd::post_force(int i)  {
   wall_energy = 0;
   if (m_pair){
     evaluate_wall_energy(m_pair->electrons_packets());
@@ -163,6 +164,7 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(std::vector<WavePacket> const
 
     for (auto k = 0; k < 3; ++k)
       atom->f[i][k] += f[k];
+
 //    virial[0] += f[0]*atom->x[i][0];
 //    virial[1] += f[1]*atom->x[i][1];
 //    virial[2] += f[2]*atom->x[i][2];
@@ -174,4 +176,8 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(std::vector<WavePacket> const
 
 double LAMMPS_NS::FixWallAwpmd::wall_pressure() const {
   return 0;
+}
+
+void LAMMPS_NS::FixWallAwpmd::setup(int i) {
+  post_force(i);
 }

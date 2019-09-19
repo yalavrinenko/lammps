@@ -27,7 +27,9 @@ namespace LAMMPS_NS {
 
     double compute_vector(int i) override;
 
-    void pre_reverse(int i, int i1) override;
+    void post_force(int i) override;
+
+    void setup(int i) override;
 
   private:
     std::unique_ptr<BoxHamiltonian> construct_box(char **pString, double half_box_size);

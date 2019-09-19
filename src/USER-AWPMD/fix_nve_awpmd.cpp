@@ -16,16 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_nve_awpmd.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "respa.h"
 #include "error.h"
-
-#include <wpmd_split.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

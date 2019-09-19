@@ -70,6 +70,9 @@ namespace LAMMPS_NS {
 
     AWPMD_split *awpmd();
 
+    std::vector<WavePacket> const& electrons_packets() const {
+      return packets;
+    }
   protected:
 
     struct awpmd_energies{
@@ -77,10 +80,9 @@ namespace LAMMPS_NS {
       double ee{};
       double ei{};
       double ii{};
-      double border{};
 
       double sum() const {
-        return ke + ee + ei + ii + border;
+        return ke + ee + ei + ii;
       }
     };
 

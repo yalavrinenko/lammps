@@ -9,6 +9,7 @@
 #include <wpmd_split.h>
 #include <atom.h>
 #include "domain.h"
+#include "neigh_list.h"
 
 LAMMPS_NS::FixWallAwpmd::FixWallAwpmd(LAMMPS_NS::LAMMPS *lammps, int i, char **pString) : Fix(lammps, i, pString) {
   double delx = domain->boxhi[0]-domain->boxlo[0];
@@ -19,12 +20,10 @@ LAMMPS_NS::FixWallAwpmd::FixWallAwpmd(LAMMPS_NS::LAMMPS *lammps, int i, char **p
   Vector_3 box_size{delx, dely, delz};
 
   m_pair = dynamic_cast<PairAWPMDCut*>(force->pair);
-  if (m_pair) {
-    m_pair->awpmd()->set_pbc(&box_size, 0);
-    m_pair->awpmd()->set_box(*construct_box(pString, half_box_length));
-  } else {
-    this->box = construct_box(pString, half_box_length);
-  }
+  this->box = construct_box(pString, half_box_length);
+
+  this->vector_flag = true;
+  this->size_vector = 2;
 }
 
 LAMMPS_NS::FixWallAwpmd::~FixWallAwpmd() {
@@ -33,8 +32,7 @@ LAMMPS_NS::FixWallAwpmd::~FixWallAwpmd() {
 }
 
 int LAMMPS_NS::FixWallAwpmd::setmask() {
-  //return LAMMPS_NS::FixConst::PRE_REVERSE;
-  return 0;
+  return LAMMPS_NS::FixConst::PRE_REVERSE;
 }
 
 std::unique_ptr<BoxHamiltonian> LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length) {
@@ -69,49 +67,111 @@ std::unique_ptr<BoxHamiltonian> LAMMPS_NS::FixWallAwpmd::construct_box(char **pS
 }
 
 void LAMMPS_NS::FixWallAwpmd::pre_reverse(int, int) {
-  if (box){
-    auto const gamma_scale = 0.8660254037844385; //1.0 / (2.0 / std::sqrt(3.0)) EFF packet_width to WPMD packet_width
-    auto const one_h=force->mvh2r;
+  wall_energy = 0;
+  if (m_pair){
+    evaluate_wall_energy(m_pair->electrons_packets());
+  } else {
+    std::vector<WavePacket> packets(atom->nlocal + atom->nghost);
 
-    auto a_coeff = [gamma_scale, one_h](double gamma, double pgamma){
-      auto gamma_wpmd = gamma_scale * gamma;
-      return std::complex<double>(3.0 / (4.0 * gamma_wpmd * gamma_wpmd), -pgamma * gamma_wpmd / (2.0 * gamma_wpmd) * one_h);
-    };
+    auto one_h=force->mvh2r;
+    for (auto i = 0; i < atom->nlocal + atom->nghost; ++i){
+      if (atom->spin[i] != 0) {
+        double width = atom->eradius[i];
+        Vector_3 r{atom->x[i][0], atom->x[i][1], atom->x[i][2]}, p{atom->v[i][0], atom->v[i][1], atom->v[i][2]};
+        p *= one_h * atom->mass[atom->type[i]];
 
-    auto da_coeff = [gamma_scale, one_h](double gamma, double pgamma){
+        double pw = atom->ervel[i];
+        pw *= one_h * atom->mass[atom->type[i]];
 
-    };
-
-    auto b_coeff = [one_h](std::complex<double> const &a, Vector_3 const &r, Vector_3 const &p) {
-      return cVector_3{
-          2.0 * a * r[0] + std::complex<double>(0, p[0] * one_h),
-          2.0 * a * r[1] + std::complex<double>(0, p[1] * one_h),
-          2.0 * a * r[2] + std::complex<double>(0, p[2] * one_h),
-      };
-    };
-
-    double energy = 0.;
-    auto const pref_norm = 1.0;
-
-    for (auto i = 0; i < atom->nlocal; ++i){
-      auto m = atom->mass[atom->type[i]];
-      auto a = a_coeff(atom->eradius[i], atom->ervel[i] * m);
-      auto b = b_coeff(a, Vector_3{atom->x[i][0], atom->x[i][1], atom->x[i][2]},
-                       Vector_3{atom->v[i][0] * m, atom->v[i][1] * m, atom->v[i][2] * m});
-      energy += box->get_integral(a, b, a, b).real();
-
-      std::complex<double> da_re, da_img, da_dummy_re, da_dummy_img;
-      cVector_3 db_re, db_img, db_dummy_re, db_dummy_img;
-      std::complex<double> integral = 0;
-      box->get_derivatives(a, b, a, b, &integral, &da_re, &da_img, &db_re, &db_img,
-          &da_dummy_re, &da_dummy_img, &db_dummy_re, &db_dummy_img);
+        packets[i].init(width, r, p, pw);
+      }
     }
-
-    wall_energy = energy;
-    force->pair->eng_coul += wall_energy;
+    evaluate_wall_energy(packets);
   }
+  m_pair->eng_coul += wall_energy;
 }
 
 double LAMMPS_NS::FixWallAwpmd::compute_scalar() {
   return wall_energy;
+}
+
+double LAMMPS_NS::FixWallAwpmd::compute_vector(int i) {
+  switch (i){
+    case 0: return wall_energy;
+    case 1: return wall_pressure();
+    default:
+      throw std::logic_error("Out of range");
+  }
+}
+
+double LAMMPS_NS::FixWallAwpmd::interaction_border_ion(int i, double *x, double *f) {
+  double dE;
+  Vector_3 df = box->get_force(*(Vector_3*)x, &dE);
+  if (f) // ion forces needed
+    for (auto k = 0; k < 3; ++k)
+      f[k] += df[k];
+  return dE;
+}
+
+double LAMMPS_NS::FixWallAwpmd::interaction_border_electron(WavePacket const &packet, double *rforce, double *erforce,
+                                                            double *ervforce) {
+  double dE{0};
+  if (force && erforce && ervforce) {
+    cdouble integral;
+    cdouble a1_re, a1_im, a2_re, a2_im;
+    cVector_3 b1_re, b1_im, b2_re, b2_im;
+    box->get_derivatives(packet.a, packet.b, packet.a, packet.b, &integral, &a1_re, &a1_im, &b1_re, &b1_im,
+                        &a2_re, &a2_im, &b2_re, &b2_im);
+
+    std::array<double, 8> tmp{2.0 * real(a1_re), 2.0 * real(a1_im),
+                              2.0 * real(b1_re[0]), 2.0 * real(b1_im[0]),
+                              2.0 * real(b1_re[1]), 2.0 * real(b1_im[1]),
+                              2.0 * real(b1_re[2]), 2.0 * real(b1_im[2])};
+    auto dx = tmp.begin();
+    auto dp = dx + 3;
+    auto dw = dp + 3;
+    auto pw = dw + 1;
+
+    packet.int2phys_der<eq_second>(dx, dx, dp, dw, pw, 1. / force->mvh2r);
+    for (auto k = 0u; k < 3; ++k)
+      rforce[k] += -dx[k];
+    (*erforce) += *dw;
+    (*ervforce) += *pw;
+    dE = integral.real();
+  } else
+    dE = box->get_integral(packet.a, packet.b, packet.a, packet.b).real();
+  //Ebord += dE;
+  return dE;
+}
+
+void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(std::vector<WavePacket> const &packets) {
+  auto inum = m_pair->list->inum;
+  auto ilist = m_pair->list->ilist;
+
+  for (auto ii = 0; ii < inum; ii++) {
+    auto i = ilist[ii];
+    double f[3] = {0, 0, 0};
+    double erf = 0, ervf = 0;
+    if (atom->spin[i] == 0) {
+      wall_energy += interaction_border_ion(i, atom->x[i], f);
+    } else {
+      wall_energy += interaction_border_electron(packets[i], f, &erf,
+                                                 &ervf);
+      atom->erforce[i] += erf;
+      atom->ervelforce[i] += ervf;
+    }
+
+    for (auto k = 0; k < 3; ++k)
+      atom->f[i][k] += f[k];
+//    virial[0] += f[0]*atom->x[i][0];
+//    virial[1] += f[1]*atom->x[i][1];
+//    virial[2] += f[2]*atom->x[i][2];
+//    virial[3] += f[1]*atom->x[i][0];
+//    virial[4] += f[2]*atom->x[i][0];
+//    virial[5] += f[2]*atom->x[i][1];
+  }
+}
+
+double LAMMPS_NS::FixWallAwpmd::wall_pressure() const {
+  return 0;
 }

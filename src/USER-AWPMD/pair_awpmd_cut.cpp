@@ -44,7 +44,7 @@ PairAWPMDCut::PairAWPMDCut(LAMMPS *lmp) : Pair(lmp) {
   nmax = 0;
   min_var = nullptr;
   min_varforce = nullptr;
-  nextra = 5;
+  nextra = 4;
   pvector = new double[nextra];
 
   ermscale = 1.;
@@ -70,33 +70,6 @@ PairAWPMDCut::~PairAWPMDCut() {
   delete wpmd;
 }
 
-
-struct cmp_x {
-  double **xx;
-  double tol;
-
-  cmp_x(double **xx_ = nullptr, double tol_ = 1e-12) : xx(xx_), tol(tol_) {}
-
-  bool operator()(const pair<int, int> &left, const pair<int, int> &right) const {
-    if (left.first == right.first) {
-      double d = xx[left.second][0] - xx[right.second][0];
-      if (d < -tol)
-        return true;
-      else if (d > tol)
-        return false;
-      d = xx[left.second][1] - xx[right.second][1];
-      if (d < -tol)
-        return true;
-      else if (d > tol)
-        return false;
-      d = xx[left.second][2] - xx[right.second][2];
-      return d < -tol;
-    } else
-      return left.first < right.first;
-  }
-};
-
-/* ---------------------------------------------------------------------- */
 
 PairAWPMDCut::awpmd_packets PairAWPMDCut::make_packets() const {
   int *spin = atom->spin;
@@ -196,17 +169,10 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   else
     evflag = vflag_fdotr = 0; //??
 
-  //update_force(ions, electrons, fi);
-  //update_energy(eta_eng, ions, electrons);
-
-//  wpmd->calc_ee = false;
-//  wpmd->calc_ii = false;
-//  wpmd->calc_ei = false;
-
   auto interaction_energy = this->compute_pair();
   auto full_coul_energy = interaction_energy.sum();
 
-//  check_with_native_wpmd(full_coul_energy);
+  //check_with_native_wpmd(full_coul_energy);
 
   if (eflag_global) {
     eng_coul += full_coul_energy;
@@ -215,7 +181,6 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
     pvector[2] = interaction_energy.ei;
     pvector[1] = interaction_energy.ee;
     pvector[3] = interaction_energy.ke;
-    pvector[4] = interaction_energy.border;
   }
 
   if (vflag_fdotr) {
@@ -263,14 +228,6 @@ PairAWPMDCut::awpmd_energies PairAWPMDCut::compute_pair() {
     if (atom->spin[i] != 0) {
       interaction_energy.ke += wpmd->interaction_electron_kinetic(packets[i], atom->spin[i] + 1, &atom->erforce[i],
                                                                   &atom->ervelforce[i]);
-    }
-
-    if (wpmd->use_box){
-      if (atom->spin[i] == 0){
-        interaction_energy.border += wpmd->interaction_border_ion(i, atom->x[i], atom->f[i]);
-      } else {
-        interaction_energy.border += wpmd->interaction_border_electron(packets[i], atom->f[i], &atom->erforce[i], &atom->ervelforce[i]);
-      }
     }
 
     for (auto jj = 0; jj < numneigh[i]; jj++) {

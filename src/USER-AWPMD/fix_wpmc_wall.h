@@ -37,6 +37,8 @@ namespace LAMMPS_NS {
 
     std::unique_ptr<BoxHamiltonian> box = nullptr;
     double wall_energy = 0;
+    std::array<double, 3> wall_pressure_components;
+    std::array<double, 3> wall_squares;
 
     double wall_pressure() const;
 

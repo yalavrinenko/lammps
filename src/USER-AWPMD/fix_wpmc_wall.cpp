@@ -17,6 +17,8 @@ LAMMPS_NS::FixWallAwpmd::FixWallAwpmd(LAMMPS_NS::LAMMPS *lammps, int i, char **p
   double delz = domain->boxhi[2]-domain->boxlo[2];
   auto half_box_length = 0.5 * MIN(delx, MIN(dely, delz));
 
+  wall_squares = {delz * dely, delx * delz, delx * dely};
+
   Vector_3 box_size{delx, dely, delz};
 
   m_pair = dynamic_cast<PairAWPMDCut*>(force->pair);
@@ -149,6 +151,8 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(std::vector<WavePacket> const
   auto inum = m_pair->list->inum;
   auto ilist = m_pair->list->ilist;
 
+  wall_pressure_components = {0, 0, 0};
+
   for (auto ii = 0; ii < inum; ii++) {
     auto i = ilist[ii];
     double f[3] = {0, 0, 0};
@@ -162,8 +166,10 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(std::vector<WavePacket> const
       atom->ervelforce[i] += ervf;
     }
 
-    for (auto k = 0; k < 3; ++k)
+    for (auto k = 0; k < 3; ++k) {
       atom->f[i][k] += f[k];
+      wall_pressure_components[k] += std::abs(f[k]);
+    }
 
 //    virial[0] += f[0]*atom->x[i][0];
 //    virial[1] += f[1]*atom->x[i][1];
@@ -175,7 +181,9 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(std::vector<WavePacket> const
 }
 
 double LAMMPS_NS::FixWallAwpmd::wall_pressure() const {
-  return 0;
+  double pressure = wall_pressure_components[0] + wall_pressure_components[1] + wall_pressure_components[2];
+  double square = wall_squares[0] + wall_squares[1] + wall_squares[2];
+  return pressure / square;
 }
 
 void LAMMPS_NS::FixWallAwpmd::setup(int i) {

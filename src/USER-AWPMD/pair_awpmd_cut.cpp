@@ -237,7 +237,9 @@ PairAWPMDCut::awpmd_energies PairAWPMDCut::compute_pair() {
   wpmd->Eei[0] = wpmd->Eei[1] = 0.;
   wpmd->Ebord_ion = 0;
 
-  std::vector<WavePacket> packets(atom->nlocal + atom->nghost);
+  if (packets.size() < atom->nlocal + atom->nghost)
+    packets.resize(atom->nlocal + atom->nghost);
+
   auto one_h=force->mvh2r;
 
   for (auto i = 0; i < atom->nlocal + atom->nghost; ++i){

@@ -30,7 +30,7 @@ PairStyle(awpmd/cut,PairAWPMDCut)
 #include <vector_3.h>
 
 class AWPMD_split;
-
+class WavePacket;
 
 namespace LAMMPS_NS {
 
@@ -49,8 +49,6 @@ namespace LAMMPS_NS {
     void coeff(int, char **) override;
 
     void init_style() override;
-
-    void min_pointers(double **, double **);
 
     double init_one(int, int) override;
 
@@ -133,6 +131,8 @@ namespace LAMMPS_NS {
 
     double const time_unit = 1; //10.12;
     double const ev_to_energy = 1; //1.0 / 27.211386 * 627.509474;
+
+    std::vector<WavePacket> packets;
 
   private:
     void check_with_native_wpmd(double coul_energy);

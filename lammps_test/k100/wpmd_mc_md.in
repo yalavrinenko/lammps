@@ -67,7 +67,7 @@ compute         ke_ion ion ke
 compute         ke_eup eup ke
 compute         ke_edown edown ke
 compute         energies all pair awpmd/cut
-variable        ebord equal c_energies[5]
+variable        ebord equal f_w1[1]
 variable        int_ii equal c_energies[1]
 variable        int_ei equal c_energies[2]
 variable        int_ee equal c_energies[3]

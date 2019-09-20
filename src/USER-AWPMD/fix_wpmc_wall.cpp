@@ -183,7 +183,7 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(std::vector<WavePacket> const
 double LAMMPS_NS::FixWallAwpmd::wall_pressure() const {
   double pressure = wall_pressure_components[0] + wall_pressure_components[1] + wall_pressure_components[2];
   double square = wall_squares[0] + wall_squares[1] + wall_squares[2];
-  return pressure / square;
+  return pressure / square * force->nktv2p;
 }
 
 void LAMMPS_NS::FixWallAwpmd::setup(int i) {

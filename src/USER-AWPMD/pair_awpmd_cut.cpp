@@ -225,8 +225,11 @@ PairAWPMDCut::awpmd_energies PairAWPMDCut::compute_pair() {
     auto i = ilist[ii];
 
     if (atom->spin[i] != 0) {
-      interaction_energy.ke += wpmd->interaction_electron_kinetic(packets[i], atom->spin[i] + 1, &atom->erforce[i],
+      double ke, ee_w;
+      std::tie(ke, ee_w) = wpmd->interaction_electron_kinetic(packets[i], atom->spin[i] + 1, &atom->erforce[i],
                                                                   &atom->ervelforce[i]);
+      interaction_energy.ke += ke;
+      interaction_energy.ee_w += ee_w;
     }
 
     for (auto jj = 0; jj < numneigh[i]; jj++) {

@@ -134,7 +134,7 @@ namespace LAMMPS_NS{
 
   struct mc_stepper{
     MonteCarlo engine;
-    double max_shift{0.0};
+    double max_shift{1.0};
     stepper_type type;
 
     std::unique_ptr<MCSystem> system;

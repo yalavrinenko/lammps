@@ -80,9 +80,10 @@ namespace LAMMPS_NS {
       double ee{};
       double ei{};
       double ii{};
+      double ee_w{};
 
       double sum() const {
-        return ke + ee + ei + ii;
+        return ke + ee + ei + ii + ee_w;
       }
     };
 

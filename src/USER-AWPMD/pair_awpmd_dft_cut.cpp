@@ -38,35 +38,19 @@ void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
   e_sdown.clear();
   e_sdown.reserve(electrons_count);
 
-  for (auto i = 0u; i < electrons_count; ++i) {
-    if (std::abs(atom->spin[i]) == 1) {
-      WavePacket packet;
-
-      double width = atom->eradius[i] * UnitsScale.distance_to_bohr;
-      Vector_3 r{atom->x[i][0], atom->x[i][1], atom->x[i][2]}, p{atom->v[i][0], atom->v[i][1], atom->v[i][2]};
-      r *= UnitsScale.distance_to_bohr;
-      p *= UnitsScale.distance_to_bohr * one_h * atom->mass[atom->type[i]];
-
-      double pw = atom->ervel[i];
-      pw *= UnitsScale.distance_to_bohr * one_h * atom->mass[atom->type[i]];
-
-      packet.init(width, r, p, pw);
-
+  for (auto i = 0u; i < electrons_count; ++i){
+    if (std::abs(atom->spin[i]) == 1){
       if (atom->spin[i] == 1)
-        e_sup.emplace_back(packet);
+        e_sup.emplace_back(packets[i]);
       else
-        e_sdown.emplace_back(packet);
+        e_sdown.emplace_back(packets[i]);
     }
   }
 
-  auto energy = xc_energy_->energy(e_sup, e_sdown, overlap_derivs);
-  output.like_vars.xc_energy = UnitsScale.hartree_to_energy * energy.eng.potential;
-  output.like_vars.kinetic_energy = UnitsScale.hartree_to_energy * energy.eng.kinetic;
-  eng_coul += output.like_vars.xc_energy + output.like_vars.kinetic_energy;
-
-  auto derive_to_phys_unit = [this](WavePacket const &packet, std::vector<float> &derive, int lmp_index){
-    auto dx = derive.begin();
-    auto dp = dx + 3, dw = dp + 3, pw = dw + 1;
+  auto energy = xc_energy_->energy(e_sup, e_sdown, {});
+  output.like_vars.xc_energy = energy.eng.potential;
+  output.like_vars.kinetic_energy = energy.eng.kinetic;
+  force->pair->eng_coul += output.like_vars.xc_energy + output.like_vars.kinetic_energy;
 
     packet.int2phys_der<eq_second>(dx, dx, dp, dw, pw, 1. / force->mvh2r);
     auto scale = UnitsScale.hartree_to_energy * UnitsScale.distance_to_bohr;

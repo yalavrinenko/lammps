@@ -30,6 +30,9 @@ namespace LAMMPS_NS {
     void set_units(){
       UnitsScale.distance_to_bohr = 1.0 / (0.52917721092 * force->angstrom);
       UnitsScale.hartree_to_energy = 627.509474; //only for real
+
+      xc_energy_->units().Distance2Bohr = UnitsScale.distance_to_bohr;
+      xc_energy_->units().Hartree2Energy = UnitsScale.hartree_to_energy;
     }
 
     XCEnergy* xc_energy_;

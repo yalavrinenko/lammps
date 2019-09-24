@@ -160,9 +160,6 @@ void PairAWPMDCut::init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons) {
 }
 
 void PairAWPMDCut::compute(int eflag, int vflag) {
-  // pvector = [KE, Pauli, ecoul, radial_restraint]
-  for (int i = 0; i < nextra; i++) pvector[i] = 0.0;
-
   if (eflag || vflag)
     ev_setup(eflag, vflag);
   else

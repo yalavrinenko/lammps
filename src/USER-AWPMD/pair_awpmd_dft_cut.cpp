@@ -13,10 +13,11 @@
 #include <style_pair.h>
 #include <awpmd-dft-cpu.hpp>
 #include "neigh_list.h"
+#include <DerivativesFunction.hpp>
 
 LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps) : PairAWPMDCut(lammps) {
   delete []pvector;
-  nextra = 7;
+  nextra = 6;
   pvector = new double[nextra];
 
   auto electron_count = std::count_if(atom->spin, atom->spin + atom->nlocal + atom->nghost,
@@ -28,16 +29,17 @@ LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps) : PairA
 }
 
 void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
+  auto one_h = force->mvh2r;
   PairAWPMDCut::compute(_i, _i1);
 
-  auto one_h=force->mvh2r;
-
   auto electrons_count = atom->nlocal + atom->nghost;
-  std::vector<WavePacket> e_sup, e_sdown;
-  e_sup.reserve(electrons_count), e_sdown.reserve(electrons_count);
+  e_sup.clear();
+  e_sup.reserve(electrons_count);
+  e_sdown.clear();
+  e_sdown.reserve(electrons_count);
 
-  for (auto i = 0u; i < electrons_count; ++i){
-    if (std::abs(atom->spin[i]) == 1){
+  for (auto i = 0u; i < electrons_count; ++i) {
+    if (std::abs(atom->spin[i]) == 1) {
       WavePacket packet;
 
       double width = atom->eradius[i] * UnitsScale.distance_to_bohr;
@@ -57,19 +59,44 @@ void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
     }
   }
 
-  auto energy = xc_energy_->energy(e_sup, e_sdown, {});
+  auto energy = xc_energy_->energy(e_sup, e_sdown, overlap_derivs);
   output.like_vars.xc_energy = UnitsScale.hartree_to_energy * energy.eng.potential;
   output.like_vars.kinetic_energy = UnitsScale.hartree_to_energy * energy.eng.kinetic;
-  force->pair->eng_coul += output.like_vars.xc_energy + output.like_vars.kinetic_energy;
+  eng_coul += output.like_vars.xc_energy + output.like_vars.kinetic_energy;
 
+  auto derive_to_phys_unit = [this](WavePacket const &packet, std::vector<float> &derive, int lmp_index){
+    auto dx = derive.begin();
+    auto dp = dx + 3, dw = dp + 3, pw = dw + 1;
+
+    packet.int2phys_der<eq_second>(dx, dx, dp, dw, pw, 1. / force->mvh2r);
+    auto scale = UnitsScale.hartree_to_energy * UnitsScale.distance_to_bohr;
+    for (auto k = 0u; k < 3; ++k)
+      atom->f[lmp_index][k] += -dx[k] * scale;
+    atom->erforce[lmp_index] += *dw * scale;
+    atom->ervelforce[lmp_index] += *pw * scale;
+  };
+
+  auto packet_up = e_sup.begin();
+  auto packet_down = e_sdown.begin();
+  auto derive = energy.derivatives.begin();
+  for (auto i = 0u; i < electrons_count; ++i) {
+    if (std::abs(atom->spin[i]) == 1) {
+      derive_to_phys_unit(*packet_up, *derive, i);
+      ++packet_up;
+      ++derive;
+    } else {
+      derive_to_phys_unit(*packet_down, *derive, i);
+      ++packet_down;
+      ++derive;
+    }
+  }
 //  output.like_vars.xc_energy = energy.eng.potential;
 //  output.like_vars.kinetic_energy = energy.eng.kinetic;
 //  force->pair->eng_coul += output.like_vars.xc_energy + output.like_vars.kinetic_energy;
 
   //std::cout << "ENG:" << comm->me << "\t" << energy.energy << "\t" << energy.kinetic_energy << "\t" << electrons_count << std::endl;
-
-  pvector[5] = output.like_vars.xc_energy;
-  pvector[6] = output.like_vars.kinetic_energy;
+  pvector[4] = output.like_vars.xc_energy;
+  pvector[5] = output.like_vars.kinetic_energy;
 }
 
 DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config() {
@@ -114,4 +141,9 @@ LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps, XCEnerg
   xc_energy_ = xc_energy_ptr;
 
   set_units();
+}
+
+void LAMMPS_NS::PairAWPMD_DFTCut::settings(int i, char **pString) {
+  PairAWPMDCut::settings(i, pString);
+  overlap_derivs = DerivsFunction::GetFunctions();
 }

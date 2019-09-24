@@ -22,6 +22,8 @@ namespace LAMMPS_NS {
 
     void compute(int i, int i1) override;
 
+    void settings(int i, char **pString) override;
+
   protected:
     DFTConfig make_dft_config();
 
@@ -45,6 +47,9 @@ namespace LAMMPS_NS {
 
       double like_vector[sizeof(like_vars) / sizeof(double)];
     } output{};
+
+    std::vector<WavePacket> e_sup, e_sdown;
+    std::vector<DerivFunction> overlap_derivs;
   };
 }
 

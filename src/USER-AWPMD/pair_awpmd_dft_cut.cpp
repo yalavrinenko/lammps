@@ -52,28 +52,6 @@ void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
   output.like_vars.kinetic_energy = energy.eng.kinetic;
   force->pair->eng_coul += output.like_vars.xc_energy + output.like_vars.kinetic_energy;
 
-    packet.int2phys_der<eq_second>(dx, dx, dp, dw, pw, 1. / force->mvh2r);
-    auto scale = UnitsScale.hartree_to_energy * UnitsScale.distance_to_bohr;
-    for (auto k = 0u; k < 3; ++k)
-      atom->f[lmp_index][k] += -dx[k] * scale;
-    atom->erforce[lmp_index] += *dw * scale;
-    atom->ervelforce[lmp_index] += *pw * scale;
-  };
-
-  auto packet_up = e_sup.begin();
-  auto packet_down = e_sdown.begin();
-  auto derive = energy.derivatives.begin();
-  for (auto i = 0u; i < electrons_count; ++i) {
-    if (std::abs(atom->spin[i]) == 1) {
-      derive_to_phys_unit(*packet_up, *derive, i);
-      ++packet_up;
-      ++derive;
-    } else {
-      derive_to_phys_unit(*packet_down, *derive, i);
-      ++packet_down;
-      ++derive;
-    }
-  }
 //  output.like_vars.xc_energy = energy.eng.potential;
 //  output.like_vars.kinetic_energy = energy.eng.kinetic;
 //  force->pair->eng_coul += output.like_vars.xc_energy + output.like_vars.kinetic_energy;

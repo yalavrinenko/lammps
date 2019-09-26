@@ -47,18 +47,21 @@ void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
     }
   }
 
-  auto energy = xc_energy_->energy(e_sup, e_sdown, {});
+  auto energy = xc_energy_->energy(e_sup, e_sdown, overlap_derivs);
   output.like_vars.xc_energy = energy.eng.potential;
   output.like_vars.kinetic_energy = energy.eng.kinetic;
   force->pair->eng_coul += output.like_vars.xc_energy + output.like_vars.kinetic_energy;
 
-//  output.like_vars.xc_energy = energy.eng.potential;
-//  output.like_vars.kinetic_energy = energy.eng.kinetic;
-//  force->pair->eng_coul += output.like_vars.xc_energy + output.like_vars.kinetic_energy;
-
-  //std::cout << "ENG:" << comm->me << "\t" << energy.energy << "\t" << energy.kinetic_energy << "\t" << electrons_count << std::endl;
   pvector[4] = output.like_vars.xc_energy;
   pvector[5] = output.like_vars.kinetic_energy;
+
+  auto force_it = energy.derivatives.begin();
+  for (auto i = 0; i < electrons_count; ++i){
+    if (atom->spin[i] != 0){
+      tally_electron_force(i, *force_it);
+      ++force_it;
+    }
+  }
 }
 
 DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config() {
@@ -90,7 +93,8 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config() {
                              domain->boxlo[1] * SPACE_MESH_SCALE + my_grid_pos.y * mesh_config.space_size.y,
                              domain->boxlo[2] * SPACE_MESH_SCALE + my_grid_pos.z * mesh_config.space_size.z};
 
-  mesh_config.mesh_size.size.as_struct = {100 / grid_size.x, 100 / grid_size.y, 100 / grid_size.z};
+  unsigned int MeshSize = 150;
+  mesh_config.mesh_size.size.as_struct = {MeshSize / grid_size.x, MeshSize / grid_size.y, MeshSize / grid_size.z};
 
   return mesh_config;
 }
@@ -108,4 +112,17 @@ LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps, XCEnerg
 void LAMMPS_NS::PairAWPMD_DFTCut::settings(int i, char **pString) {
   PairAWPMDCut::settings(i, pString);
   overlap_derivs = DerivsFunction::GetFunctions();
+  xc_energy_->units().Distance2Bohr = UnitsScale.distance_to_bohr;
+  xc_energy_->units().Hartree2Energy = UnitsScale.hartree_to_energy;
+}
+
+void LAMMPS_NS::PairAWPMD_DFTCut::tally_electron_force(unsigned electron_id, std::vector<float> const& force_array) {
+  atom->f[electron_id][0] = force_array[0];
+  atom->f[electron_id][1] = force_array[1];
+  atom->f[electron_id][2] = force_array[2];
+  atom->erforce[electron_id] = force_array[3];
+
+  for (auto &f: force_array)
+    std::cout << f << " ";
+  std::cout << '\n';
 }

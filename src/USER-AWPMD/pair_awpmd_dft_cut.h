@@ -1,6 +1,7 @@
 //
 // Created by yalavrinenko on 10.06.19.
 //
+#ifdef AWPMD_ENABLE_DFT
 #ifdef PAIR_CLASS
 
 PairStyle(awpmd/dft/cut,PairAWPMD_DFTCut)
@@ -52,4 +53,5 @@ namespace LAMMPS_NS {
 }
 
 #endif //LAMMPS_PAIR_AWPMD_DFT_CUT_H
+#endif
 #endif

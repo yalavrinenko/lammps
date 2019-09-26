@@ -1,7 +1,7 @@
 //
 // Created by yalavrinenko on 10.06.19.
 //
-
+#ifdef AWPMD_ENABLE_DFT
 #include "pair_awpmd_dft_cut.h"
 #include <atom.h>
 #include <force.h>
@@ -13,7 +13,6 @@
 #include <style_pair.h>
 #include <awpmd-dft-cpu.hpp>
 #include "neigh_list.h"
-
 LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps) : PairAWPMDCut(lammps) {
   delete []pvector;
   nextra = 7;
@@ -103,3 +102,4 @@ LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps, XCEnerg
 
   set_units();
 }
+#endif

@@ -27,6 +27,8 @@ namespace LAMMPS_NS {
   protected:
     DFTConfig make_dft_config();
 
+    bool calc_force_ = true;
+
     void set_units(){
       UnitsScale.distance_to_bohr = 1.0 / (0.52917721092 * force->angstrom);
       UnitsScale.hartree_to_energy = 1.0; //627.509474; //only for real

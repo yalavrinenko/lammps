@@ -160,21 +160,18 @@ void PairAWPMDCut::init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons) {
 }
 
 void PairAWPMDCut::compute(int eflag, int vflag) {
-  // pvector = [KE, Pauli, ecoul, radial_restraint]
-  for (int i = 0; i < nextra; i++) pvector[i] = 0.0;
-
   if (eflag || vflag)
     ev_setup(eflag, vflag);
   else
     evflag = vflag_fdotr = 0; //??
 
   auto interaction_energy = this->compute_pair();
-  auto full_coul_energy = interaction_energy.sum();
+  interaction_energy_ += interaction_energy.sum();
 
   //check_with_native_wpmd(full_coul_energy);
 
   if (eflag_global) {
-    eng_coul += full_coul_energy;
+    eng_coul += interaction_energy_;
 
     pvector[0] = interaction_energy.ii;
     pvector[1] = interaction_energy.ee;
@@ -182,6 +179,7 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
     pvector[3] = interaction_energy.ke;
   }
 
+  interaction_energy_ = 0.0;
   if (vflag_fdotr) {
     virial_fdotr_compute();
     if (flexible_pressure_flag)

@@ -2,8 +2,9 @@
 // Created by yalavrinenko on 10.06.19.
 //
 #ifdef AWPMD_ENABLE_GPU
-#include "pair_awpmd_dft_nvgpu_cut.h"
 #include <GPU-CUDA/awpmd-dft-nvgpu.hpp>
+#include "pair_awpmd_dft_nvgpu_cut.h"
+#include <DerivativesFunction.hpp>
 #include <atom.h>
 #include <comm.h>
 #include <cstring>
@@ -26,6 +27,6 @@ void LAMMPS_NS::PairAWPMD_DFT_NVGPUCut::settings(int argc, char **pString) {
     }
   }
 
-  xc_energy_ = new XCEnergy_nvgpu(electron_count, make_dft_config(), comm->me % gpu_per_node);
+  xc_energy_ = new XCEnergy_nvgpu(electron_count, make_dft_config(argc, pString), comm->me % gpu_per_node);
 }
 #endif

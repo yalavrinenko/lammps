@@ -47,13 +47,17 @@ void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
   pvector[4] = output.like_vars.xc_energy;
   pvector[5] = output.like_vars.kinetic_energy;
 
-  auto force_sup_it = energy.derivatives.up();
-  auto force_sdown_it = energy.derivatives.down();
-  for (auto i = 0; i < electrons_count; ++i){
-    if (atom->spin[i] == 1){
-      tally_electron_force(i, *(force_sup_it++));
-    } else {
-      tally_electron_force(i, *(force_sdown_it++));
+  if (calc_force_) {
+    auto force_sup_it = energy.derivatives.up();
+    auto force_sdown_it = energy.derivatives.down();
+    for (auto i = 0; i < electrons_count; ++i) {
+      if (std::abs(atom->spin[i]) == 1) {
+        if (atom->spin[i] == 1) {
+          tally_electron_force(i, *(force_sup_it++));
+        } else {
+          tally_electron_force(i, *(force_sdown_it++));
+        }
+      }
     }
   }
 }

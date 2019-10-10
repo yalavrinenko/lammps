@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
   protected:
     DFTConfig make_dft_config(int i, char **pString);
 
-    bool calc_force_ = true;
+    bool calc_force_ = false;
 
     void set_units(){
       UnitsScale.distance_to_bohr = 1.0 / (0.52917721092 * force->angstrom);

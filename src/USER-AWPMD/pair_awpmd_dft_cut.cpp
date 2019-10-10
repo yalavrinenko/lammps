@@ -41,7 +41,7 @@ void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
 
   auto energy = xc_energy_->energy(e_sup, e_sdown, calc_force_);
   output.like_vars.xc_energy = energy.eng.potential;
-  output.like_vars.kinetic_energy = energy.eng.kinetic;// - wpmd_kinetic();
+  output.like_vars.kinetic_energy = energy.eng.kinetic;
   force->pair->eng_coul += output.like_vars.xc_energy + output.like_vars.kinetic_energy;
 
   pvector[4] = output.like_vars.xc_energy;

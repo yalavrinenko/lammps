@@ -25,16 +25,18 @@ namespace LAMMPS_NS {
     void settings(int i, char **pString) override;
 
   protected:
-    DFTConfig make_dft_config();
+    DFTConfig make_dft_config(int i, char **pString);
 
     bool calc_force_ = true;
 
     void set_units(){
       UnitsScale.distance_to_bohr = 1.0 / (0.52917721092 * force->angstrom);
-      UnitsScale.hartree_to_energy = 1.0; //627.509474; //only for real
+      UnitsScale.hartree_to_energy = 627.509474; //only for real
     }
 
     void tally_electron_force(unsigned electron_id, std::vector<float> const& force_array);
+
+    double wpmd_kinetic() const;
 
     XCEnergy* xc_energy_;
 
@@ -53,7 +55,6 @@ namespace LAMMPS_NS {
     } output{};
 
     std::vector<WavePacket> e_sup, e_sdown;
-    std::vector<DerivFunction> overlap_derivs;
   };
 }
 

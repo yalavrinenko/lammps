@@ -23,7 +23,7 @@ double LAMMPS_NS::ComputeTempAwpmd::compute_scalar() {
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if ((mask[i] & groupbit) && atom->spin[i] != 0) {
-        t += atom->ervel[i] * atom->ervel[i] * rmass[i];
+        t += atom->ervel[i] * atom->ervel[i] * rmass[type[i]];
         ++nelectrons;
       }
   } else {

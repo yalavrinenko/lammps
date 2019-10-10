@@ -30,11 +30,6 @@ namespace LAMMPS_NS {
 
     bool calc_force_ = false;
 
-    void set_units(){
-      UnitsScale.distance_to_bohr = 1.0 / (0.52917721092 * force->angstrom);
-      UnitsScale.hartree_to_energy = 627.509474; //only for real
-    }
-
     void tally_electron_force(unsigned electron_id, std::vector<float> const& force_array);
 
     double wpmd_kinetic() const;

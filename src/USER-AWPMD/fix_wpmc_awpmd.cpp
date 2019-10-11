@@ -16,6 +16,7 @@
 #include "atom_vec.h"
 #include <future>
 #include <memory>
+#include <compute.h>
 using namespace std::string_literals;
 
 namespace LAMMPS_NS {
@@ -34,6 +35,8 @@ namespace LAMMPS_NS {
     nevery = 1;
 
     v_id = input->variable->find(args[3]);
+    temp = modify->compute[modify->find_compute("thermo_temp")];
+    pe = modify->compute[modify->find_compute("thermo_pe")];
     if (v_id == -1)
       error->all(FLERR, "Fix wpmc/awpmd requires a valid variable style");
 
@@ -57,9 +60,7 @@ namespace LAMMPS_NS {
   }
 
   void FixWPMCAwpmd::final_integrate() {
-    throw std::runtime_error("It's a wrong step!");
-    auto energy_new = input->variable->compute_equal(v_id);
-    printf("OUTRY:%lf\n", energy_new);
+    auto energy_new = temp->compute_scalar() * 0.5 * temp->dof * force->boltz + pe->compute_scalar(); //input->variable->compute_equal(v_id);
     this->output.like_vars.accept_flag = steppers.current().engine.test(energy_new - energy_old, 1.);
 
     if (output.like_vars.accept_flag == 1) {
@@ -73,13 +74,13 @@ namespace LAMMPS_NS {
 
     output.like_vars.accepted_count += output.like_vars.accept_flag;
     output.like_vars.rejected_count += (output.like_vars.accept_flag == 0);
+    output.like_vars.stepper_id = steppers.current_stepped_id();
 
     steppers.current().adjust();
     steppers.next();
   }
 
   void FixWPMCAwpmd::pre_force(int i) {
-    auto energy_new = input->variable->compute_equal(v_id);
     steppers.current().save((size_t) atom->nlocal);
     steppers.current().make((size_t) atom->nlocal);
     if (comm->nprocs > 1)
@@ -156,27 +157,5 @@ namespace LAMMPS_NS {
   }
 
   void FixWPMCAwpmd::initial_integrate(int i) {
-    if (is_first) {
-      is_first = false;
-      return;
-    }
-    auto energy_new = input->variable->compute_equal(v_id);
-    this->output.like_vars.accept_flag = steppers.current().engine.test(energy_new - energy_old, 1.);
-
-    if (output.like_vars.accept_flag == 1) {
-      energy_old = energy_new;
-    } else {
-      steppers.current().restore((size_t) atom->nlocal);
-    }
-
-    output.like_vars.step_energy = energy_new;
-    output.like_vars.accepted_energy = energy_old;
-
-    output.like_vars.accepted_count += output.like_vars.accept_flag;
-    output.like_vars.rejected_count += (output.like_vars.accept_flag == 0);
-    output.like_vars.stepper_id = steppers.current_stepped_id();
-
-    steppers.current().adjust();
-    steppers.next();
   }
 }

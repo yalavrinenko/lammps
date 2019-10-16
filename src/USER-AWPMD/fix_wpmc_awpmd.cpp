@@ -94,7 +94,7 @@ namespace LAMMPS_NS {
     auto ion_filter = [this](int index) { return atom->spin[index] == 0; };
     unsigned long engine_seed =  std::random_device{}();
     if (comm->nprocs > 1)
-      MPI_Bcast(&engine_seed, 1, MPI_UNSIGNED_LONG, 0, MPI_COMM_WORLD);
+      MPI_Bcast(&engine_seed, 1, MPI_UNSIGNED_LONG, 0, world);
 
     for (auto i = ARG_SHIFT; i < argc; ++i) {
       auto random_seed = std::abs((int) std::random_device{}());
@@ -139,7 +139,7 @@ namespace LAMMPS_NS {
     auto data_size = particle_data.size();
 
     std::vector<int> recv_size(comm->nprocs);
-    MPI_Allgather(&data_size, 1, MPI_INT, &recv_size[0], 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Allgather(&data_size, 1, MPI_INT, &recv_size[0], 1, MPI_INT, world);
 
     std::vector<int> displace(comm->nprocs);
     displace[0] = 0;
@@ -150,7 +150,7 @@ namespace LAMMPS_NS {
     }
 
     vector<double> recv_buf(total_size);
-    MPI_Allgatherv(particle_data.data(), data_size, MPI_DOUBLE, &recv_buf[0], &recv_size[0], &displace[0], MPI_DOUBLE, MPI_COMM_WORLD);
+    MPI_Allgatherv(particle_data.data(), data_size, MPI_DOUBLE, &recv_buf[0], &recv_size[0], &displace[0], MPI_DOUBLE, world);
 
     ghost_map.wait();
     auto unpacked = steppers.current().unpack(&recv_buf[0], total_size, tag_to_index);

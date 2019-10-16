@@ -151,7 +151,7 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(std::vector<WavePacket> const
   auto inum = m_pair->list->inum;
   auto ilist = m_pair->list->ilist;
 
-  wall_pressure_components = {0, 0, 0};
+  wall_pressure_components = {0, 0, 0, 0};
 
   for (auto ii = 0; ii < inum; ii++) {
     auto i = ilist[ii];
@@ -164,6 +164,7 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(std::vector<WavePacket> const
                                                  &ervf);
       atom->erforce[i] += erf;
       atom->ervelforce[i] += ervf;
+      wall_pressure_components[3] += std::abs(erf) + std::abs(ervf);
     }
 
     for (auto k = 0; k < 3; ++k) {

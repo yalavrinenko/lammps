@@ -138,10 +138,10 @@ void LAMMPS_NS::PairAWPMD_DFTCut::settings(int i, char **pString) {
 }
 
 void LAMMPS_NS::PairAWPMD_DFTCut::tally_electron_force(unsigned electron_id, std::vector<float> const& force_array) {
-  atom->f[electron_id][0] = force_array[0];
-  atom->f[electron_id][1] = force_array[1];
-  atom->f[electron_id][2] = force_array[2];
-  atom->erforce[electron_id] = force_array[3];
+  atom->f[electron_id][0] += force_array[0];
+  atom->f[electron_id][1] += force_array[1];
+  atom->f[electron_id][2] += force_array[2];
+  atom->erforce[electron_id] += force_array[3];
 
 //  for (auto &f: force_array)
 //    std::cout << f << " ";

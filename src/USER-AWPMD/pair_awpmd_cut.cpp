@@ -176,7 +176,7 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
     pvector[0] = interaction_energy.ii;
     pvector[1] = interaction_energy.ee;
     pvector[2] = interaction_energy.ei;
-    pvector[3] = interaction_energy.ke;
+    pvector[3] = interaction_energy.ke + interaction_energy.ee_w;
   }
 
   interaction_energy_ = 0.0;

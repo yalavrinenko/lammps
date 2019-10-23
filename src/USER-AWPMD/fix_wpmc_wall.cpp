@@ -39,11 +39,12 @@ int LAMMPS_NS::FixWallAwpmd::setmask() {
 }
 
 std::unique_ptr<BoxHamiltonian> LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length) {
+  auto box_fraction = force->numeric(FLERR, pString[3]);
   auto eigenE = force->numeric(FLERR, pString[4]);
   double prj_ord = force->numeric(FLERR, pString[5]);
 
   auto floor = half_box_length;
-  auto eigenwp = half_box_length / 10.0;
+  auto eigenwp = half_box_length / (box_fraction < 1.0 ? 10.0 : box_fraction);
 
   auto me=force->e_mass;
   auto h2_me=force->hhmrr2e/force->e_mass;

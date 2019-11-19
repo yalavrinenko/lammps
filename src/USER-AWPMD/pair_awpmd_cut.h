@@ -115,6 +115,7 @@ namespace LAMMPS_NS {
     double **cut;
 
     double interaction_energy_{0};
+    awpmd_energies energy_components_{};
 
     int nmax; // number of additional variables for minimizer
     double *min_var, *min_varforce; // additional variables for minimizer

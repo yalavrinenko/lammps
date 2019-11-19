@@ -8,6 +8,7 @@
 #include "pair_awpmd_cut.h"
 #include <wpmd_split.h>
 #include <atom.h>
+#include <cstring>
 #include "domain.h"
 #include "neigh_list.h"
 
@@ -22,7 +23,7 @@ LAMMPS_NS::FixWallAwpmd::FixWallAwpmd(LAMMPS_NS::LAMMPS *lammps, int i, char **p
   Vector_3 box_size{delx, dely, delz};
 
   m_pair = dynamic_cast<PairAWPMDCut*>(force->pair);
-  this->box = construct_box(pString, half_box_length);
+  this->box = construct_box(pString, half_box_length, i);
 
   this->vector_flag = true;
   this->size_vector = 2;
@@ -38,10 +39,17 @@ int LAMMPS_NS::FixWallAwpmd::setmask() {
   return LAMMPS_NS::FixConst::POST_FORCE;
 }
 
-std::unique_ptr<BoxHamiltonian> LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length) {
+std::unique_ptr<BoxHamiltonian>
+LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length, int pcount) {
   auto box_fraction = force->numeric(FLERR, pString[3]);
   auto eigenE = force->numeric(FLERR, pString[4]);
   double prj_ord = force->numeric(FLERR, pString[5]);
+
+  if (pcount > 6){
+    if (std::strcmp(pString[6], "box") == 0){
+      half_box_length = force->numeric(FLERR, pString[7]);
+    }
+  }
 
   auto floor = half_box_length;
   auto eigenwp = half_box_length / (box_fraction < 1.0 ? 10.0 : box_fraction);

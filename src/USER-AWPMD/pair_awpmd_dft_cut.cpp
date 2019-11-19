@@ -30,17 +30,20 @@ void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
   e_sup.clear();
   e_sdown.clear();
 
+  double self_ee = 0;
   for (auto i = 0u; i < electrons_count; ++i){
     if (std::abs(atom->spin[i]) == 1){
       if (atom->spin[i] == 1)
         e_sup.emplace_back(packets[i]);
       else
         e_sdown.emplace_back(packets[i]);
+
+      //self_ee += this->wpmd->interaction_ee_single(packets[i], packets[i], nullptr, nullptr);
     }
   }
 
   auto energy = xc_energy_->energy(e_sup, e_sdown, calc_force_);
-  output.like_vars.xc_energy = energy.eng.potential;
+  output.like_vars.xc_energy = energy.eng.potential + self_ee ;
   output.like_vars.kinetic_energy = energy.eng.kinetic;
   force->pair->eng_coul += output.like_vars.xc_energy + output.like_vars.kinetic_energy;
 
@@ -82,6 +85,9 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
       is_daptive_mesh = false;
       MeshSize = force->numeric(FLERR, pString[i + 1]);
     }
+
+    if (std::strcmp(pString[i], "dynamic") == 0)
+      calc_force_ = true;
   }
 
   auto electron_count = std::count_if(atom->spin, atom->spin + atom->nlocal + atom->nghost,
@@ -91,6 +97,7 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
   mesh_config.packet_number = electron_count;
   mesh_config.approximation = new LSDA();
   mesh_config.use_adaptive_mesh = is_daptive_mesh;
+  mesh_config.calc_force = calc_force_;
 
   double3 domain_size {(domain->boxhi[0] - domain->boxlo[0]) * SPACE_MESH_SCALE,
                        (domain->boxhi[1] - domain->boxlo[1]) * SPACE_MESH_SCALE,

@@ -165,18 +165,18 @@ void PairAWPMDCut::compute(int eflag, int vflag) {
   else
     evflag = vflag_fdotr = 0; //??
 
-  auto interaction_energy = this->compute_pair();
-  interaction_energy_ += interaction_energy.sum();
+  energy_components_ = this->compute_pair();
+  interaction_energy_ += energy_components_.sum();
 
   //check_with_native_wpmd(full_coul_energy);
 
   if (eflag_global) {
     eng_coul += interaction_energy_;
 
-    pvector[0] = interaction_energy.ii;
-    pvector[1] = interaction_energy.ee;
-    pvector[2] = interaction_energy.ei;
-    pvector[3] = interaction_energy.ke + interaction_energy.ee_w;
+    pvector[0] = energy_components_.ii;
+    pvector[1] = energy_components_.ee;
+    pvector[2] = energy_components_.ei;
+    pvector[3] = energy_components_.ke + energy_components_.ee_w;
   }
 
   interaction_energy_ = 0.0;

@@ -32,7 +32,7 @@ namespace LAMMPS_NS {
     void setup(int i) override;
 
   private:
-    std::unique_ptr<BoxHamiltonian> construct_box(char **pString, double half_box_size);
+    std::unique_ptr<BoxHamiltonian> construct_box(char **pString, double half_box_length, int pcount);
     class PairAWPMDCut* m_pair;
 
     std::unique_ptr<BoxHamiltonian> box = nullptr;

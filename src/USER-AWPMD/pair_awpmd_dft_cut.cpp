@@ -92,12 +92,13 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
 
   auto electron_count = std::count_if(atom->spin, atom->spin + atom->nlocal + atom->nghost,
                                       [](auto &spin) { return std::abs(spin) == 1; });
-  const double SPACE_MESH_SCALE = UnitsScale.distance_to_bohr * ((is_daptive_mesh) ? 100.0 : 1.5);
+  const double SPACE_MESH_SCALE = UnitsScale.distance_to_bohr * ((is_daptive_mesh) ? 1.5 : 1.5);
 
   mesh_config.packet_number = electron_count;
   mesh_config.approximation = new LSDA();
   mesh_config.use_adaptive_mesh = is_daptive_mesh;
   mesh_config.calc_force = calc_force_;
+  mesh_config.node_rank = comm->me;
 
   double3 domain_size {(domain->boxhi[0] - domain->boxlo[0]) * SPACE_MESH_SCALE,
                        (domain->boxhi[1] - domain->boxlo[1]) * SPACE_MESH_SCALE,

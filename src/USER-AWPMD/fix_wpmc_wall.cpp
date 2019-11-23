@@ -173,7 +173,7 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(std::vector<WavePacket> const
                                                  &ervf);
       atom->erforce[i] += erf;
       atom->ervelforce[i] += ervf;
-      wall_pressure_components[3] += std::abs(ervf);
+      wall_pressure_components[3] += std::abs(erf);
     }
 
     for (auto k = 0; k < 3; ++k) {
@@ -189,7 +189,7 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(std::vector<WavePacket> const
 //    virial[5] += f[2]*atom->x[i][1];
   }
 
-  double pressure = wall_pressure_components[0] + wall_pressure_components[1] + wall_pressure_components[2];
+  double pressure = wall_pressure_components[0] + wall_pressure_components[1] + wall_pressure_components[2] + wall_pressure_components[3];
 
   wall_pressure_ = pressure;
   MPI_Allreduce(&pressure, &wall_pressure_, 1, MPI_DOUBLE, MPI_SUM, world);

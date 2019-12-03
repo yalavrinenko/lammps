@@ -130,10 +130,13 @@ namespace LAMMPS_NS {
 
   void FixWPMCAwpmd::update_ghosts() {
     std::unordered_map<int, int> tag_to_index;
-    auto ghost_map = std::async(std::launch::async, [&tag_to_index, this]() {
-      for (auto i = atom->nlocal; i < atom->nghost; ++i)
-        tag_to_index[atom->tag[i]] = i;
-    });
+//    auto ghost_map = std::async(std::launch::async, [&tag_to_index, this]() {
+//      for (auto i = atom->nlocal; i < atom->nghost; ++i)
+//        tag_to_index[atom->tag[i]] = i;
+//    });
+
+    for (auto i = atom->nlocal; i < atom->nghost; ++i)
+      tag_to_index[atom->tag[i]] = i;
 
     auto particle_data = std::move(steppers.current().pack(atom->nlocal, atom->tag));
     auto data_size = particle_data.size();
@@ -152,7 +155,7 @@ namespace LAMMPS_NS {
     vector<double> recv_buf(total_size);
     MPI_Allgatherv(particle_data.data(), data_size, MPI_DOUBLE, &recv_buf[0], &recv_size[0], &displace[0], MPI_DOUBLE, world);
 
-    ghost_map.wait();
+    //ghost_map.wait();
     auto unpacked = steppers.current().unpack(&recv_buf[0], total_size, tag_to_index);
   }
 

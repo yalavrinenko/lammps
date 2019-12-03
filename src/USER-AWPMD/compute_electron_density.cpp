@@ -137,7 +137,7 @@ void ComputeDensityAwpmd::create_cell_list(plane_info const &info) {
         double3 end{begin.x + info.dx, begin.y + info.dy, begin.z + info.dz};
 
         XCEnergy_cpu::cell_density cell{};
-        AdaptiveMeshCell<double> range{AdaptiveMeshCell<double>::Range{begin}, AdaptiveMeshCell<double>::Range{end}};
+        AdaptiveMeshCell<double> range{AdaptiveMeshCell<double>::MeshPoint{begin}, AdaptiveMeshCell<double>::MeshPoint{end}};
         cell.cell = range;
         cells_.emplace_back(cell);
       }

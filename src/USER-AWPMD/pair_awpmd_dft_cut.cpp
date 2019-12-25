@@ -92,7 +92,11 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
 
   auto electron_count = std::count_if(atom->spin, atom->spin + atom->nlocal + atom->nghost,
                                       [](auto &spin) { return std::abs(spin) == 1; });
-  const double SPACE_MESH_SCALE = UnitsScale.distance_to_bohr * 2.0;
+
+  mesh_config.units.Hartree2Energy =  627.509474;
+  mesh_config.units.Distance2Bohr = 1.0 / (0.52917721092 * force->angstrom);
+
+  const double SPACE_MESH_SCALE = mesh_config.units.Distance2Bohr * 2.0;
 
   mesh_config.packet_number = electron_count;
   mesh_config.approximation = new LSDA();
@@ -122,9 +126,6 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
                              domain->boxlo[2] * SPACE_MESH_SCALE + my_grid_pos.z * mesh_config.space_size.z};
 
   mesh_config.mesh_size.size.as_struct = {MeshSize / grid_size.x, MeshSize / grid_size.y, MeshSize / grid_size.z};
-
-  mesh_config.units.Hartree2Energy =  627.509474;
-  mesh_config.units.Distance2Bohr = 1.0 / (0.52917721092 * force->angstrom);
 
   return mesh_config;
 }

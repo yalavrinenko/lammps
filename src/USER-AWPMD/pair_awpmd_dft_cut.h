@@ -36,11 +36,6 @@ namespace LAMMPS_NS {
 
     XCEnergy* xc_energy_;
 
-    struct {
-      double distance_to_bohr = 1.0;
-      double hartree_to_energy = 1.0;
-    } UnitsScale;
-
     union {
       struct {
         double xc_energy;

@@ -96,7 +96,7 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
   mesh_config.units.Hartree2Energy =  627.509474;
   mesh_config.units.Distance2Bohr = 1.0 / (0.52917721092 * force->angstrom);
 
-  const double SPACE_MESH_SCALE = mesh_config.units.Distance2Bohr * 2.0;
+  const double SPACE_MESH_SCALE = mesh_config.units.Distance2Bohr;
 
   mesh_config.packet_number = electron_count;
   mesh_config.approximation = new LSDA();
@@ -105,27 +105,41 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
   mesh_config.node_rank = comm->me;
   mesh_config.nodes = comm->nprocs;
 
-  double3 domain_size {(domain->boxhi[0] - domain->boxlo[0]) * SPACE_MESH_SCALE,
-                       (domain->boxhi[1] - domain->boxlo[1]) * SPACE_MESH_SCALE,
-                       (domain->boxhi[2] - domain->boxlo[2]) * SPACE_MESH_SCALE};
+  double3 domain_size {domain->boxhi[0] - domain->boxlo[0],
+                       domain->boxhi[1] - domain->boxlo[1],
+                       domain->boxhi[2] - domain->boxlo[2]};
 
-  uint3 grid_size {static_cast<unsigned int>(comm->procgrid[0]),
+  uint grid_size[] = {static_cast<unsigned int>(comm->procgrid[0]),
                    static_cast<unsigned int>(comm->procgrid[1]),
                    static_cast<unsigned int>(comm->procgrid[2])};
 
-  uint3 my_grid_pos {static_cast<unsigned int>(comm->myloc[0]),
+  uint my_grid_pos[] = {static_cast<unsigned int>(comm->myloc[0]),
                      static_cast<unsigned int>(comm->myloc[1]),
                      static_cast<unsigned int>(comm->myloc[2])};
 
-  mesh_config.space_size = {domain_size.x / grid_size.x,
-                            domain_size.y / grid_size.y,
-                            domain_size.z / grid_size.z};
+  double block_size[] = {domain_size.x / grid_size[0],
+                            domain_size.y / grid_size[1],
+                            domain_size.z / grid_size[2]};
 
-  mesh_config.space_shift = {domain->boxlo[0] * SPACE_MESH_SCALE + my_grid_pos.x * mesh_config.space_size.x,
-                             domain->boxlo[1] * SPACE_MESH_SCALE + my_grid_pos.y * mesh_config.space_size.y,
-                             domain->boxlo[2] * SPACE_MESH_SCALE + my_grid_pos.z * mesh_config.space_size.z};
+  double const EDGE_MULT[] = {SPACE_MESH_SCALE, SPACE_MESH_SCALE, SPACE_MESH_SCALE};
 
-  mesh_config.mesh_size.size.as_struct = {MeshSize / grid_size.x, MeshSize / grid_size.y, MeshSize / grid_size.z};
+  double const EDGE_BORDER_MULT = 2.0;
+
+  for (auto i = 0; i < 3; ++i){
+    mesh_config.mesh_start.size.as_array[i] = domain->boxlo[i] + my_grid_pos[i] * block_size[i];
+    mesh_config.mesh_fin.size.as_array[i] = mesh_config.mesh_start.size.as_array[i] + block_size[i];
+
+    if (my_grid_pos[i] == 0)
+      mesh_config.mesh_start.size.as_array[i] *= EDGE_BORDER_MULT;
+
+    if (my_grid_pos[i] == grid_size[i] - 1)
+      mesh_config.mesh_fin.size.as_array[i] *= EDGE_BORDER_MULT;
+
+    mesh_config.mesh_start[i] *= EDGE_MULT[i];
+    mesh_config.mesh_fin[i] *= EDGE_MULT[i];
+  }
+
+  mesh_config.mesh_size.size.as_struct = {MeshSize / grid_size[0], MeshSize / grid_size[1], MeshSize / grid_size[2]};
 
   return mesh_config;
 }

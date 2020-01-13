@@ -10,6 +10,7 @@
 #include <atom.h>
 #include <force.h>
 #include <update.h>
+#include <DataTypes.hpp>
 
 struct mesh_stepper {
   double init;
@@ -113,10 +114,12 @@ ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char 
   config_.max_distance = 4.0;
   config_.min_cell = 0.7;
 
-  config_.space_size = {L[0], L[1], L[2]};
-  config_.space_shift = {-config_.space_size.x / 2.0, -config_.space_size.y / 2.0, -config_.space_size.z / 2.0};
-  config_.approximation = new VoidApproximation();
+  for (auto i : {0, 1, 2}){
+    config_.mesh_start[i] = -L[i] / 2.0;
+    config_.mesh_fin[i] = L[i] / 2.0;
+  }
 
+  config_.approximation = new VoidApproximation();
 }
 
 void ComputeDensityAwpmd::create_cell_list(plane_info const &info) {

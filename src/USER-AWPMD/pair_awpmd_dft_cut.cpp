@@ -166,10 +166,6 @@ void LAMMPS_NS::PairAWPMD_DFTCut::tally_electron_force(unsigned electron_id, std
   atom->f[electron_id][1] += force_array[1];
   atom->f[electron_id][2] += force_array[2];
   atom->erforce[electron_id] += force_array[3];
-
-//  for (auto &f: force_array)
-//    std::cout << f << " ";
-//  std::cout << '\n';
 }
 
 double LAMMPS_NS::PairAWPMD_DFTCut::wpmd_kinetic() const {

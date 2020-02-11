@@ -115,7 +115,8 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       pack_choice[i] = &ComputePropertyAtom::pack_fy;
     } else if (strcmp(arg[iarg],"fz") == 0) {
       pack_choice[i] = &ComputePropertyAtom::pack_fz;
-
+    } else if (strcmp(arg[iarg], "ferad") == 0) {
+      pack_choice[i] = &ComputePropertyAtom::pack_ferad;
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (!atom->q_flag)
         error->all(FLERR,"Compute property/atom for "
@@ -952,6 +953,21 @@ void ComputePropertyAtom::pack_fz(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = f[i][2];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_ferad(int n)
+{
+  double *ferad = atom->erforce;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = ferad[i];
     else buf[n] = 0.0;
     n += nvalues;
   }

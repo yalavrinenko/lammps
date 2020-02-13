@@ -45,9 +45,14 @@ LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length, i
   auto eigenE = force->numeric(FLERR, pString[4]);
   double prj_ord = force->numeric(FLERR, pString[5]);
 
-  if (pcount > 6){
-    if (std::strcmp(pString[6], "box") == 0){
-      half_box_length = force->numeric(FLERR, pString[7]);
+  for (auto i = 0; i < pcount; ++i){
+    if (std::strcmp(pString[i], "box") == 0){
+      auto Lx = force->numeric(FLERR, pString[i + 1]);
+      auto Ly = force->numeric(FLERR, pString[i + 2]);
+      auto Lz = force->numeric(FLERR, pString[i + 3]);
+
+      half_box_length = 0.5 * std::min(Lx, std::min(Ly, Lz));
+      wall_squares = {Lz * Ly, Lx * Lz, Lx * Ly};
     }
   }
 

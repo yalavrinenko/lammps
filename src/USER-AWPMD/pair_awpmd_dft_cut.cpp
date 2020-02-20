@@ -70,24 +70,31 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
   unsigned int MeshSize = 50;
 
   DFTConfig mesh_config;
+  auto get_next_float = [pString, this](size_t i) {
+    return force->numeric(FLERR, pString[i+1]);
+  };
   for (int i = 1; i < nargs; i++){
     if (std::strcmp(pString[i], "adaptive") == 0) {
       is_daptive_mesh = true;
     }
 
     if (std::strcmp(pString[i], "min_cell_size") == 0)
-      mesh_config.min_cell = force->numeric(FLERR, pString[i+1]);
+      mesh_config.min_cell = get_next_float(i);
 
     if (std::strcmp(pString[i], "max_distance") == 0)
-      mesh_config.max_distance = force->numeric(FLERR, pString[i+1]);
+      mesh_config.max_distance = get_next_float(i);
 
     if (std::strcmp(pString[i], "regular") == 0) {
       is_daptive_mesh = false;
-      MeshSize = force->numeric(FLERR, pString[i + 1]);
+      MeshSize = get_next_float(i);
     }
 
     if (std::strcmp(pString[i], "dynamic") == 0)
       calc_force_ = true;
+
+    if (std::strcmp(pString[i], "force_mesh_bins") == 0){
+      mesh_config.force_cell_bins = get_next_float(i);
+    }
   }
 
   auto electron_count = std::count_if(atom->spin, atom->spin + atom->nlocal + atom->nghost,

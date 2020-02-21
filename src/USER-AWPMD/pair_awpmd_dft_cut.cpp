@@ -27,23 +27,17 @@ void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
   PairAWPMDCut::compute(_i, _i1);
 
   auto electrons_count = atom->nlocal + atom->nghost;
-  e_sup.clear();
-  e_sdown.clear();
+  electrons.clear();
 
   double self_ee = 0;
   for (auto i = 0u; i < electrons_count; ++i){
     if (std::abs(atom->spin[i]) == 1){
-      if (atom->spin[i] == 1)
-        e_sup.emplace_back(packets[i]);
-      else
-        e_sdown.emplace_back(packets[i]);
-
-      //self_ee += this->wpmd->interaction_ee_single(packets[i], packets[i], nullptr, nullptr);
+      electrons.emplace_back(packets[i], ElectronSpin(atom->spin[i]), (calc_force_ && i < atom->nlocal) );
     }
   }
 
-  auto energy = xc_energy_->energy(e_sup, e_sdown, calc_force_);
-  output.like_vars.xc_energy = energy.eng.potential + self_ee ;
+  auto energy = xc_energy_->energy(electrons, calc_force_);
+  output.like_vars.xc_energy = energy.eng.potential ;
   output.like_vars.kinetic_energy = energy.eng.kinetic;
   force->pair->eng_coul += output.like_vars.xc_energy + output.like_vars.kinetic_energy;
 
@@ -51,15 +45,10 @@ void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
   pvector[5] = output.like_vars.kinetic_energy;
 
   if (calc_force_) {
-    auto force_sup_it = energy.derivatives.up();
-    auto force_sdown_it = energy.derivatives.down();
+    auto force_it = energy.derivatives.begin();
     for (auto i = 0; i < electrons_count; ++i) {
-      if (std::abs(atom->spin[i]) == 1) {
-        if (atom->spin[i] == 1) {
-          tally_electron_force(i, *(force_sup_it++));
-        } else {
-          tally_electron_force(i, *(force_sdown_it++));
-        }
+      if (std::abs(atom->spin[i]) == 1 && i < atom->nlocal) {
+        tally_electron_force(i, *(force_it++));
       }
     }
   }

@@ -45,7 +45,7 @@ namespace LAMMPS_NS {
       double like_vector[sizeof(like_vars) / sizeof(double)];
     } output{};
 
-    std::vector<WavePacket> e_sup, e_sdown;
+    std::vector<XCEnergy::WavePacketInfo> electrons;
   };
 }
 

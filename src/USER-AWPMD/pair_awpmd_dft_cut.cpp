@@ -130,7 +130,7 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
 
   double const EDGE_MULT[] = {SPACE_MESH_SCALE, SPACE_MESH_SCALE, SPACE_MESH_SCALE};
 
-  double const EDGE_BORDER_MULT = 2.0;
+  double const EDGE_BORDER_MULT = 3.0;
 
   for (auto i = 0; i < 3; ++i){
     mesh_config.mesh_start.size.as_array[i] = domain->boxlo[i] + my_grid_pos[i] * block_size[i];

@@ -46,6 +46,9 @@ ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char 
     return std::strcmp(argv[index], value) == 0;
   };
 
+  std::array<double, 3> begin{};
+  std::array<double, 3> L{};
+
   while (argv_index < argc){
     if (is_par_equal(argv_index, "axis")){
       ++argv_index;
@@ -64,10 +67,20 @@ ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char 
       if (is_par_equal(argv_index, "block")){
         ++argv_index;
         auto domain_index = this->domain->find_region(argv[argv_index]);
-        if (domain_index != -1)
+        if (domain_index != -1) {
           region_ = this->domain->regions[domain_index];
-      } else {
-        error->all(FLERR, "Only block can be used with region keyword");
+          begin = {region_->extent_xlo * scalef_, region_->extent_ylo * scalef_, region_->extent_zlo * scalef_};
+          L = {region_->extent_xhi - region_->extent_xlo,
+               region_->extent_yhi - region_->extent_ylo,
+               region_->extent_zhi - region_->extent_zlo};
+        }
+      } else if (is_par_equal(argv_index, "cbox")){
+        ++argv_index;
+        for (auto j = 0; j < 3; ++j, ++argv_index){
+          L[j] = std::stod(argv[argv_index]);
+          begin[j] = -L[j] / 2;
+        }
+        --argv_index;
       }
     }
 
@@ -82,13 +95,6 @@ ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char 
     ++argv_index;
   }
 
-  if (!region_)
-    error->all(FLERR, "Region must be defined for density compute.");
-
-  std::array<double, 3> begin{region_->extent_xlo * scalef_, region_->extent_ylo * scalef_, region_->extent_zlo * scalef_};
-  std::array<double, 3> L{region_->extent_xhi - region_->extent_xlo,
-                          region_->extent_yhi - region_->extent_ylo,
-                          region_->extent_zhi - region_->extent_zlo};
   for (auto &l : L) l *= scalef_;
 
   std::array<double, 3> delta{L[0] / nbins_[0], L[1] / nbins_[1], L[2] / nbins_[2]};
@@ -136,7 +142,7 @@ void ComputeDensityAwpmd::create_cell_list(plane_info const &info) {
       s[2].reset();
       for (auto k = 0; k < info.Nz; ++k) {
         double z = s[2].next();
-        double3 begin{x - info.dx/2, y - info.dy/2, z - info.dz/2};
+        double3 begin{x, y, z};
         double3 end{begin.x + info.dx, begin.y + info.dy, begin.z + info.dz};
 
         XCEnergy_cpu::cell_density cell{};
@@ -149,18 +155,21 @@ void ComputeDensityAwpmd::create_cell_list(plane_info const &info) {
 }
 
 void ComputeDensityAwpmd::compute_array() {
-  make_packets();
-  auto density_prof = xc_energy_->build_density_map(packets_, {}, cells_, use_center_);
-  auto row = 0;
-  for (auto const &cell : cells_){
-    double cell_[3] = {(cell.cell.begin().x + cell.cell.end().x) * 0.5, (cell.cell.begin().y + cell.cell.end().y) * 0.5,
-                  (cell.cell.begin().z + cell.cell.end().z) * 0.5};
-    for (auto k = 0; k < 3; ++k)
-      array[row][k] = cell_[k];
-    array[row][3] = cell.rho / (force->angstrom * force->angstrom * force->angstrom) * 1e+24;
-    ++row;
+  if (invoked_array != update->ntimestep) {
+    make_packets();
+    auto density_prof = xc_energy_->build_density_map(packets_, {}, cells_, use_center_);
+    auto row = 0;
+    for (auto const &cell : cells_) {
+      double cell_[3] = {(cell.cell.begin().x + cell.cell.end().x) * 0.5,
+                         (cell.cell.begin().y + cell.cell.end().y) * 0.5,
+                         (cell.cell.begin().z + cell.cell.end().z) * 0.5};
+      for (auto k = 0; k < 3; ++k)
+        array[row][k] = cell_[k];
+      array[row][3] = cell.rho / (force->angstrom * force->angstrom * force->angstrom) * 1e+24;
+      ++row;
+    }
+    invoked_array = update->ntimestep;
   }
-  invoked_array = update->ntimestep;
 }
 
 void ComputeDensityAwpmd::init() {

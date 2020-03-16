@@ -10,6 +10,7 @@ PairStyle(awpmd/cut,PairAWPMD)
 #define LAMMPS_PAIR_AWPMD_CUT_H
 
 #include "WavepacketPairCommon.h"
+#include <map>
 namespace LAMMPS_NS {
   class PairAWPMD: public WavepacketPairCommon {
   public:
@@ -43,8 +44,8 @@ namespace LAMMPS_NS {
     awpmd_energies compute_energy_force() override;
 
     double electron_ke_{};
-    double ermscale;
-    double width_pbc;
+    double ermscale{};
+    double width_pbc{};
   };
 }
 

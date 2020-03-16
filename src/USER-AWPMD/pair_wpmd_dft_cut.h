@@ -4,18 +4,18 @@
 #ifdef AWPMD_ENABLE_DFT
 #ifdef PAIR_CLASS
 
-PairStyle(awpmd/dft/cut,PairAWPMD_DFTCut)
+PairStyle(wpmd/dft/cut,PairAWPMD_DFTCut)
 
 #else
 #ifndef LAMMPS_PAIR_AWPMD_DFT_CUT_H
 #define LAMMPS_PAIR_AWPMD_DFT_CUT_H
 
-#include "pair_awpmd_cut.h"
+#include "pair_wpmd_cut.h"
 #include <awpmd-dft.hpp>
 #include <force.h>
 
 namespace LAMMPS_NS {
-  class PairAWPMD_DFTCut : public PairAWPMDCut{
+  class PairAWPMD_DFTCut : public PairWPMD{
   public:
     explicit PairAWPMD_DFTCut(class LAMMPS *lammps);
 
@@ -25,6 +25,9 @@ namespace LAMMPS_NS {
 
     void settings(int i, char **pString) override;
 
+    ~PairAWPMD_DFTCut() override{
+      delete  xc_energy_;
+    }
   protected:
     DFTConfig make_dft_config(int i, char **pString);
 
@@ -34,7 +37,7 @@ namespace LAMMPS_NS {
 
     double wpmd_kinetic() const;
 
-    XCEnergy* xc_energy_;
+    XCEnergy* xc_energy_ = nullptr;
 
     union {
       struct {

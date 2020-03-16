@@ -2,7 +2,7 @@
 // Created by yalavrinenko on 10.06.19.
 //
 #ifdef AWPMD_ENABLE_DFT
-#include "pair_awpmd_dft_cut.h"
+#include "pair_wpmd_dft_cut.h"
 #include <atom.h>
 #include <force.h>
 #include <DataTypes.hpp>
@@ -16,15 +16,12 @@
 #include <awpmd-dft.hpp>
 #include <cstring>
 
-LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps) : PairAWPMDCut(lammps) {
-  delete []pvector;
-  nextra = 6;
-  pvector = new double[nextra];
+LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps) : PairAWPMD_DFTCut(lammps, nullptr) {
 }
 
 void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
   auto one_h = force->mvh2r;
-  PairAWPMDCut::compute(_i, _i1);
+  PairWPMD::compute(_i, _i1);
 
   auto electrons_count = atom->nlocal + atom->nghost;
   electrons.clear();
@@ -140,7 +137,7 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
   return mesh_config;
 }
 
-LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps, XCEnergy* xc_energy_ptr) : PairAWPMDCut(lammps) {
+LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps, XCEnergy* xc_energy_ptr) : PairWPMD(lammps) {
   delete []pvector;
   nextra = 6;
   pvector = new double[nextra];
@@ -149,7 +146,7 @@ LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps, XCEnerg
 }
 
 void LAMMPS_NS::PairAWPMD_DFTCut::settings(int i, char **pString) {
-  PairAWPMDCut::settings(i, pString);
+  PairWPMD::settings(i, pString);
 
   auto electron_count = std::count_if(atom->spin, atom->spin + atom->nlocal + atom->nghost,
                                       [](auto &spin) { return std::abs(spin) == 1; });

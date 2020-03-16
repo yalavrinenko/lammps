@@ -5,7 +5,7 @@
 #include <force.h>
 #include "fix_wpmc_wall.h"
 #include "error.h"
-#include "pair_awpmd_cut.h"
+#include "WavepacketPairCommon.h"
 #include <wpmd_split.h>
 #include <atom.h>
 #include <cstring>
@@ -22,7 +22,7 @@ LAMMPS_NS::FixWallAwpmd::FixWallAwpmd(LAMMPS_NS::LAMMPS *lammps, int i, char **p
 
   Vector_3 box_size{delx, dely, delz};
 
-  m_pair = dynamic_cast<PairAWPMDCut*>(force->pair);
+  m_pair = dynamic_cast<WavepacketPairCommon*>(force->pair);
   this->box = construct_box(pString, half_box_length, i);
 
   this->vector_flag = true;
@@ -85,7 +85,7 @@ LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length, i
 
 void LAMMPS_NS::FixWallAwpmd::post_force(int i)  {
   wall_energy = 0;
-  if (m_pair){
+  if (m_pair && !m_pair->electrons_packets().empty()){
     evaluate_wall_energy(m_pair->electrons_packets());
   } else {
     std::vector<WavePacket> packets(atom->nlocal + atom->nghost);

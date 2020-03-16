@@ -1,66 +1,27 @@
-/* -*- c++ -*- ----------------------------------------------------------
- LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
- Steve Plimpton, sjplimp@sandia.gov
-
- Copyright (2003) Sandia Corporation.  Under the terms of Contract
- DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
- certain rights in this software.  This software is distributed under
- the GNU General Public License.
-
- See the README file in the top-level LAMMPS directory.
- ------------------------------------------------------------------------- */
+//
+// Created by yalavrinenko on 16.03.2020.
+//
 
 #ifdef PAIR_CLASS
 
-PairStyle(wpmd/cut,PairWPMDCut)
+PairStyle(wpmd/cut,PairWPMD)
 
 #else
 
-#ifndef LMP_PAIR_WPMD_CUT_H
-#define LMP_PAIR_WPMD_CUT_H
-
-#include "pair.h"
+#ifndef LAMMPS_PAIRWPMD_H
+#define LAMMPS_PAIRWPMD_H
+#include "WavepacketPairCommon.h"
+#include <vector>
 
 namespace LAMMPS_NS {
+  class PairWPMD: public WavepacketPairCommon {
+  public:
+    explicit PairWPMD(class LAMMPS *lmp): WavepacketPairCommon(lmp) {}
 
-class PairWPMDCut : public Pair {
- public:
-  explicit PairWPMDCut(class LAMMPS *);
-  ~PairWPMDCut() override;
-  void compute(int, int) override;
-  void settings(int, char **) override;
-  void coeff(int, char **) override;
-  void init_style() override;
-  void min_pointers(double **, double **);
-  double init_one(int, int) override;
-  void write_restart(FILE *) override;
-  void read_restart(FILE *) override;
-  void write_restart_settings(FILE *) override;
-  void read_restart_settings(FILE *) override;
-
-  void min_xf_pointers(int, double **, double **) override;
-  void min_xf_get(int) override;
-  void min_x_set(int) override;
-  double memory_usage() override;
-
- private:
-  int limit_eradius_flag, pressure_with_evirials_flag;
-  double cut_global;
-  double **cut;
-  int ecp_type[100];
-  double PAULI_CORE_A[100], PAULI_CORE_B[100], PAULI_CORE_C[100], PAULI_CORE_D[100], PAULI_CORE_E[100];
-  double hhmss2e, h2e;
-
-  int nmax;
-  double *min_eradius,*min_erforce;
-
-  void allocate();
-  void virial_eff_compute();
-  void ev_tally_eff(int, int, int, int, double, double);
-};
-
+  protected:
+    awpmd_energies compute_energy_force() override;
+  };
 }
 
-#endif
+#endif //LAMMPS_PAIRWPMD_H
 #endif

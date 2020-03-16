@@ -14,7 +14,7 @@ FixStyle(wall/awpmd,FixWallAwpmd)
 #include <memory>
 
 namespace LAMMPS_NS {
-  class PairAWPMDCut;
+  class WavepacketPairCommon;
   class FixWallAwpmd : public Fix {
   public:
     FixWallAwpmd(class LAMMPS *lammps, int i, char **pString);
@@ -33,12 +33,12 @@ namespace LAMMPS_NS {
 
   private:
     std::unique_ptr<BoxHamiltonian> construct_box(char **pString, double half_box_length, int pcount);
-    class PairAWPMDCut* m_pair;
+    class WavepacketPairCommon* m_pair;
 
     std::unique_ptr<BoxHamiltonian> box = nullptr;
     double wall_energy = 0;
-    std::array<double, 4> wall_pressure_components;
-    std::array<double, 3> wall_squares;
+    std::array<double, 4> wall_pressure_components{};
+    std::array<double, 3> wall_squares{};
     double wall_pressure_ = 0;
 
     double wall_pressure() const;

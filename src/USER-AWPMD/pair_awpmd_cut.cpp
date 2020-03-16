@@ -16,6 +16,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include <cstring>
 
 LAMMPS_NS::WavepacketPairCommon::awpmd_energies LAMMPS_NS::PairAWPMD::compute_energy_force() {
   awpmd_ions ions;
@@ -28,7 +29,7 @@ LAMMPS_NS::WavepacketPairCommon::awpmd_energies LAMMPS_NS::PairAWPMD::compute_en
   if (wpmd->ni)
     fi.resize(static_cast<unsigned long>(wpmd->ni));
 
-  wpmd->interaction(0x1 | 0x4 | 0x10, fi.data());
+  wpmd->interaction(0x1u | 0x4u | 0x10u, fi.data());
   wpmd->forces2phys();
 
   auto coul_energy = wpmd->get_energy() - electron_ke_;
@@ -105,7 +106,6 @@ void LAMMPS_NS::PairAWPMD::init_wpmd(awpmd_ions &ions, awpmd_electrons &electron
   wpmd->reset();
 
   double **x = atom->x;
-  double **f = atom->f;
   double *q = atom->q;
   int *spin = atom->spin;
   int *type = atom->type;

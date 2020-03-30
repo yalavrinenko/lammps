@@ -8,6 +8,7 @@ ComputeStyle(denprof,ComputeDensityAwpmd)
 #else
 #ifndef LAMMPS_COMPUTE_ELECTRON_DENSITY_H
 #define LAMMPS_COMPUTE_ELECTRON_DENSITY_H
+#include <array>
 #include "compute.h"
 #include <awpmd-dft-cpu.hpp>
 #include <region.h>

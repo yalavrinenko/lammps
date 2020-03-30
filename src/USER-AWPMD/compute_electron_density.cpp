@@ -4,6 +4,7 @@
 
 #include "compute_electron_density.h"
 #include <cstring>
+#include <array>
 #include <region.h>
 #include <domain.h>
 #include <error.h>

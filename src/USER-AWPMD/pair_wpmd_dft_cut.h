@@ -13,6 +13,7 @@ PairStyle(wpmd/dft/cut,PairAWPMD_DFTCut)
 #include "pair_wpmd_cut.h"
 #include <awpmd-dft.hpp>
 #include <force.h>
+#include <vector>
 
 namespace LAMMPS_NS {
   class PairAWPMD_DFTCut : public PairWPMD{

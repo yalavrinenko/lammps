@@ -12,6 +12,7 @@ FixStyle(wall/awpmd,FixWallAwpmd)
 #include "fix.h"
 #include <box_hamiltonian.h>
 #include <memory>
+#include <array>
 
 namespace LAMMPS_NS {
   class PairAWPMDCut;

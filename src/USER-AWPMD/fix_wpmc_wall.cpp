@@ -5,9 +5,10 @@
 #include <force.h>
 #include "fix_wpmc_wall.h"
 #include "error.h"
-#include "pair_awpmd_cut.h"
+#include "WavepacketPairCommon.h"
 #include <wpmd_split.h>
 #include <atom.h>
+#include <cstring>
 #include "domain.h"
 #include "neigh_list.h"
 
@@ -21,8 +22,8 @@ LAMMPS_NS::FixWallAwpmd::FixWallAwpmd(LAMMPS_NS::LAMMPS *lammps, int i, char **p
 
   Vector_3 box_size{delx, dely, delz};
 
-  m_pair = dynamic_cast<PairAWPMDCut*>(force->pair);
-  this->box = construct_box(pString, half_box_length);
+  m_pair = dynamic_cast<WavepacketPairCommon*>(force->pair);
+  this->box = construct_box(pString, half_box_length, i);
 
   this->vector_flag = true;
   this->size_vector = 2;
@@ -38,12 +39,25 @@ int LAMMPS_NS::FixWallAwpmd::setmask() {
   return LAMMPS_NS::FixConst::POST_FORCE;
 }
 
-std::unique_ptr<BoxHamiltonian> LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length) {
+std::unique_ptr<BoxHamiltonian>
+LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length, int pcount) {
+  auto box_fraction = force->numeric(FLERR, pString[3]);
   auto eigenE = force->numeric(FLERR, pString[4]);
   double prj_ord = force->numeric(FLERR, pString[5]);
 
+  for (auto i = 0; i < pcount; ++i){
+    if (std::strcmp(pString[i], "box") == 0){
+      auto Lx = force->numeric(FLERR, pString[i + 1]);
+      auto Ly = force->numeric(FLERR, pString[i + 2]);
+      auto Lz = force->numeric(FLERR, pString[i + 3]);
+
+      half_box_length = 0.5 * std::min(Lx, std::min(Ly, Lz));
+      wall_squares = {Lz * Ly, Lx * Lz, Lx * Ly};
+    }
+  }
+
   auto floor = half_box_length;
-  auto eigenwp = half_box_length / 10.0;
+  auto eigenwp = half_box_length / (box_fraction < 1.0 ? 10.0 : box_fraction);
 
   auto me=force->e_mass;
   auto h2_me=force->hhmrr2e/force->e_mass;
@@ -71,7 +85,7 @@ std::unique_ptr<BoxHamiltonian> LAMMPS_NS::FixWallAwpmd::construct_box(char **pS
 
 void LAMMPS_NS::FixWallAwpmd::post_force(int i)  {
   wall_energy = 0;
-  if (m_pair){
+  if (m_pair && !m_pair->electrons_packets().empty()){
     evaluate_wall_energy(m_pair->electrons_packets());
   } else {
     std::vector<WavePacket> packets(atom->nlocal + atom->nghost);
@@ -151,7 +165,7 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(std::vector<WavePacket> const
   auto inum = m_pair->list->inum;
   auto ilist = m_pair->list->ilist;
 
-  wall_pressure_components = {0, 0, 0};
+  wall_pressure_components = {0, 0, 0, 0};
 
   for (auto ii = 0; ii < inum; ii++) {
     auto i = ilist[ii];
@@ -164,6 +178,7 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(std::vector<WavePacket> const
                                                  &ervf);
       atom->erforce[i] += erf;
       atom->ervelforce[i] += ervf;
+      wall_pressure_components[3] += std::abs(erf);
     }
 
     for (auto k = 0; k < 3; ++k) {
@@ -178,12 +193,18 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(std::vector<WavePacket> const
 //    virial[4] += f[2]*atom->x[i][0];
 //    virial[5] += f[2]*atom->x[i][1];
   }
+
+  double pressure = wall_pressure_components[0] + wall_pressure_components[1] + wall_pressure_components[2];
+
+  wall_pressure_ = pressure;
+  MPI_Allreduce(&pressure, &wall_pressure_, 1, MPI_DOUBLE, MPI_SUM, world);
+
+  double square = 6.0 * (wall_squares[0] + wall_squares[1] + wall_squares[2]);
+  wall_pressure_ = wall_pressure_ / square * force->nktv2p;
 }
 
 double LAMMPS_NS::FixWallAwpmd::wall_pressure() const {
-  double pressure = wall_pressure_components[0] + wall_pressure_components[1] + wall_pressure_components[2];
-  double square = wall_squares[0] + wall_squares[1] + wall_squares[2];
-  return pressure / square * force->nktv2p;
+  return wall_pressure_;
 }
 
 void LAMMPS_NS::FixWallAwpmd::setup(int i) {

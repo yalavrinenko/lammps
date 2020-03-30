@@ -76,6 +76,7 @@ class ComputePropertyAtom : public Compute {
   void pack_fx(int);
   void pack_fy(int);
   void pack_fz(int);
+  void pack_ferad(int);
   void pack_q(int);
   void pack_mux(int);
   void pack_muy(int);

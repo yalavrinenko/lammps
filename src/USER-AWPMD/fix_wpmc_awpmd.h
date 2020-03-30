@@ -29,8 +29,8 @@ namespace LAMMPS_NS {
     int setmask() override {
       int mask = 0;
       mask |= LAMMPS_NS::FixConst::PRE_FORCE;
-      //mask |= LAMMPS_NS::FixConst::FINAL_INTEGRATE;
-      mask |= LAMMPS_NS::FixConst::INITIAL_INTEGRATE;
+      mask |= LAMMPS_NS::FixConst::FINAL_INTEGRATE;
+      //mask |= LAMMPS_NS::FixConst::INITIAL_INTEGRATE;
       return mask;
     }
     void initial_integrate(int i) override;
@@ -65,6 +65,8 @@ namespace LAMMPS_NS {
     } output;
 
     MCStepperSet steppers;
+
+    Compute *temp, *pe;
 
     double energy_old = std::numeric_limits<double>::max();
     int v_id = -1;

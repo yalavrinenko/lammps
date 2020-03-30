@@ -25,8 +25,6 @@ FixStyle(nve/awpmd,FixNVEAwpmd)
 #define LMP_FIX_NVE_awpmd_H
 
 #include "../fix_nve.h"
-#include "pair_awpmd_cut.h"
-
 
 namespace LAMMPS_NS {
 

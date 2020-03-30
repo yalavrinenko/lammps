@@ -51,7 +51,7 @@ velocity        edown create ${temperature} 121346 dist gaussian
 #END INIT SECTION
 
 #PAIR_STYLE
-pair_style      awpmd/dft-nvgpu/cut ${LCut} hartree ermscale 0.99 free flex_press gppn 1
+pair_style      awpmd/dft-nvgpu/cut ${LCut} hartree ermscale 0.99 free flex_press gppn 1 adaptive min_cell_size 0.7 max_distance 4.0
 pair_coeff 	    * *
 #END_PAIR_STYLE
 
@@ -71,8 +71,8 @@ variable        int_ii equal c_energies[1]
 variable        int_ei equal c_energies[2]
 variable        int_ee equal c_energies[3]
 variable        int_ke equal c_energies[4]
-variable        dft_xc equal c_energies[6]
-variable        dft_ke equal c_energies[7]
+variable        dft_xc equal c_energies[5]
+variable        dft_ke equal c_energies[6]
 
 variable		eng_total equal etotal
 variable 		etotal_ev equal v_eng_total/627.509474*27.211386

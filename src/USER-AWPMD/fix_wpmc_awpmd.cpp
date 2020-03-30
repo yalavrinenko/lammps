@@ -16,6 +16,7 @@
 #include "atom_vec.h"
 #include <future>
 #include <memory>
+#include <compute.h>
 using namespace std::string_literals;
 
 namespace LAMMPS_NS {
@@ -34,6 +35,8 @@ namespace LAMMPS_NS {
     nevery = 1;
 
     v_id = input->variable->find(args[3]);
+    temp = modify->compute[modify->find_compute("thermo_temp")];
+    pe = modify->compute[modify->find_compute("thermo_pe")];
     if (v_id == -1)
       error->all(FLERR, "Fix wpmc/awpmd requires a valid variable style");
 
@@ -57,9 +60,7 @@ namespace LAMMPS_NS {
   }
 
   void FixWPMCAwpmd::final_integrate() {
-    throw std::runtime_error("It's a wrong step!");
-    auto energy_new = input->variable->compute_equal(v_id);
-    printf("OUTRY:%lf\n", energy_new);
+    auto energy_new = temp->compute_scalar() * 0.5 * temp->dof * force->boltz + pe->compute_scalar(); //input->variable->compute_equal(v_id);
     this->output.like_vars.accept_flag = steppers.current().engine.test(energy_new - energy_old, 1.);
 
     if (output.like_vars.accept_flag == 1) {
@@ -73,13 +74,13 @@ namespace LAMMPS_NS {
 
     output.like_vars.accepted_count += output.like_vars.accept_flag;
     output.like_vars.rejected_count += (output.like_vars.accept_flag == 0);
+    output.like_vars.stepper_id = steppers.current_stepped_id();
 
     steppers.current().adjust();
     steppers.next();
   }
 
   void FixWPMCAwpmd::pre_force(int i) {
-    auto energy_new = input->variable->compute_equal(v_id);
     steppers.current().save((size_t) atom->nlocal);
     steppers.current().make((size_t) atom->nlocal);
     if (comm->nprocs > 1)
@@ -93,7 +94,7 @@ namespace LAMMPS_NS {
     auto ion_filter = [this](int index) { return atom->spin[index] == 0; };
     unsigned long engine_seed =  std::random_device{}();
     if (comm->nprocs > 1)
-      MPI_Bcast(&engine_seed, 1, MPI_LONG, 0, MPI_COMM_WORLD);
+      MPI_Bcast(&engine_seed, 1, MPI_LONG_LONG, 0, world);
 
     for (auto i = ARG_SHIFT; i < argc; ++i) {
       auto random_seed = std::abs((int) std::random_device{}());
@@ -129,16 +130,19 @@ namespace LAMMPS_NS {
 
   void FixWPMCAwpmd::update_ghosts() {
     std::unordered_map<int, int> tag_to_index;
-    auto ghost_map = std::async(std::launch::async, [&tag_to_index, this]() {
-      for (auto i = atom->nlocal; i < atom->nghost; ++i)
-        tag_to_index[atom->tag[i]] = i;
-    });
+//    auto ghost_map = std::async(std::launch::async, [&tag_to_index, this]() {
+//      for (auto i = atom->nlocal; i < atom->nghost; ++i)
+//        tag_to_index[atom->tag[i]] = i;
+//    });
+
+    for (auto i = atom->nlocal; i < atom->nghost; ++i)
+      tag_to_index[atom->tag[i]] = i;
 
     auto particle_data = std::move(steppers.current().pack(atom->nlocal, atom->tag));
     auto data_size = particle_data.size();
 
     std::vector<int> recv_size(comm->nprocs);
-    MPI_Allgather(&data_size, 1, MPI_INT, &recv_size[0], 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Allgather(&data_size, 1, MPI_INT, &recv_size[0], 1, MPI_INT, world);
 
     std::vector<int> displace(comm->nprocs);
     displace[0] = 0;
@@ -149,34 +153,12 @@ namespace LAMMPS_NS {
     }
 
     vector<double> recv_buf(total_size);
-    MPI_Allgatherv(particle_data.data(), data_size, MPI_DOUBLE, &recv_buf[0], &recv_size[0], &displace[0], MPI_DOUBLE, MPI_COMM_WORLD);
+    MPI_Allgatherv(particle_data.data(), data_size, MPI_DOUBLE, &recv_buf[0], &recv_size[0], &displace[0], MPI_DOUBLE, world);
 
-    ghost_map.wait();
+    //ghost_map.wait();
     auto unpacked = steppers.current().unpack(&recv_buf[0], total_size, tag_to_index);
   }
 
   void FixWPMCAwpmd::initial_integrate(int i) {
-    if (is_first) {
-      is_first = false;
-      return;
-    }
-    auto energy_new = input->variable->compute_equal(v_id);
-    this->output.like_vars.accept_flag = steppers.current().engine.test(energy_new - energy_old, 1.);
-
-    if (output.like_vars.accept_flag == 1) {
-      energy_old = energy_new;
-    } else {
-      steppers.current().restore((size_t) atom->nlocal);
-    }
-
-    output.like_vars.step_energy = energy_new;
-    output.like_vars.accepted_energy = energy_old;
-
-    output.like_vars.accepted_count += output.like_vars.accept_flag;
-    output.like_vars.rejected_count += (output.like_vars.accept_flag == 0);
-    output.like_vars.stepper_id = steppers.current_stepped_id();
-
-    steppers.current().adjust();
-    steppers.next();
   }
 }

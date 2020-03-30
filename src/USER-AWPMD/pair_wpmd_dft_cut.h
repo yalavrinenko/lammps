@@ -4,18 +4,18 @@
 #ifdef AWPMD_ENABLE_DFT
 #ifdef PAIR_CLASS
 
-PairStyle(awpmd/dft/cut,PairAWPMD_DFTCut)
+PairStyle(wpmd/dft/cut,PairAWPMD_DFTCut)
 
 #else
 #ifndef LAMMPS_PAIR_AWPMD_DFT_CUT_H
 #define LAMMPS_PAIR_AWPMD_DFT_CUT_H
 
-#include "pair_awpmd_cut.h"
+#include "pair_wpmd_cut.h"
 #include <awpmd-dft.hpp>
 #include <force.h>
 
 namespace LAMMPS_NS {
-  class PairAWPMD_DFTCut : public PairAWPMDCut{
+  class PairAWPMD_DFTCut : public PairWPMD{
   public:
     explicit PairAWPMD_DFTCut(class LAMMPS *lammps);
 
@@ -23,23 +23,21 @@ namespace LAMMPS_NS {
 
     void compute(int i, int i1) override;
 
-  protected:
-    DFTConfig make_dft_config();
+    void settings(int i, char **pString) override;
 
-    void set_units(){
-      UnitsScale.distance_to_bohr = 1.0 / (0.52917721092 * force->angstrom);
-      UnitsScale.hartree_to_energy = 627.509474; //only for real
-
-      xc_energy_->units().Distance2Bohr = UnitsScale.distance_to_bohr;
-      xc_energy_->units().Hartree2Energy = UnitsScale.hartree_to_energy;
+    ~PairAWPMD_DFTCut() override{
+      delete  xc_energy_;
     }
+  protected:
+    DFTConfig make_dft_config(int i, char **pString);
 
-    XCEnergy* xc_energy_;
+    bool calc_force_ = false;
 
-    struct {
-      double distance_to_bohr = 1.0;
-      double hartree_to_energy = 1.0;
-    } UnitsScale;
+    void tally_electron_force(unsigned electron_id, std::vector<float> const& force_array);
+
+    double wpmd_kinetic() const;
+
+    XCEnergy* xc_energy_ = nullptr;
 
     union {
       struct {
@@ -49,6 +47,8 @@ namespace LAMMPS_NS {
 
       double like_vector[sizeof(like_vars) / sizeof(double)];
     } output{};
+
+    std::vector<XCEnergy::WavePacketInfo> electrons;
   };
 }
 

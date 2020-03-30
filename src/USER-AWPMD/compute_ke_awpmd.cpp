@@ -18,14 +18,15 @@ double LAMMPS_NS::ComputeKEAwpmd::compute_scalar() {
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if ((mask[i] & groupbit) && atom->spin[i] != 0)
-        ke += rmass[i] * (atom->ervel[i] * atom->ervel[i]);
+        ke += rmass[atom->type[i]] * (atom->ervel[i] * atom->ervel[i]);
   } else {
     for (int i = 0; i < nlocal; i++)
       if ((mask[i] & groupbit) && atom->spin[i] != 0)
-        ke += rmass[i] * (atom->ervel[i] * atom->ervel[i]);
+        ke += atom->mass[atom->type[i]] * (atom->ervel[i] * atom->ervel[i]);
   }
-
-  MPI_Allreduce(&ke,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-  scalar *= 0.5 * force->mvv2e;
-  return scalar + ComputeKE::compute_scalar();
+  double tmp_scalar = 0;
+  MPI_Allreduce(&ke,&tmp_scalar,1,MPI_DOUBLE,MPI_SUM,world);
+  tmp_scalar *= 0.5 * force->mvv2e;
+  scalar = tmp_scalar + ComputeKE::compute_scalar();
+  return scalar;
 }

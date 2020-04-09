@@ -49,6 +49,5 @@ namespace LAMMPS_NS {
   };
 }
 
-
 #endif //LAMMPS_PAIR_AWPMD_CUT_H
 #endif

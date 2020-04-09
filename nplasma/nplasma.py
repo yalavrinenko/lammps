@@ -24,7 +24,8 @@ def T_K(TeV):
 
 
 def w_pl(ne):
-	return (4.0 * math.pi * ne * Contants.e.cgs**2 / Contants.me.cgs)**0.5
+	cgs = (4.0 * math.pi * ne * Contants.e.cgs**2 / Contants.me.cgs)**0.5
+	return cgs
 
 
 def Gamma(ne, Tk):

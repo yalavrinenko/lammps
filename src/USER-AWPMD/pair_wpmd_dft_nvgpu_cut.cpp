@@ -2,12 +2,12 @@
 // Created by yalavrinenko on 10.06.19.
 //
 #ifdef AWPMD_ENABLE_GPU
-#include <GPU-CUDA/awpmd-dft-nvgpu.hpp>
 #include "pair_wpmd_dft_nvgpu_cut.h"
-#include <DerivativesFunction.hpp>
+#include <nvgpu/awpmd-dft-nvgpu.hpp>
 #include <atom.h>
 #include <comm.h>
 #include <cstring>
+#include <utils/DerivativesFunction.hpp>
 
 LAMMPS_NS::PairAWPMD_DFT_NVGPUCut::PairAWPMD_DFT_NVGPUCut(LAMMPS_NS::LAMMPS *lammps) :
   PairAWPMD_DFTCut(lammps, nullptr) {

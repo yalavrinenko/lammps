@@ -3,18 +3,18 @@
 //
 #ifdef AWPMD_ENABLE_DFT
 #include "pair_wpmd_dft_cut.h"
-#include <atom.h>
-#include <force.h>
-#include <DataTypes.hpp>
-#include <LSDA.hpp>
-#include <domain.h>
-#include <comm.h>
-#include <wpmd_split.h>
-#include <awpmd-dft-cpu.hpp>
 #include "neigh_list.h"
-#include <DerivativesFunction.hpp>
+#include <DataTypes.hpp>
+#include <atom.h>
+#include <awpmd-dft-cpu.hpp>
 #include <awpmd-dft.hpp>
+#include <comm.h>
 #include <cstring>
+#include <domain.h>
+#include <force.h>
+#include <utils/DerivativesFunction.hpp>
+#include <wpmd_split.h>
+#include <xcfunctionals/LSDA.hpp>
 
 LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps) : PairAWPMD_DFTCut(lammps, nullptr) {
 }

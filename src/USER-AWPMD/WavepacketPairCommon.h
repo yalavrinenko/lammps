@@ -41,9 +41,7 @@ public:
 
   AWPMD_split *awpmd() { return wpmd; }
 
-  std::vector<WavePacket> const& electrons_packets() const {
-    return packets;
-  }
+  std::vector<WavePacket> const& electrons_packets() const;
 
 protected:
   struct awpmd_energies{
@@ -72,7 +70,7 @@ protected:
   double interaction_energy_{0};
   awpmd_energies energy_components_{};
   AWPMD_split *wpmd; // solver oybject
-  std::vector<WavePacket> packets{};
+  std::vector<WavePacket> packets;
 };
 
 }

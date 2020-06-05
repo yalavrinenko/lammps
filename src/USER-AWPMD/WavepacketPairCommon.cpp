@@ -257,4 +257,7 @@ void LAMMPS_NS::WavepacketPairCommon::virial_eradius_compute() {
     }
   }
 }
-
+std::vector<WavePacket> const &
+LAMMPS_NS::WavepacketPairCommon::electrons_packets() const {
+  return packets;
+}

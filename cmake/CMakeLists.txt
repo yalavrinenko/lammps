@@ -837,6 +837,7 @@ if(PKG_USER-AWPMD)
   add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils" ${LAMMPS_LIB_BINARY_DIR}/ivutils)
 
   include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/include")
+  include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft")
   include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include")
   include_directories(${MKL_INCLUDE_DIR})
   include_directories(${IVUTILS_INCLUDE_DIR}/../src)

@@ -33,12 +33,7 @@ namespace LAMMPS_NS {
 
   private:
     std::unique_ptr<BoxHamiltonian> construct_box(char **pString, double half_box_length, int pcount);
-    class WavepacketPairCommon* m_pair;
 
-    std::unique_ptr<BoxHamiltonian> box = nullptr;
-    double wall_energy = 0;
-    std::array<double, 4> wall_pressure_components{};
-    std::array<double, 3> wall_squares{};
     double wall_pressure_ = 0;
 
     double wall_pressure() const;
@@ -47,6 +42,14 @@ namespace LAMMPS_NS {
     double interaction_border_electron(WavePacket const &packet, double *rforce, double *erforce, double *ervforce);
 
     void evaluate_wall_energy(std::vector<WavePacket> const &packets);
+
+    class WavepacketPairCommon* m_pair;
+
+    std::unique_ptr<BoxHamiltonian> box = nullptr;
+    double wall_energy = 0;
+    std::array<double, 4> wall_pressure_components{};
+    std::array<double, 3> wall_squares{};
+    bool use_width_force_{false};
   };
 }
 

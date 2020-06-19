@@ -17,9 +17,12 @@ namespace LAMMPS_NS {
   class PairWPMD: public WavepacketPairCommon {
   public:
     explicit PairWPMD(class LAMMPS *lmp): WavepacketPairCommon(lmp) {}
+    void settings(int i, char **pString) override;
 
   protected:
     awpmd_energies compute_energy_force() override;
+
+    bool is_pbc_{false};
   };
 }
 

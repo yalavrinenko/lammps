@@ -65,13 +65,17 @@ LAMMPS_NS::WavepacketPairCommon::awpmd_energies LAMMPS_NS::PairWPMD::compute_ene
       auto j = firstneigh[i][jj];
       j &= NEIGHMASK;
 
+      double cutoff = (is_pbc_) ? std::sqrt(cutsq[atom->type[i]][atom->type[j]]) : -1;
+
       if (atom->spin[i] == 0 && atom->spin[j] == 0 && wpmd->calc_ii) {
-        interaction_energy.ii += wpmd->interation_ii_single(i, j, atom->x, atom->q, atom->f);
+        interaction_energy.ii +=
+            wpmd->interation_ii_single(i, j, atom->x, atom->q, atom->f, cutoff);
       } else
       if (atom->spin[i] != 0 && atom->spin[j] != 0 && wpmd->calc_ee) {
         double* eforce_ptrs[]{atom->f[i], atom->f[j]};
         double* erforce_ptrs[]{&atom->erforce[i], &atom->erforce[j]};
-        interaction_energy.ee += wpmd->interaction_ee_single(packets[i], packets[j], eforce_ptrs, erforce_ptrs);
+        interaction_energy.ee += wpmd->interaction_ee_single(
+            packets[i], packets[j], eforce_ptrs, erforce_ptrs, cutoff);
       } else
       if (atom->spin[i] == 0 && atom->spin[j] != 0 && wpmd->calc_ei) {
         interaction_energy.ei += wpmd->interaction_ei_single(atom->x[i], atom->q[i], packets[j], atom->spin[j], atom->f[i],
@@ -85,4 +89,14 @@ LAMMPS_NS::WavepacketPairCommon::awpmd_energies LAMMPS_NS::PairWPMD::compute_ene
   }
 
   return interaction_energy;
+}
+void LAMMPS_NS::PairWPMD::settings(int argc, char **pString) {
+  WavepacketPairCommon::settings(argc, pString);
+
+  is_pbc_ = true;
+  for (auto i = 0; i < 3; ++i)
+    if (domain->boundary[i][0] != 0 || domain->boundary[i][1] != 0){
+      is_pbc_ = false;
+      break;
+    }
 }

@@ -78,12 +78,14 @@ LAMMPS_NS::WavepacketPairCommon::awpmd_energies LAMMPS_NS::PairWPMD::compute_ene
             packets[i], packets[j], eforce_ptrs, erforce_ptrs, cutoff);
       } else
       if (atom->spin[i] == 0 && atom->spin[j] != 0 && wpmd->calc_ei) {
-        interaction_energy.ei += wpmd->interaction_ei_single(atom->x[i], atom->q[i], packets[j], atom->spin[j], atom->f[i],
-                                                             atom->f[j], &atom->erforce[j]);
+        interaction_energy.ei += wpmd->interaction_ei_single(
+            atom->x[i], atom->q[i], packets[j], atom->spin[j], atom->f[i],
+            atom->f[j], &atom->erforce[j], cutoff);
       } else
       if (atom->spin[i] != 0 && atom->spin[j] == 0 && wpmd->calc_ei){
-        interaction_energy.ei += wpmd->interaction_ei_single(atom->x[j], atom->q[j], packets[i], atom->spin[i], atom->f[j],
-                                                             atom->f[i], &atom->erforce[i]);
+        interaction_energy.ei += wpmd->interaction_ei_single(
+            atom->x[j], atom->q[j], packets[i], atom->spin[i], atom->f[j],
+            atom->f[i], &atom->erforce[i], cutoff);
       }
     }
   }

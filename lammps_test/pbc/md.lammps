@@ -1,0 +1,162 @@
+#PARAMETER SECTION
+variable        density equal 1e+21
+log				${density}_md.spe.log
+
+variable 		temperature equal 30000
+variable		nepart equal 32
+variable		nsteps equal 200000
+#END PARAMS
+
+variable		ne_up equal ${nepart}/2
+variable		ne_down equal ${nepart}-${ne_up}
+variable 		V equal ${nepart}/(${density}/1e24)
+variable		L equal (${V}^(1.0/3.0))/2.0
+variable        LCut    equal ${L}*4.0
+variable 	LH	equal ${L}*2.0
+shell mkdir 	${density}
+
+units 			real
+newton			on
+#boundary        p p p
+boundary        m m m
+processors      1 * *
+atom_style		wavepacket
+atom_modify map yes
+
+# START INIT SECTION
+region          box block -${L} ${L} -${L} ${L} -${L} ${L}
+create_box      3 box
+create_atoms    1 random ${nepart} 24314 box
+#create_atoms	2 random ${ne_up} 42112 box
+#create_atoms    3 random ${ne_down} 41213 box
+
+mass         	1 0.000544616997098749
+set 			type 1 charge 1
+set 			type 1 spin/wpmd 0
+
+mass	     	2 0.000544616997098749
+set 			type 2 charge -1
+set     		type 2 spin/wpmd 1
+set     		type 2 eradius 1.86
+
+mass         	3 0.000544616997098749
+set 			type 3 charge -1
+set				type 3 spin/wpmd -1
+set				type 3 eradius 1.86
+
+group 			ion type 1
+group 			eup type 2
+group 			edown type 3
+group 			electrons type 2 3
+
+velocity        ion create ${temperature} 877785 dist gaussian
+#velocity        eup create ${temperature} 872464 dist gaussian
+#velocity        edown create ${temperature} 121346 dist gaussian
+# END INIT SECTION
+
+set atom 1 x -1
+set atom 1 y 0
+set atom 1 z 0
+
+set atom 2 x 1
+set atom 2 y 0
+set atom 2 z 0
+
+#read_restart ./${density}/equil.restart
+
+#PAIR_STYLE
+#pair_style eff/cut ${LCut}
+pair_style wpmd/cut ${LCut} #disable_ee disable_ei
+pair_coeff 	    * *
+#END_PAIR_STYLE
+
+timestep		0.001
+comm_modify		vel yes
+
+#FIX_SECTION
+fix				w1 all wall/awpmd 10 1.0 10
+
+compute         kinetik all ke
+compute         ke_ion ion ke
+compute         ke_eup eup ke
+compute         ke_edown edown ke
+
+#compute         energies all pair eff/cut 
+compute         energies all pair wpmd/cut
+
+variable        ebord equal 0 #f_w1[1]
+variable		wall_press equal 0 #f_w1[2]
+variable        int_ii equal c_energies[1]
+variable        int_ei equal c_energies[2]
+variable        int_ee equal c_energies[3]
+variable        int_ke equal c_energies[4]
+variable        dft_xc equal 1 #c_energies[5]
+variable        dft_ke equal 1 #c_energies[6]
+
+variable		eng_total equal etotal
+variable 		etotal_ev equal v_eng_total/627.509474*27.211386
+
+fix             thermalization all nvt temp ${temperature} ${temperature} $(100.0*dt)
+
+variable        accept equal 1
+variable        mc_energy equal 1
+variable		mc_step_energy	equal 1
+variable        mc_steppe_id equal  1
+
+compute			all_temp all temp
+compute			t_ion ion temp
+compute			t_elup  eup temp
+compute			t_eldown  edown temp
+
+compute			pos_x all property/atom x
+
+variable		distance equal (c_pos_x[2]-c_pos_x[1])/${LCut}
+
+fix 			ave all ave/time 1 1 1 v_distance v_eng_total c_energies c_kinetik c_ke_ion c_ke_eup c_ke_edown &
+                c_all_temp c_t_ion c_t_elup c_t_eldown &
+                v_int_ii v_int_ei v_int_ee v_int_ke v_ebord &
+                v_dft_xc v_dft_ke &
+				v_wall_press &
+                file ./${density}/wpmd_thermo_ave.dat off 1
+
+compute			erad all property/atom eradius
+compute			sp   all property/atom spin
+compute			ch   all property/atom q
+#fix 			histo electrons ave/histo 1 1000 1000 0 ${LH} 1000 c_erad file ./${density}/wpmd_width_histo.dat mode vector ave one 
+#END_FIX_SECTION
+
+thermo          1000
+thermo_modify	norm yes
+thermo_style    custom step v_etotal_ev pe temp c_t_ion c_t_elup c_t_eldown v_accept v_mc_energy v_mc_step_energy c_ke_ion c_ke_eup c_ke_edown v_ebord v_mc_steppe_id
+
+neigh_modify page 2097160
+neigh_modify one  209716
+
+# dump            snap all cfg 100 ./${density}/dump.config.*.cfg mass type xs ys zs type x y z vx vy vz c_erad c_sp c_ch
+# dump_modify     snap element I EU ED
+
+
+run 			100000
+
+unfix 			thermalization
+
+#write_restart 	./${density}/equil.restart
+
+timestep		0.001
+compute			stream_e electrons reduce sum vx vy vz
+compute 		stream_i ion reduce sum vx vy vz
+
+variable		total_current equal sqrt((c_stream_i[1]-c_stream_e[1])^2+(c_stream_i[2]-c_stream_e[2])^2+(c_stream_i[3]-c_stream_e[3])^2)
+
+variable        il equal ${L}/3.0
+region          inner block -${il} ${il} -${il} ${il} -${il} ${il}
+
+group           inner_group dynamic all region inner every 1
+compute         current_all inner_group ecurrent
+
+fix             current_time all ave/time 1 10 10 c_stream_e[1] c_stream_e[2] c_stream_e[3] c_stream_i[1] c_stream_i[2] c_stream_i[3] v_total_current  file ./${density}/current.dat
+fix             current_time_vc all ave/time 1 10 10 c_current_all[1] c_current_all[2] c_current_all[3] file ./${density}/current_inner.dat
+
+
+fix				nve all nve
+run	 			${nsteps}

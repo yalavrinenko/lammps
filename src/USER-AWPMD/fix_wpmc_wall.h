@@ -12,6 +12,7 @@ FixStyle(wall/awpmd,FixWallAwpmd)
 #include "fix.h"
 #include <box_hamiltonian.h>
 #include <memory>
+class WavePacket;
 
 namespace LAMMPS_NS {
   class WavepacketPairCommon;
@@ -50,6 +51,8 @@ namespace LAMMPS_NS {
     std::array<double, 4> wall_pressure_components{};
     std::array<double, 3> wall_squares{};
     bool use_width_force_{false};
+
+    std::vector<class WavePacket> packets;
   };
 }
 

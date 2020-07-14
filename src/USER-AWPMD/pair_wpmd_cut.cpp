@@ -96,8 +96,8 @@ void LAMMPS_NS::PairWPMD::settings(int argc, char **pString) {
   WavepacketPairCommon::settings(argc, pString);
 
   is_pbc_ = true;
-  for (auto i = 0; i < 3; ++i)
-    if (domain->boundary[i][0] != 0 || domain->boundary[i][1] != 0){
+  for (auto & i : domain->boundary)
+    if (i[0] != 0 || i[1] != 0){
       is_pbc_ = false;
       break;
     }

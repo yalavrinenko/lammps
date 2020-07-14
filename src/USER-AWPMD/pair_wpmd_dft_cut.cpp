@@ -20,16 +20,14 @@ LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps) : PairA
 }
 
 void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
-  auto one_h = force->mvh2r;
   PairWPMD::compute(_i, _i1);
 
   auto electrons_count = atom->nlocal + atom->nghost;
   electrons.clear();
 
-  double self_ee = 0;
   for (auto i = 0u; i < electrons_count; ++i){
     if (std::abs(atom->spin[i]) == 1){
-      electrons.emplace_back(packets[i], ElectronSpin(atom->spin[i]), (calc_force_ && i < atom->nlocal) );
+      electrons.emplace_back(atom->x[i], atom->eradius[i], ElectronSpin(atom->spin[i]), (calc_force_ && i < atom->nlocal) );
     }
   }
 

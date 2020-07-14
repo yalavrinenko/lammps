@@ -22,7 +22,7 @@ LAMMPS_NS::FixWallAwpmd::FixWallAwpmd(LAMMPS_NS::LAMMPS *lammps, int i,
 
   wall_squares = {delz * dely, delx * delz, delx * dely};
 
-  Vector_3 box_size{delx, dely, delz};
+
 
   m_pair = dynamic_cast<WavepacketPairCommon *>(force->pair);
   this->box = construct_box(pString, half_box_length, i);
@@ -70,8 +70,9 @@ LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length,
 
   if (eigenE > 0.) {
     eigenwp = sqrt(3. / 2 / me / eigenE) / one_h;
-  } else
-    eigenE = 3. / 2 * h2_me / (eigenwp * eigenwp);
+  }
+// else   eigenE = 3. / 2 * h2_me / (eigenwp * eigenwp);
+
 
   double floorYtoX = 1., floorZtoX = 1., widthYtoX = 1., widthZtoX = 1.;
 
@@ -91,7 +92,7 @@ void LAMMPS_NS::FixWallAwpmd::post_force(int flag) {
   if (m_pair && !m_pair->electrons_packets().empty()) {
     evaluate_wall_energy(m_pair->electrons_packets());
   } else {
-    std::vector<WavePacket> packets(atom->nlocal + atom->nghost);
+    packets.resize(atom->nlocal + atom->nghost);
 
     auto one_h = force->mvh2r;
     for (auto i = 0; i < atom->nlocal + atom->nghost; ++i) {
@@ -125,7 +126,7 @@ double LAMMPS_NS::FixWallAwpmd::compute_vector(int i) {
   }
 }
 
-double LAMMPS_NS::FixWallAwpmd::interaction_border_ion(int i, double *x,
+double LAMMPS_NS::FixWallAwpmd::interaction_border_ion(int, double *x,
                                                        double *f) {
   double dE;
   Vector_3 df = box->get_force(*(Vector_3 *)x, &dE);
@@ -138,7 +139,7 @@ double LAMMPS_NS::FixWallAwpmd::interaction_border_ion(int i, double *x,
 double LAMMPS_NS::FixWallAwpmd::interaction_border_electron(
     WavePacket const &packet, double *rforce, double *erforce,
     double *ervforce) {
-  double dE{0};
+  double dE;
   if (force && erforce && ervforce) {
     cdouble integral;
     cdouble a1_re, a1_im, a2_re, a2_im;
@@ -169,7 +170,7 @@ double LAMMPS_NS::FixWallAwpmd::interaction_border_electron(
 }
 
 void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(
-    std::vector<WavePacket> const &packets) {
+    std::vector<WavePacket> const &wavepackets) {
   auto inum = m_pair->list->inum;
   auto ilist = m_pair->list->ilist;
 
@@ -182,7 +183,7 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(
     if (atom->spin[i] == 0) {
       wall_energy += interaction_border_ion(i, atom->x[i], f);
     } else {
-      wall_energy += interaction_border_electron(packets[i], f, &erf, &ervf);
+      wall_energy += interaction_border_electron(wavepackets[i], f, &erf, &ervf);
       atom->erforce[i] += erf;
       atom->ervelforce[i] += ervf;
       wall_pressure_components[3] += std::abs(erf);

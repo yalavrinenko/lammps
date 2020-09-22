@@ -20,12 +20,14 @@ LAMMPS_NS::FixWallAwpmd::FixWallAwpmd(LAMMPS_NS::LAMMPS *lammps, int i,
   double delz = domain->boxhi[2] - domain->boxlo[2];
   auto half_box_length = 0.5 * MIN(delx, MIN(dely, delz));
 
-  wall_squares = {delz * dely, delx * delz, delx * dely};
+  for (auto k = 0; k < 3; ++k)
+    if (domain->periodicity[k])
+      periodicity_coef_[k] = 0.0;
 
+  wall_squares_ = {delz * dely, delx * delz, delx * dely};
 
-
-  m_pair = dynamic_cast<WavepacketPairCommon *>(force->pair);
-  this->box = construct_box(pString, half_box_length, i);
+  m_pair_ = dynamic_cast<WavepacketPairCommon *>(force->pair);
+  this->box_ = construct_box(pString, half_box_length, i);
 
   this->vector_flag = true;
   this->size_vector = 2;
@@ -33,8 +35,8 @@ LAMMPS_NS::FixWallAwpmd::FixWallAwpmd(LAMMPS_NS::LAMMPS *lammps, int i,
 }
 
 LAMMPS_NS::FixWallAwpmd::~FixWallAwpmd() {
-  m_pair->awpmd()->use_box = false;
-  m_pair->awpmd()->set_pbc(nullptr, 0);
+  m_pair_->awpmd()->use_box = false;
+  m_pair_->awpmd()->set_pbc(nullptr, 0);
 }
 
 int LAMMPS_NS::FixWallAwpmd::setmask() {
@@ -55,7 +57,7 @@ LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length,
       auto Lz = force->numeric(FLERR, pString[i + 3]);
 
       half_box_length = 0.5 * std::min(Lx, std::min(Ly, Lz));
-      wall_squares = {Lz * Ly, Lx * Lz, Lx * Ly};
+      wall_squares_ = {Lz * Ly, Lx * Lz, Lx * Ly};
     }
     if (std::strcmp(pString[i], "width_force") == 0)
       use_width_force_ = true;
@@ -79,7 +81,7 @@ LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length,
   Vector_3 gamma(eigenwp, eigenwp * widthYtoX, eigenwp * widthZtoX), force_k;
 
   for (int i = 0; i < 3; ++i) {
-    force_k[i] = 9. / 8 * h2_me / (gamma[i] * gamma[i] * gamma[i] * gamma[i]);
+    force_k[i] = 9. / 8 * h2_me / (gamma[i] * gamma[i] * gamma[i] * gamma[i]) * periodicity_coef_[i];
   }
 
   Vector_3 bound(floor, floor * floorYtoX, floor * floorZtoX);
@@ -88,9 +90,9 @@ LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length,
 }
 
 void LAMMPS_NS::FixWallAwpmd::post_force(int flag) {
-  wall_energy = 0;
-  if (m_pair && !m_pair->electrons_packets().empty()) {
-    evaluate_wall_energy(m_pair->electrons_packets());
+  wall_energy_ = 0;
+  if (m_pair_ && !m_pair_->electrons_packets().empty()) {
+    evaluate_wall_energy(m_pair_->electrons_packets());
   } else {
     packets.resize(atom->nlocal + atom->nghost);
 
@@ -110,15 +112,15 @@ void LAMMPS_NS::FixWallAwpmd::post_force(int flag) {
     }
     evaluate_wall_energy(packets);
   }
-  m_pair->eng_coul += wall_energy;
+  m_pair_->eng_coul += wall_energy_;
 }
 
-double LAMMPS_NS::FixWallAwpmd::compute_scalar() { return wall_energy; }
+double LAMMPS_NS::FixWallAwpmd::compute_scalar() { return wall_energy_; }
 
 double LAMMPS_NS::FixWallAwpmd::compute_vector(int i) {
   switch (i) {
   case 0:
-    return wall_energy;
+    return wall_energy_;
   case 1:
     return wall_pressure();
   default:
@@ -129,7 +131,7 @@ double LAMMPS_NS::FixWallAwpmd::compute_vector(int i) {
 double LAMMPS_NS::FixWallAwpmd::interaction_border_ion(int, double *x,
                                                        double *f) {
   double dE;
-  Vector_3 df = box->get_force(*(Vector_3 *)x, &dE);
+  Vector_3 df = box_->get_force(*(Vector_3 *)x, &dE);
   if (f) // ion forces needed
     for (auto k = 0; k < 3; ++k)
       f[k] += df[k];
@@ -144,9 +146,9 @@ double LAMMPS_NS::FixWallAwpmd::interaction_border_electron(
     cdouble integral;
     cdouble a1_re, a1_im, a2_re, a2_im;
     cVector_3 b1_re, b1_im, b2_re, b2_im;
-    box->get_derivatives(packet.a, packet.b, packet.a, packet.b, &integral,
-                         &a1_re, &a1_im, &b1_re, &b1_im, &a2_re, &a2_im, &b2_re,
-                         &b2_im);
+    box_->get_derivatives(packet.a, packet.b, packet.a, packet.b, &integral,
+                          &a1_re, &a1_im, &b1_re, &b1_im, &a2_re, &a2_im, &b2_re,
+                          &b2_im);
 
     std::array<double, 8> tmp{2.0 * real(a1_re),    2.0 * real(a1_im),
                               2.0 * real(b1_re[0]), 2.0 * real(b1_im[0]),
@@ -164,34 +166,34 @@ double LAMMPS_NS::FixWallAwpmd::interaction_border_electron(
     (*ervforce) += *pw;
     dE = integral.real();
   } else
-    dE = box->get_integral(packet.a, packet.b, packet.a, packet.b).real();
+    dE = box_->get_integral(packet.a, packet.b, packet.a, packet.b).real();
   // Ebord += dE;
   return dE;
 }
 
 void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(
     std::vector<WavePacket> const &wavepackets) {
-  auto inum = m_pair->list->inum;
-  auto ilist = m_pair->list->ilist;
+  auto inum = m_pair_->list->inum;
+  auto ilist = m_pair_->list->ilist;
 
-  wall_pressure_components = {0, 0, 0, 0};
+  wall_pressure_components_ = {0, 0, 0, 0};
 
   for (auto ii = 0; ii < inum; ii++) {
     auto i = ilist[ii];
     double f[3] = {0, 0, 0};
     double erf = 0, ervf = 0;
     if (atom->spin[i] == 0) {
-      wall_energy += interaction_border_ion(i, atom->x[i], f);
+      wall_energy_ += interaction_border_ion(i, atom->x[i], f);
     } else {
-      wall_energy += interaction_border_electron(wavepackets[i], f, &erf, &ervf);
+      wall_energy_ += interaction_border_electron(wavepackets[i], f, &erf, &ervf);
       atom->erforce[i] += erf;
       atom->ervelforce[i] += ervf;
-      wall_pressure_components[3] += std::abs(erf);
+      wall_pressure_components_[3] += std::abs(erf);
     }
 
     for (auto k = 0; k < 3; ++k) {
       atom->f[i][k] += f[k];
-      wall_pressure_components[k] += std::abs(f[k]);
+      wall_pressure_components_[k] += std::abs(f[k]);
     }
 
     //    virial[0] += f[0]*atom->x[i][0];
@@ -204,17 +206,17 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(
 
   std::array<double, 4> force_components{0, 0, 0, 0};
 
-  MPI_Allreduce(wall_pressure_components.data(), force_components.data(), 4,
+  MPI_Allreduce(wall_pressure_components_.data(), force_components.data(), 4,
                 MPI_DOUBLE, MPI_SUM, world);
 
-  wall_pressure_ = (force_components[0] / (2.0 * wall_squares[0]) +
-                    force_components[1] / (2.0 * wall_squares[1]) +
-                    force_components[2] / (2.0 * wall_squares[2])) /
+  wall_pressure_ = (force_components[0] / (2.0 * wall_squares_[0]) +
+                    force_components[1] / (2.0 * wall_squares_[1]) +
+                    force_components[2] / (2.0 * wall_squares_[2])) /
                    3.0;
 
   if (use_width_force_)
     wall_pressure_ += force_components[3] /
-        (2.0 * (wall_squares[0] + wall_squares[1] + wall_squares[2]));
+        (2.0 * (wall_squares_[0] + wall_squares_[1] + wall_squares_[2]));
 
   wall_pressure_ = wall_pressure_ * force->nktv2p;
 }

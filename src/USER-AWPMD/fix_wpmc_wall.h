@@ -44,12 +44,15 @@ namespace LAMMPS_NS {
 
     void evaluate_wall_energy(std::vector<WavePacket> const &packets);
 
-    class WavepacketPairCommon* m_pair;
+    class WavepacketPairCommon* m_pair_;
 
-    std::unique_ptr<BoxHamiltonian> box = nullptr;
-    double wall_energy = 0;
-    std::array<double, 4> wall_pressure_components{};
-    std::array<double, 3> wall_squares{};
+    std::unique_ptr<BoxHamiltonian> box_ = nullptr;
+    double wall_energy_ = 0;
+    std::array<double, 4> wall_pressure_components_{};
+    std::array<double, 3> wall_squares_{};
+
+    std::array<double, 3> periodicity_coef_{1.0, 1.0, 1.0};
+
     bool use_width_force_{false};
 
     std::vector<class WavePacket> packets;

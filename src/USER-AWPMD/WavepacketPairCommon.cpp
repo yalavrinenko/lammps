@@ -73,12 +73,16 @@ void LAMMPS_NS::WavepacketPairCommon::settings(int narg, char **arg) {
   for (int i = 1; i < narg; i++) {
     if (!strcmp(arg[i], "flex_press"))
       flexible_pressure_flag = 1;
-    else if (!strcmp(arg[i], "disable_ii"))
+    else if (!strcmp(arg[i], "disable_ii")) {
       wpmd->calc_ii = false;
-    else if (!strcmp(arg[i], "disable_ei"))
+      error->warning(FLERR, "Ion-ion interaction disabled.");
+    } else if (!strcmp(arg[i], "disable_ei")) {
       wpmd->calc_ei = false;
-    else if (!strcmp(arg[i], "disable_ee"))
+      error->warning(FLERR, "Electron-ion interaction disabled.");
+    } else if (!strcmp(arg[i], "disable_ee")) {
       wpmd->calc_ee = false;
+      error->warning(FLERR, "Electron-electron interaction disabled.");
+    }
   }
 }
 
@@ -139,7 +143,6 @@ void LAMMPS_NS::WavepacketPairCommon::init_style() {
   wpmd->one_h = force->mvh2r;
   wpmd->coul_pref = force->qqrd2e;
   wpmd->mvv2e = force->mvv2e;
-  wpmd->calc_ii = 1;
 }
 
 double LAMMPS_NS::WavepacketPairCommon::init_one(int i, int j) {

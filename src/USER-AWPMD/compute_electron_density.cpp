@@ -60,9 +60,7 @@ ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char 
           axis_[j] = std::stod(argv[argv_index]);
         }
       }
-    }
-
-    if (is_par_equal(argv_index, "region")){
+    } else if (is_par_equal(argv_index, "region")){
       ++argv_index;
       if (is_par_equal(argv_index, "block")){
         ++argv_index;
@@ -82,14 +80,10 @@ ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char 
         }
         --argv_index;
       }
-    }
-
-    if (is_par_equal(argv_index, "scalef")){
+    } else if (is_par_equal(argv_index, "scalef")){
       ++argv_index;
       scalef_ = std::stod(argv[argv_index]);
-    }
-
-    if (is_par_equal(argv_index, "center"))
+    } else if (is_par_equal(argv_index, "center"))
       use_center_ = true;
 
     ++argv_index;

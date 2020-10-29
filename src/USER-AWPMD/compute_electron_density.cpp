@@ -85,8 +85,9 @@ ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char 
       scalef_ = std::stod(argv[argv_index]);
     } else if (is_par_equal(argv_index, "center"))
       use_center_ = true;
-
-    ++argv_index;
+    else {
+      ++argv_index;
+    }
   }
 
   for (auto &l : L) l *= scalef_;

@@ -30,9 +30,16 @@ struct mesh_stepper {
 
 double ComputeDensityAwpmd::compute_scalar() {
   make_packets();
-  auto result = xc_energy_->build_density_map(packets_, {});
-  result.second = result.second / (force->angstrom * force->angstrom * force->angstrom) * 1e+24;
-  return result.second;
+  std::vector<XCEnergy_cpu::cell_density> inner_cell(1);
+
+  double3 begin{0, 0, 0};
+  double3 end{L_[0], L_[1], L_[2]};
+  AdaptiveMeshCell<double> range{AdaptiveMeshCell<double>::MeshPoint{begin}, AdaptiveMeshCell<double>::MeshPoint{end}};
+  inner_cell[0].cell = range;
+
+  auto result = xc_energy_->build_density_map(packets_, {}, inner_cell, use_center_);
+  result = result / (force->angstrom * force->angstrom * force->angstrom) * 1e+24;
+  return result;
 }
 
 ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char **argv) : Compute(lmp, argc, argv) {
@@ -47,7 +54,6 @@ ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char 
   };
 
   std::array<double, 3> begin{};
-  std::array<double, 3> L{};
 
   while (argv_index < argc){
     if (is_par_equal(argv_index, "axis")){
@@ -68,15 +74,15 @@ ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char 
         if (domain_index != -1) {
           region_ = this->domain->regions[domain_index];
           begin = {region_->extent_xlo * scalef_, region_->extent_ylo * scalef_, region_->extent_zlo * scalef_};
-          L = {region_->extent_xhi - region_->extent_xlo,
+          L_ = {region_->extent_xhi - region_->extent_xlo,
                region_->extent_yhi - region_->extent_ylo,
                region_->extent_zhi - region_->extent_zlo};
         }
       } else if (is_par_equal(argv_index, "cbox")){
         ++argv_index;
         for (auto j = 0; j < 3; ++j, ++argv_index){
-          L[j] = std::stod(argv[argv_index]);
-          begin[j] = -L[j] / 2;
+          L_[j] = std::stod(argv[argv_index]);
+          begin[j] = -L_[j] / 2;
         }
         --argv_index;
       }
@@ -90,9 +96,9 @@ ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char 
     }
   }
 
-  for (auto &l : L) l *= scalef_;
+  for (auto &l : L_) l *= scalef_;
 
-  std::array<double, 3> delta{L[0] / nbins_[0], L[1] / nbins_[1], L[2] / nbins_[2]};
+  std::array<double, 3> delta{L_[0] / nbins_[0], L_[1] / nbins_[1], L_[2] / nbins_[2]};
 
   for (auto i = 0; i < 3; ++i)
     if (!vary_axis_[i])
@@ -116,8 +122,8 @@ ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char 
   config_.min_cell = 0.7;
 
   for (auto i : {0, 1, 2}){
-    config_.mesh_start[i] = -L[i] / 2.0;
-    config_.mesh_fin[i] = L[i] / 2.0;
+    config_.mesh_start[i] = -L_[i] / 2.0;
+    config_.mesh_fin[i] = L_[i] / 2.0;
   }
 
   config_.approximation = new VoidApproximation();

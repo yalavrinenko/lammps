@@ -42,6 +42,7 @@ protected:
   std::array<double, 3> axis_{};
   std::array<bool, 3> vary_axis_{{false, false, false}};
   std::vector<WavePacket> packets_;
+  std::array<double, 3> L_{};
 
   double scalef_ = 1.0;
   bool use_center_ = false;

@@ -29,17 +29,24 @@ struct mesh_stepper {
 };
 
 double ComputeDensityAwpmd::compute_scalar() {
-  make_packets();
-  std::vector<XCEnergy_cpu::cell_density> inner_cell(1);
+  if (invoked_scalar != update->ntimestep) {
+    make_packets();
+    std::vector<XCEnergy_cpu::cell_density> inner_cell(1);
 
-  double3 begin{0, 0, 0};
-  double3 end{L_[0], L_[1], L_[2]};
-  AdaptiveMeshCell<double> range{AdaptiveMeshCell<double>::MeshPoint{begin}, AdaptiveMeshCell<double>::MeshPoint{end}};
-  inner_cell[0].cell = range;
+    double3 begin{0, 0, 0};
+    double3 end{L_[0], L_[1], L_[2]};
+    AdaptiveMeshCell<double> range{AdaptiveMeshCell<double>::MeshPoint{begin},
+                                   AdaptiveMeshCell<double>::MeshPoint{end}};
+    inner_cell[0].cell = range;
 
-  auto result = xc_energy_->build_density_map(packets_, {}, inner_cell, use_center_);
-  result = result / (force->angstrom * force->angstrom * force->angstrom) * 1e+24;
-  return result;
+    auto result = xc_energy_->build_density_map(packets_, {}, inner_cell, use_center_);
+    result = result / (force->angstrom * force->angstrom * force->angstrom) * 1e+24;
+
+    scalar = result;
+    invoked_scalar = update->ntimestep;
+  }
+
+  return scalar;
 }
 
 ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char **argv) : Compute(lmp, argc, argv) {

@@ -39,10 +39,12 @@ double ComputeDensityAwpmd::compute_scalar() {
                                    AdaptiveMeshCell<double>::MeshPoint{end}};
     inner_cell[0].cell = range;
 
-    auto result = xc_energy_->build_density_map(packets_, {}, inner_cell, use_center_);
+    double result = xc_energy_->build_density_map(packets_, {}, inner_cell, use_center_);
     result = result / (force->angstrom * force->angstrom * force->angstrom) * 1e+24;
 
-    scalar = result;
+    scalar = 0;
+    MPI_Allreduce(&result, &scalar, 1, MPI_DOUBLE, MPI_SUM, world);
+
     invoked_scalar = update->ntimestep;
   }
 
@@ -167,17 +169,25 @@ void ComputeDensityAwpmd::compute_array() {
     make_packets();
     auto density_prof = xc_energy_->build_density_map(packets_, {}, cells_, use_center_);
     auto row = 0;
+    std::vector<double> tmp_density(cells_.size());
     for (auto const &cell : cells_) {
       double cell_[3] = {(cell.cell.begin().x + cell.cell.end().x) * 0.5,
                          (cell.cell.begin().y + cell.cell.end().y) * 0.5,
                          (cell.cell.begin().z + cell.cell.end().z) * 0.5};
       for (auto k = 0; k < 3; ++k)
         array[row][k] = cell_[k];
-      array[row][3] = cell.rho / (force->angstrom * force->angstrom * force->angstrom) * 1e+24;
+      tmp_density[row] = cell.rho / (force->angstrom * force->angstrom * force->angstrom) * 1e+24;
       ++row;
     }
+
+    MPI_Allreduce(tmp_density.data(), tmp_density.data(), tmp_density.size(), MPI_DOUBLE, MPI_SUM, world);
+    for (row = 0; row < tmp_density.size(); ++row)
+      array[row][3] = tmp_density[row];
+
     invoked_array = update->ntimestep;
   }
+
+  //array[row][3] = cell.rho / (force->angstrom * force->angstrom * force->angstrom) * 1e+24;
 }
 
 void ComputeDensityAwpmd::init() {
@@ -188,7 +198,7 @@ void ComputeDensityAwpmd::make_packets() {
   packets_.clear();
 
   auto one_h=force->mvh2r;
-  for (auto i = 0; i < atom->nlocal + atom->nghost; ++i){
+  for (auto i = 0; i < atom->nlocal; ++i){
     if (atom->mask[i] & groupbit){
       double width = atom->eradius[i];
       if (width == 0)
@@ -202,10 +212,8 @@ void ComputeDensityAwpmd::make_packets() {
       packets_[packets_.size() - 1].init(width, r, p, pw);
     }
   }
-
 }
 
 ComputeDensityAwpmd::~ComputeDensityAwpmd() {
   memory->destroy(array);
-
 }

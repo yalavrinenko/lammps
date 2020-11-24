@@ -79,6 +79,10 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
     if (std::strcmp(pString[i], "force_mesh_bins") == 0){
       mesh_config.force_cell_bins = get_next_float(i);
     }
+
+    if (std::strcmp(pString[i], "xc_table") == 0){
+      mesh_config.use_xc_tables = true;
+    }
   }
 
   auto electron_count = std::count_if(atom->spin, atom->spin + atom->nlocal + atom->nghost,

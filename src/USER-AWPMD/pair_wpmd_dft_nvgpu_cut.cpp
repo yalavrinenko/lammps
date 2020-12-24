@@ -25,7 +25,7 @@ void LAMMPS_NS::PairAWPMD_DFT_NVGPUCut::settings(int argc, char **pString) {
     }
   }
 
-  auto gpu_num = MPI::COMM_WORLD.Get_rank() % gpu_per_node;
+  auto gpu_num = comm->me % gpu_per_node;
   xc_energy_ = new XCEnergy_nvgpu(electron_count, make_dft_config(argc, pString), gpu_num);
 }
 #endif

@@ -11,6 +11,8 @@ PairStyle(awpmd/cut,PairAWPMD)
 
 #include "WavepacketPairCommon.h"
 #include <map>
+#include <stdexcept>
+
 namespace LAMMPS_NS {
   class PairAWPMD: public WavepacketPairCommon {
   public:

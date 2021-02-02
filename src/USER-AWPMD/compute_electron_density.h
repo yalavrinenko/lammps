@@ -41,7 +41,7 @@ protected:
   std::array<int, 3> nbins_{{1, 1, 1}};
   std::array<double, 3> axis_{};
   std::array<bool, 3> vary_axis_{{false, false, false}};
-  std::vector<WavePacket> packets_;
+  std::vector<XCEnergy::WavePacketInfo> packets_;
   std::array<double, 3> L_{};
 
   double scalef_ = 1.0;

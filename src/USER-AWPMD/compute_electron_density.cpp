@@ -39,7 +39,7 @@ double ComputeDensityAwpmd::compute_scalar() {
                                    AdaptiveMeshCell<double>::MeshPoint{end}};
     inner_cell[0].cell = range;
 
-    double result = xc_energy_->build_density_map(packets_, {}, inner_cell, use_center_);
+    double result = xc_energy_->build_density_map(packets_, inner_cell, use_center_);
     result = result / (force->angstrom * force->angstrom * force->angstrom) * 1e+24;
 
     scalar = 0;
@@ -82,10 +82,12 @@ ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char 
         auto domain_index = this->domain->find_region(argv[argv_index]);
         if (domain_index != -1) {
           region_ = this->domain->regions[domain_index];
-          begin = {region_->extent_xlo * scalef_, region_->extent_ylo * scalef_, region_->extent_zlo * scalef_};
+          begin = {region_->extent_xlo, region_->extent_ylo, region_->extent_zlo};
           L_ = {region_->extent_xhi - region_->extent_xlo,
                region_->extent_yhi - region_->extent_ylo,
                region_->extent_zhi - region_->extent_zlo};
+        } else {
+          throw std::runtime_error("Box not found");
         }
       } else if (is_par_equal(argv_index, "cbox")){
         ++argv_index;
@@ -98,20 +100,31 @@ ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char 
     } else if (is_par_equal(argv_index, "scalef")){
       ++argv_index;
       scalef_ = std::stod(argv[argv_index]);
-    } else if (is_par_equal(argv_index, "center"))
+    } else if (is_par_equal(argv_index, "center")) {
       use_center_ = true;
-    else {
+      ++argv_index;
+    } else {
       ++argv_index;
     }
   }
 
-  for (auto &l : L_) l *= scalef_;
+  for (auto &l : L_) {
+    l *= scalef_;
+  }
+  for (auto &b : begin) { b *= scalef_; }
 
   std::array<double, 3> delta{L_[0] / nbins_[0], L_[1] / nbins_[1], L_[2] / nbins_[2]};
 
   for (auto i = 0; i < 3; ++i)
-    if (!vary_axis_[i])
-      begin[i] = axis_[i];
+    if (!vary_axis_[i]) {
+      begin[i] = axis_[i] - delta[i] / 2;
+    }
+
+  std::cout << "Electron density profile info ...\n";
+  for (auto i = 0; i < 3; ++i){
+    std::cout << "\tCompute density along axe " << i << ". Start point: " << begin[i] << " step delta: "
+      << delta[i] << " bins for axe " << nbins_[i] << std::endl;
+  }
 
   plane_info info{begin[0], begin[1], begin[2],
                   delta[0],delta[1], delta[2],
@@ -167,7 +180,8 @@ void ComputeDensityAwpmd::create_cell_list(plane_info const &info) {
 void ComputeDensityAwpmd::compute_array() {
   if (invoked_array != update->ntimestep) {
     make_packets();
-    auto density_prof = xc_energy_->build_density_map(packets_, {}, cells_, use_center_);
+    xc_energy_->build_density_map(packets_, cells_, use_center_);
+
     auto row = 0;
     std::vector<double> tmp_density(cells_.size());
     for (auto const &cell : cells_) {
@@ -180,9 +194,10 @@ void ComputeDensityAwpmd::compute_array() {
       ++row;
     }
 
-    MPI_Allreduce(tmp_density.data(), tmp_density.data(), tmp_density.size(), MPI_DOUBLE, MPI_SUM, world);
-    for (row = 0; row < tmp_density.size(); ++row)
-      array[row][3] = tmp_density[row];
+    std::vector<double> recv_buffer(cells_.size(), 0);
+    MPI_Allreduce(tmp_density.data(), recv_buffer.data(), tmp_density.size(), MPI_DOUBLE, MPI_SUM, world);
+    for (row = 0; row < recv_buffer.size(); ++row)
+      array[row][3] = recv_buffer[row];
 
     invoked_array = update->ntimestep;
   }
@@ -200,16 +215,7 @@ void ComputeDensityAwpmd::make_packets() {
   auto one_h=force->mvh2r;
   for (auto i = 0; i < atom->nlocal; ++i){
     if (atom->mask[i] & groupbit){
-      double width = atom->eradius[i];
-      if (width == 0)
-        width = 1.0;
-      Vector_3 r{atom->x[i][0], atom->x[i][1], atom->x[i][2]}, p{atom->v[i][0], atom->v[i][1], atom->v[i][2]};
-      p *= one_h * atom->mass[atom->type[i]];
-
-      double pw = atom->ervel[i];
-      pw *= one_h * atom->mass[atom->type[i]];
-      packets_.emplace_back(WavePacket{});
-      packets_[packets_.size() - 1].init(width, r, p, pw);
+      packets_.emplace_back(atom->x[i], atom->eradius[i], ElectronSpin(atom->spin[i]), false);
     }
   }
 }

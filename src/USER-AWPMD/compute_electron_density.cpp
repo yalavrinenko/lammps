@@ -33,8 +33,8 @@ double ComputeDensityAwpmd::compute_scalar() {
     make_packets();
     std::vector<XCEnergy_cpu::cell_density> inner_cell(1);
 
-    double3 begin{0, 0, 0};
-    double3 end{L_[0], L_[1], L_[2]};
+    double3 begin{-L_[0] / 2.0, -L_[1] / 2.0, -L_[2] / 2.0};
+    double3 end{L_[0] / 2.0, L_[1] / 2.0, L_[2] / 2.0};
     AdaptiveMeshCell<double> range{AdaptiveMeshCell<double>::MeshPoint{begin},
                                    AdaptiveMeshCell<double>::MeshPoint{end}};
     inner_cell[0].cell = range;

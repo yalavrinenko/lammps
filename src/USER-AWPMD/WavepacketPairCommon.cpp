@@ -75,13 +75,13 @@ void LAMMPS_NS::WavepacketPairCommon::settings(int narg, char **arg) {
       flexible_pressure_flag = 1;
     else if (!strcmp(arg[i], "disable_ii")) {
       wpmd->calc_ii = false;
-      error->warning(FLERR, "Ion-ion interaction disabled.");
+      error->warning(FLERR, "Ion-ion interaction is disabled.");
     } else if (!strcmp(arg[i], "disable_ei")) {
       wpmd->calc_ei = false;
-      error->warning(FLERR, "Electron-ion interaction disabled.");
+      error->warning(FLERR, "Electron-ion interaction is disabled.");
     } else if (!strcmp(arg[i], "disable_ee")) {
       wpmd->calc_ee = false;
-      error->warning(FLERR, "Electron-electron interaction disabled.");
+      error->warning(FLERR, "Electron-electron interaction is disabled.");
     }
   }
 }

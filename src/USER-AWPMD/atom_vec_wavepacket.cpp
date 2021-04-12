@@ -50,6 +50,7 @@ AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp) : AtomVec(lmp)
 
   atom->wavepacket_flag = 1;
   atom->electron_flag = 1; // compatible with eff
+  atom->ecp_flag = 0; // compatible with eff. disable ECP
   atom->q_flag = atom->spin_flag = atom->eradius_flag =
     atom->ervel_flag = atom->erforce_flag = 1;
 

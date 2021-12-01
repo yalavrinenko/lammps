@@ -193,13 +193,6 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(
       atom->f[i][k] += f[k];
       wall_pressure_components[k] += std::abs(f[k]);
     }
-
-    //    virial[0] += f[0]*atom->x[i][0];
-    //    virial[1] += f[1]*atom->x[i][1];
-    //    virial[2] += f[2]*atom->x[i][2];
-    //    virial[3] += f[1]*atom->x[i][0];
-    //    virial[4] += f[2]*atom->x[i][0];
-    //    virial[5] += f[2]*atom->x[i][1];
   }
 
   std::array<double, 4> force_components{0, 0, 0, 0};

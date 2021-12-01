@@ -161,6 +161,15 @@ void LAMMPS_NS::PairAWPMD_DFTCut::tally_electron_force(unsigned electron_id, std
   atom->f[electron_id][1] += force_array[1];
   atom->f[electron_id][2] += force_array[2];
   atom->erforce[electron_id] += force_array[3];
+
+  auto x = atom->x;
+
+  virial[0] += force_array[0]*x[electron_id][0];
+  virial[1] += force_array[1]*x[electron_id][1];
+  virial[2] += force_array[2]*x[electron_id][2];
+  virial[3] += force_array[1]*x[electron_id][0];
+  virial[4] += force_array[2]*x[electron_id][0];
+  virial[5] += force_array[2]*x[electron_id][1];
 }
 
 double LAMMPS_NS::PairAWPMD_DFTCut::wpmd_kinetic() const {

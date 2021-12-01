@@ -16,7 +16,9 @@ PairStyle(wpmd/cut,PairWPMD)
 namespace LAMMPS_NS {
   class PairWPMD: public WavepacketPairCommon {
   public:
-    explicit PairWPMD(class LAMMPS *lmp): WavepacketPairCommon(lmp) {}
+    explicit PairWPMD(class LAMMPS *lmp): WavepacketPairCommon(lmp) {
+    }
+
     void settings(int i, char **pString) override;
 
   protected:

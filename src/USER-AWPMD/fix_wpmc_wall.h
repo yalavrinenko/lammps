@@ -49,7 +49,12 @@ namespace LAMMPS_NS {
     std::unique_ptr<BoxHamiltonian> box = nullptr;
     double wall_energy = 0;
     std::array<double, 4> wall_pressure_components{};
+    unsigned int walls_count_ = 3;
+
     std::array<double, 3> wall_squares{};
+
+    std::array<bool, 3> has_force_{true, true, true};
+
     bool use_width_force_{false};
 
     std::vector<class WavePacket> packets;

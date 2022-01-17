@@ -22,8 +22,6 @@ LAMMPS_NS::FixWallAwpmd::FixWallAwpmd(LAMMPS_NS::LAMMPS *lammps, int i,
 
   wall_squares = {delz * dely, delx * delz, delx * dely};
 
-
-
   m_pair = dynamic_cast<WavepacketPairCommon *>(force->pair);
   this->box = construct_box(pString, half_box_length, i);
 
@@ -59,7 +57,15 @@ LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length,
     }
     if (std::strcmp(pString[i], "width_force") == 0)
       use_width_force_ = true;
+    if (std::strcmp(pString[i], "boundary") == 0) {
+      has_force_[0] = pString[i + 1][0] == 'w';
+      has_force_[1] = pString[i + 2][0] == 'w';
+      has_force_[2] = pString[i + 3][0] == 'w';
+      i += 3;
+    }
   }
+
+  walls_count_ = std::count(has_force_.begin(), has_force_.end(), 1);
 
   auto floor = half_box_length;
   auto eigenwp = half_box_length / (box_fraction < 1.0 ? 10.0 : box_fraction);
@@ -73,18 +79,17 @@ LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length,
   }
 // else   eigenE = 3. / 2 * h2_me / (eigenwp * eigenwp);
 
-
   double floorYtoX = 1., floorZtoX = 1., widthYtoX = 1., widthZtoX = 1.;
 
   Vector_3 gamma(eigenwp, eigenwp * widthYtoX, eigenwp * widthZtoX), force_k;
 
   for (int i = 0; i < 3; ++i) {
-    force_k[i] = 9. / 8 * h2_me / (gamma[i] * gamma[i] * gamma[i] * gamma[i]);
+    force_k[i] = 9. / 8 * h2_me / (gamma[i] * gamma[i] * gamma[i] * gamma[i]) * has_force_[i];
   }
 
   Vector_3 bound(floor, floor * floorYtoX, floor * floorZtoX);
   return std::unique_ptr<BoxHamiltonian>(
-      new BoxHamiltonian(bound, force_k, (int)prj_ord));
+      new BoxHamiltonian(bound, force_k, (int) prj_ord));
 }
 
 void LAMMPS_NS::FixWallAwpmd::post_force(int flag) {
@@ -117,19 +122,19 @@ double LAMMPS_NS::FixWallAwpmd::compute_scalar() { return wall_energy; }
 
 double LAMMPS_NS::FixWallAwpmd::compute_vector(int i) {
   switch (i) {
-  case 0:
-    return wall_energy;
-  case 1:
-    return wall_pressure();
-  default:
-    throw std::logic_error("Out of range");
+    case 0:
+      return wall_energy;
+    case 1:
+      return wall_pressure();
+    default:
+      throw std::logic_error("Out of range");
   }
 }
 
 double LAMMPS_NS::FixWallAwpmd::interaction_border_ion(int, double *x,
                                                        double *f) {
   double dE;
-  Vector_3 df = box->get_force(*(Vector_3 *)x, &dE);
+  Vector_3 df = box->get_force(*(Vector_3 *) x, &dE);
   if (f) // ion forces needed
     for (auto k = 0; k < 3; ++k)
       f[k] += df[k];
@@ -148,7 +153,7 @@ double LAMMPS_NS::FixWallAwpmd::interaction_border_electron(
                          &a1_re, &a1_im, &b1_re, &b1_im, &a2_re, &a2_im, &b2_re,
                          &b2_im);
 
-    std::array<double, 8> tmp{2.0 * real(a1_re),    2.0 * real(a1_im),
+    std::array<double, 8> tmp{2.0 * real(a1_re), 2.0 * real(a1_im),
                               2.0 * real(b1_re[0]), 2.0 * real(b1_im[0]),
                               2.0 * real(b1_re[1]), 2.0 * real(b1_im[1]),
                               2.0 * real(b1_re[2]), 2.0 * real(b1_im[2])};
@@ -159,7 +164,7 @@ double LAMMPS_NS::FixWallAwpmd::interaction_border_electron(
 
     packet.int2phys_der<eq_second>(dx, dx, dp, dw, pw, 1. / force->mvh2r);
     for (auto k = 0u; k < 3; ++k)
-      rforce[k] += -dx[k];
+      rforce[k] += -dx[k] * has_force_[k];
     (*erforce) += *dw;
     (*ervforce) += *pw;
     dE = integral.real();
@@ -202,12 +207,11 @@ void LAMMPS_NS::FixWallAwpmd::evaluate_wall_energy(
 
   wall_pressure_ = (force_components[0] / (2.0 * wall_squares[0]) +
                     force_components[1] / (2.0 * wall_squares[1]) +
-                    force_components[2] / (2.0 * wall_squares[2])) /
-                   3.0;
+                    force_components[2] / (2.0 * wall_squares[2])) / walls_count_;
 
   if (use_width_force_)
     wall_pressure_ += force_components[3] /
-        (2.0 * (wall_squares[0] + wall_squares[1] + wall_squares[2]));
+                      (2.0 * (wall_squares[0] + wall_squares[1] + wall_squares[2]));
 
   wall_pressure_ = wall_pressure_ * force->nktv2p;
 }

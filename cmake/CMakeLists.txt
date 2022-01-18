@@ -170,7 +170,7 @@ set(DEFAULT_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE GRANULAR
   USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB USER-MANIFOLD
   USER-MEAMC USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE USER-NETCDF
   USER-PHONON USER-PTM USER-QTB USER-REAXC USER-SCAFACOS USER-SMD USER-SMTBQ
-  USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM)
+  USER-SPH USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM USER-WPMD-DFT USER-WPMD-NVGPU-DFT)
 set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 set(OTHER_PACKAGES CORESHELL QEQ)
 foreach(PKG ${DEFAULT_PACKAGES})
@@ -309,6 +309,8 @@ pkg_depends(USER-ATC MANYBODY)
 pkg_depends(USER-LB MPI)
 pkg_depends(USER-PHONON KSPACE)
 pkg_depends(USER-SCAFACOS MPI)
+pkg_depends(USER-WPMD-NVGPU-DFT USER-WPMD-DFT)
+pkg_depends(USER-WPMD-DFT USER-AWPMD)
 
 find_package(OpenMP QUIET)
 option(BUILD_OMP "Build with OpenMP support" ${OpenMP_FOUND})
@@ -357,7 +359,7 @@ if(PKG_KSPACE)
   endif()
 endif()
 
-if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
+if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-QUIP OR PKG_LATTE)
   find_package(LAPACK)
   find_package(BLAS)
   
@@ -800,7 +802,8 @@ foreach(SIMPLE_LIB REAX MEAM POEMS USER-ATC USER-COLVARS USER-H5MD
   endif()
 endforeach()
 
-if(PKG_USER-AWPMD)
+if(PKG_USER-AWPMD OR PKG_USER-WPMD-DFT OR PKG_USER-WPMD-NVGPU-DFT)
+  find_package(MKL REQUIRED)
   set(CMAKE_CXX_STANDARD 14)
   if(WIN32)
     if(${CMAKE_GENERATOR} MATCHES "Visual Studio 15 2017")
@@ -817,39 +820,48 @@ if(PKG_USER-AWPMD)
       add_definitions("-DNO_CMNMATH")
     endif()
   else(NOT WIN32)
-    add_definitions("-DUNIX=1") 
+    add_definitions("-DUNIX=1")
     add_definitions("-DLINFO=1")
     add_definitions("-DFU=1")
   endif(WIN32)
 
-  if (PKG_USER-AWPMD-DFT)
-    add_definitions(-DAWPMD_ENABLE_DFT)
-    option(AWPMD_BUILD_DFT "" ON)
-  endif()
-
-  if (PKG_USER-AWPMD-NVGPU-DFT)
-    add_definitions(-DAWPMD_ENABLE_GPU)
-    option(AWPMD_BUILD_DFT_GPU "" ON)
-  endif()
-
   add_definitions(-DUSE_AWPMD=1)
-  add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd" ${LAMMPS_LIB_BINARY_DIR}/awpmd)
-  add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils" ${LAMMPS_LIB_BINARY_DIR}/ivutils)
 
   include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/include")
-  include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft")
   include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include")
   include_directories(${MKL_INCLUDE_DIR})
   include_directories(${IVUTILS_INCLUDE_DIR}/../src)
-  option(PKG_USER-AWPMD-DFT "Enable DFT part for WPMD")
-  option(PKG_USER-AWPMD-NVGPU-DFT "Enable GPU accelerated DFT part for WPMD")
 
-  if (PKG_USER-AWPMD-DFT OR PKG_USER-AWPMD-NVGPU-DFT)
-    include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft")
+  add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd" ${LAMMPS_LIB_BINARY_DIR}/awpmd)
+  add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils" ${LAMMPS_LIB_BINARY_DIR}/ivutils)
+
+  if (PKG_USER-WPMD-DFT)
+    set(wpmd_dft_source_dir "${LAMMPS_SOURCE_DIR}/USER-AWPMD/WPMD-DFT")
+    file(GLOB wpmd_dft_sources ${wpmd_dft_source_dir}/[^.]*.cpp)
+    file(GLOB wpmd_dft_headers ${wpmd_dft_source_dir}/[^.]*.h)
+    list(APPEND LIB_SOURCES ${wpmd_dft_sources})
+
+    RegisterStyles(${wpmd_dft_source_dir})
+
+    include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft" ${wpmd_dft_source_dir})
+    add_subdirectory(${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft ${CMAKE_CURRENT_BINARY_DIR}/wpmd-dft-bin)
+    list(APPEND LAMMPS_LINK_LIBS wpmd_dft_unit_cpu)
   endif()
 
-  list(APPEND LAMMPS_LINK_LIBS awpmd)
-  list(APPEND LAMMPS_LINK_LIBS ivutils)
+  if (PKG_USER-WPMD-NVGPU-DFT)
+    set(wpmd_nvgpu_dft_source_dir "${LAMMPS_SOURCE_DIR}/USER-AWPMD/WPMD-DFT/NVGPU")
+    file(GLOB wpmd_nvgpu_dft_sources ${wpmd_nvgpu_dft_source_dir}/[^.]*.cpp)
+    file(GLOB wpmd_nvgpu_dft_headers ${wpmd_nvgpu_dft_source_dir}/[^.]*.h)
+    list(APPEND LIB_SOURCES ${wpmd_nvgpu_dft_sources})
+
+    RegisterStyles(${wpmd_nvgpu_dft_source_dir})
+
+    include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft" ${wpmd_nvgpu_dft_source_dir})
+    add_subdirectory(${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft/nvgpu ${CMAKE_CURRENT_BINARY_DIR}/wpmd-nvgpu-dft-bin)
+    list(APPEND LAMMPS_LINK_LIBS wpmd_dft_unit_nvgpu)
+  endif()
+
+  list(APPEND LAMMPS_LINK_LIBS awpmd ivutils ${MKL_LIBRARIES})
 endif()
 
 if(PKG_USER-ATC)

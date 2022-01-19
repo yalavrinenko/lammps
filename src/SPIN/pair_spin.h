@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,42 +11,42 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
-
-PairStyle(pair/spin,PairSpin)
-
-#else
-
 #ifndef LMP_PAIR_SPIN_H
 #define LMP_PAIR_SPIN_H
 
-#include "pair.h"
+#include "pair.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
 class PairSpin : public Pair {
-friend class FixNVESpin;
+  friend class FixNVESpin;
+
  public:
   PairSpin(class LAMMPS *);
   virtual ~PairSpin();
   virtual void settings(int, char **);
   virtual void coeff(int, char **) {}
   virtual void init_style();
-  virtual double init_one(int, int) {return 0.0;}
-  virtual void *extract(const char *, int &) {return NULL;}
+  virtual double init_one(int, int) { return 0.0; }
+  virtual void *extract(const char *, int &) { return nullptr; }
 
   virtual void compute(int, int) {}
   virtual void compute_single_pair(int, double *) {}
 
+  // storing magnetic energies
+
+  int nlocal_max;    // max nlocal (for list size)
+  double *emag;      // energy list
+
  protected:
-  double hbar;				// Planck constant (eV.ps.rad-1)
+  double hbar;         // Planck constant (eV.ps.rad-1)
+  int lattice_flag;    // flag for mech force computation
 
   virtual void allocate() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
-#endif
 #endif
 
 /* ERROR/WARNING messages:

@@ -26,7 +26,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// Put together by John Smith john at arrows dot demon dot co dot uk, 
+// Put together by John Smith john at arrows dot demon dot co dot uk,
 // using ideas by others.
 //
 // Calculate erf(z) for complex z.
@@ -34,7 +34,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 // The code includes some hard coded constants that are intended to
 // give about 14 decimal places of accuracy. This is appropriate for
-// 64-bit floating point numbers. 
+// 64-bit floating point numbers.
 //
 // Oct 1999: Fixed a typo that in
 //     const Complex cerf_continued_fraction( const Complex z )
@@ -51,14 +51,14 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // Abramowitz and Stegun: (eqn: 7.1.14) gives this continued
 // fraction for erfc(z)
 //
-// erfc(z) = sqrt(pi).exp(-z^2).  1   1/2   1   3/2   2   5/2  
+// erfc(z) = sqrt(pi).exp(-z^2).  1   1/2   1   3/2   2   5/2
 //                               ---  ---  ---  ---  ---  --- ...
 //                               z +  z +  z +  z +  z +  z +
 //
 // This is evaluated using Lentz's method, as described in the narative
 // of Numerical Recipes in C.
 //
-// The continued fraction is true providing real(z)>0. In practice we 
+// The continued fraction is true providing real(z)>0. In practice we
 // like real(z) to be significantly greater than 0, say greater than 0.5.
 //
 template< class Complex>
@@ -68,9 +68,9 @@ const Complex cerfc_continued_fraction( const Complex z )
   double eps = 1e-10 ;      // large enough so that 1.0+eps > 1.0, when using
                             // the floating point arithmetic
   //
-  // first calculate z+ 1/2   1 
+  // first calculate z+ 1/2   1
   //                    ---  --- ...
-  //                    z +  z + 
+  //                    z +  z +
   Complex f(z) ;
   Complex C(f) ;
   Complex D(0.0) ;
@@ -85,7 +85,7 @@ const Complex cerfc_continued_fraction( const Complex z )
       C = z + a/C ;
 
       if (D.real() == 0.0 && D.imag() ==  0.0)
-	D = tiny ;
+        D = tiny ;
 
       D = 1.0 / D ;
 
@@ -139,12 +139,12 @@ const Complex cerf_series( const Complex z )
 
   return sum * 2.0 / sqrt(M_PI) ;
 }
-  
+
 
 
 //
 // Deduced from abov for cerf(z)/z at small z
-// 
+//
 //
 template< class Complex>
 const Complex cerf_div_series( const Complex z )
@@ -168,7 +168,7 @@ const Complex cerf_div_series( const Complex z )
 
 
 //
-// Numerical Recipes quotes a formula due to Rybicki for evaluating 
+// Numerical Recipes quotes a formula due to Rybicki for evaluating
 // Dawson's Integral:
 //
 // exp(-x^2) integral  exp(t^2).dt = 1/sqrt(pi) lim   sum  exp(-(z-n.h)^2) / n
@@ -183,9 +183,9 @@ const Complex cerf_rybicki( const Complex z )
   double h = 0.2 ;        // numerical experiment suggests this is small enough
 
   //
-  // choose an even n0, and then shift z->z-n0.h and n->n-h. 
-  // n0 is chosen so that real((z-n0.h)^2) is as small as possible. 
-  // 
+  // choose an even n0, and then shift z->z-n0.h and n->n-h.
+  // n0 is chosen so that real((z-n0.h)^2) is as small as possible.
+  //
   int n0 = 2*(int) (floor( z.imag()/(2*h) + 0.5 )) ;
 
   Complex z0( 0.0, n0*h ) ;
@@ -193,14 +193,14 @@ const Complex cerf_rybicki( const Complex z )
   Complex sum(0.0,0.0) ;
   //
   // limits of sum chosen so that the end sums of the sum are
-  // fairly small. In this case exp(-(35.h)^2)=5e-22 
+  // fairly small. In this case exp(-(35.h)^2)=5e-22
   //
   //
   for (int np=-35; np<=35; np+=2)
     {
       Complex t( zp.real(), zp.imag()-np*h) ;
       Complex b( exp(t*t) / (np+n0) ) ;
-      sum += b ; 
+      sum += b ;
     }
 
   sum = sum * 2 * exp(-z*z) / M_PI ;
@@ -212,7 +212,7 @@ template< class Complex>
 const Complex cerf( const Complex z )
 {
   //
-  // Use the method appropriate to size of z - 
+  // Use the method appropriate to size of z -
   // there probably ought to be an extra option for NaN z, or infinite z
   //
   //
@@ -239,7 +239,7 @@ const Complex cerf( const Complex z )
 //         / t=x
 // S(x) = |      sin(pi/2 t^2) dt
 //        /
-//         t=0 
+//         t=0
 //
 // These can be derived from erf(x) using 7.3.22
 //

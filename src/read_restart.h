@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,46 +12,49 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(read_restart,ReadRestart)
-
+// clang-format off
+CommandStyle(read_restart,ReadRestart);
+// clang-format on
 #else
 
 #ifndef LMP_READ_RESTART_H
 #define LMP_READ_RESTART_H
 
-#include <cstdio>
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class ReadRestart : protected Pointers {
+class ReadRestart : public Command {
  public:
   ReadRestart(class LAMMPS *);
   void command(int, char **);
 
  private:
-  int me,nprocs,nprocs_file,multiproc_file;
+  int me, nprocs;
   FILE *fp;
 
-  int multiproc;             // 0 = proc 0 writes for all
-                             // else # of procs writing files
+  int multiproc;         // 0 = restart file is a single file
+                         // 1 = restart file is parallel (multiple files)
+  int multiproc_file;    // # of parallel files in restart
+  int nprocs_file;       // total # of procs that wrote restart file
+  int revision;          // revision number of the restart file format
 
   // MPI-IO values
 
-  int mpiioflag;               // 1 for MPIIO output, else 0
-  class RestartMPIIO *mpiio;   // MPIIO for restart file input
+  int mpiioflag;                // 1 for MPIIO output, else 0
+  class RestartMPIIO *mpiio;    // MPIIO for restart file input
   bigint assignedChunkSize;
-  MPI_Offset assignedChunkOffset,headerOffset;
+  MPI_Offset assignedChunkOffset, headerOffset;
 
-  void file_search(char *, char *);
-  void header(int);
+  std::string file_search(const std::string &);
+  void header();
   void type_arrays();
   void force_fields();
 
   void magic_string();
   void endian();
-  int version_numeric();
+  void format_revision();
+  void check_eof_magic();
   void file_layout();
 
   int read_int();
@@ -62,7 +65,7 @@ class ReadRestart : protected Pointers {
   void read_double_vec(int, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -141,7 +144,7 @@ E: Bigint setting in lmptype.h is not compatible
 Format of bigint stored in restart file is not consistent with LAMMPS
 version you are running.  See the settings in src/lmptype.h
 
-E: Cannot run 2d simulation with nonperiodic Z dimension
+E: Cannot run 2d simulation with non-periodic Z dimension
 
 Use the boundary command to make the z dimension periodic in order to
 run a 2d simulation.

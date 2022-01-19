@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,47 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(meam,PairMEAM)
-
+// clang-format off
+PairStyle(meam,PairMEAM);
+PairStyle(meam/c,PairMEAM);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MEAM_H
 #define LMP_PAIR_MEAM_H
-
-extern "C" {
-  void meam_setup_global_(int *, int *, double *, int *, double *, double *,
-                         double *, double *, double *, double *, double *,
-                         double *, double *, double *, double *, double *,
-                         double *, double *, int *);
-  void meam_setup_param_(int *, double *, int *, int *, int *);
-  void meam_setup_done_(double *);
-
-  void meam_dens_init_(int *, int *, int *, int *, int *,
-                       double *, int *, int *, int *, int *,
-                       double *, double *, double *, double *,
-                       double *, double *,
-                       double *, double *, double *, double *, double *,
-                       int *);
-
-  void meam_dens_final_(int *, int *, int *, int *, int *, double *, double *,
-                        int *, int *, int *,
-                        double *, double *, double *, double *,
-                        double *, double *, double *,
-                        double *, double *, double *, double *,
-                        double *, double *,
-                        double *, double *, double *, double *, int *);
-
-  void meam_force_(int *, int *, int *, int *, int *, int *,
-                   double *, double *, int *, int *, int *,
-                   double *, int *, int *, int *, int *, double *, double *,
-                   double *, double *, double *, double *, double *, double *,
-                   double *, double *, double *, double *, double *, double *,
-                   double *, double *, double *, double *, double *, double *, int *);
-
-  void meam_cleanup_();
-}
-
 
 #include "pair.h"
 
@@ -68,6 +35,7 @@ class PairMEAM : public Pair {
   void init_style();
   void init_list(int, class NeighList *);
   double init_one(int, int);
+  virtual void *extract(const char *, int &);
 
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
@@ -76,39 +44,27 @@ class PairMEAM : public Pair {
   double memory_usage();
 
  private:
-  double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  double *mass;                 // mass of each element
+  class MEAM *meam_inst;
+  double cutmax;                           // max cutoff for all elements
+  int nlibelements;                        // # of library elements
+  std::vector<std::string> libelements;    // names of library elements
+  std::vector<double> mass;                // mass of library element
 
-  int *map;                     // mapping from atom types to elements
-  int *fmap;                    // Fortran version of map array for MEAM lib
-
-  int maxneigh;
-  double *scrfcn,*dscrfcn,*fcpair;
-
-  int nmax;
-  double *rho,*rho0,*rho1,*rho2,*rho3,*frhop;
-  double *gamma,*dgamma1,*dgamma2,*dgamma3,*arho2b;
-  double **arho1,**arho2,**arho3,**arho3b,**t_ave,**tsq_ave;
+  double **scale;    // scaling factor for adapt
 
   void allocate();
-  void read_files(char *, char *);
+  void read_files(const std::string &, const std::string &);
+  void read_global_meam_file(const std::string &);
+  void read_user_meam_file(const std::string &);
   void neigh_strip(int, int *, int *, int **);
-  void neigh_f2c(int, int *, int *, int **);
-  void neigh_c2f(int, int *, int *, int **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
 
 /* ERROR/WARNING messages:
-
-W: The pair_style meam command is unsupported. Please use pair_style meam/c instead
-
-UNDOCUMENTED
 
 E: MEAM library error %d
 
@@ -134,26 +90,37 @@ E: Cannot open MEAM potential file %s
 The specified MEAM potential file cannot be opened.  Check that the
 path and name are correct.
 
-E: Incorrect format in MEAM potential file
+E: Incorrect format in MEAM library file
 
 Incorrect number of words per line in the potential file.
 
-E: Unrecognized lattice type in MEAM file 1
+E: Too many elements extracted from MEAM library.
 
-The lattice type in an entry of the MEAM library file is not
+Increase 'maxelt' in meam.h and recompile.
+
+E: Unrecognized lattice type in MEAM library/parameter file
+
+The lattice type in an entry of the MEAM library/parameter file is not
 valid.
+
+E: Unsupported parameter in MEAM library file: ...
+
+Self-explanatory.
+
+E: Mismatched parameter in MEAM library file: z!=lat
+
+The coordination number and lattice do not match, check that consistent values are given.
 
 E: Did not find all elements in MEAM library file
 
-The requested elements were not found in the MEAM file.
+Some requested elements were not found in the MEAM file. Check spelling etc.
 
 E: Keyword %s in MEAM parameter file not recognized
 
 Self-explanatory.
 
-E: Unrecognized lattice type in MEAM file 2
+E: Error in MEAM parameter file: keyword %s (further information)
 
-The lattice type in an entry of the MEAM parameter file is not
-valid.
+Self-explanatory. Check the parameter file.
 
 */

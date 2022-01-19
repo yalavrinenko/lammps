@@ -58,9 +58,9 @@ $Date: 2013/08/16 11:32:45 $
 #define VECTOR_3_H
 
 /// \en @file vector_3.h \brief N-dimensional vectors and some useful functions for work with them.
-/// \ru @file vector_3.h \brief N-мерные вектора и работа с ними.
+/// \ru @file vector_3.h \brief N-пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ.
 
-#include <stdlib.h> // нужна для NULL,  RAND_MAX в randdir
+#include <stdlib.h> // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ NULL,  RAND_MAX пїЅ randdir
 #include <cmath>
 #include <limits>
 #include <algorithm> // min
@@ -68,7 +68,7 @@ $Date: 2013/08/16 11:32:45 $
 
 /*
 # ifndef fmod
-//r деление по модулю чисел с плавающей точкой
+//r пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 # define fmod(a,b)  ((a)-((long)((a)/(b))*(b)))
 # endif
 */
@@ -81,7 +81,7 @@ typedef float vec_type;
 #endif
 
 ///\en "infinitely large" number
-///\ru "бесконечно большое" число
+///\ru "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ" пїЅпїЅпїЅпїЅпїЅ
 #define VEC_INFTY numeric_limits<vec_type>::max()
 
 ///\en "infinitely large" integer number
@@ -89,12 +89,12 @@ typedef float vec_type;
 
 ///\en how bigger is "ininitely small" number then numeric_limits<...>::epsilon().
 ///    We use this parameter since numeric_limits<...>::epsilon() is too small.
-///\ru во сколько раз "бесконечно малое" число больше numeric_limits<...>::epsilon().
-///    Этот множитель необходим потому, что numeric_limits<...>::epsilon() слишком мало.
+///\ru пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ" пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ numeric_limits<...>::epsilon().
+///    пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ numeric_limits<...>::epsilon() пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ.
 #define MULT_EPSILON 1024
 
 ///\en "infinitely small" number
-///\ru "бесконечно малое" число
+///\ru "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ" пїЅпїЅпїЅпїЅпїЅ
 #define VEC_ZERO MULT_EPSILON*numeric_limits<vec_type>::epsilon()
 
 ///\en Storage template prototype for a vector.
@@ -160,7 +160,7 @@ struct array_stor_t{
 ///    Storage class for a vector should follow \ref storage_prototype.
 ///    Note that for binary operators on vectors with variable dimension storages 
 ///    the result dimension is inherited from the argument with the minimal dimension.
-///\ru N-мерный вектор типа T с некоторыми полезными операциями
+///\ru N-пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ T пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 template <class T, size_t N, class storage_t= array_stor_t<T,N> > 
 class Vector_Nt{
   storage_t v;
@@ -174,7 +174,7 @@ public:
   Vector_Nt(const storage_t &stor): v(stor){}
 
   ///\en makes all components equal to a
-  ///\ru присваивает всем компонентам значение a
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ a
   Vector_Nt(const T &a=0){
     for(size_t i=0;i<v.dim();i++) v[i]=a;
   }
@@ -222,7 +222,7 @@ public:
   }
 
   ///\en Copies vector to iterator
-  ///\ru Копирует содержимое вектора в итератор
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   template <class A>
   void copy_to(A *beg) const{  
     for(size_t i=0;i<v.dim();i++,++beg)
@@ -230,13 +230,13 @@ public:
   }
 
   ///\en obtains element value
-  ///\ru получение элемента 
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 
   inline T& operator[](int i) const {return (T&)v[i];}
 
   inline T& operator[](size_t i) const {return (T&)v[i];}
 
   ///\en comparison. If the difference is less then VEC_ZERO (MULT_EPSILON*numeric_limits<T>::epsilon()) then components are assumed to be equal
-  ///\ru сравнение. При отличии меньше чем на VEC_ZERO (MULT_EPSILON*numeric_limits<T>::epsilon()) компоненты считаются одинаковыми
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ. пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ VEC_ZERO (MULT_EPSILON*numeric_limits<T>::epsilon()) пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   template <size_t M, class storage2_t>
   inline bool operator==(const Vector_Nt<T, M, storage2_t>& vect) const{
     size_t dim_=min(v.dim(),vect.dim());
@@ -271,7 +271,7 @@ public:
   }
  
   ///\en Scalar product
-  ///\ru Скалярное произведение векторов
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   template <size_t M, class storage2_t>
   inline T operator*(const Vector_Nt<T, M, storage2_t>& vect) const{
     T result=0;
@@ -282,7 +282,7 @@ public:
   }
 
   ///\en Multiplies on coefficient
-  ///\ru Покомпонентное умножение на коэффициент
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   inline Vector_Nt operator*(const T &coeff) const{
     Vector_Nt result;
     result.v.resize(v.dim()); // has effect only for variable dimension storage
@@ -292,7 +292,7 @@ public:
   }
 
   ///\en Multiplies on vector by components
-  ///\ru Покомпонентное умножение на вектор
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
   template <class Vec>
   inline Vector_Nt scale(const Vec &s) const{
     Vector_Nt result;
@@ -305,7 +305,7 @@ public:
 
 
   ///\en Divides on coefficient
-  ///\ru Покомпонентное деление на коэффициент
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   inline Vector_Nt operator/(const T &coeff) const {
     Vector_Nt result;
     result.v.resize(v.dim()); // has effect only for variable dimension storage
@@ -315,7 +315,7 @@ public:
   }
 
   ///\en Vector product (dim()=3 only)
-  ///\ru Векторное произведение
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   template <size_t M, class storage2_t>
   inline Vector_Nt operator%(const Vector_Nt<T, M, storage2_t>& vect) const{ //reserved for N specializations
     if(v.dim()==3)
@@ -324,7 +324,7 @@ public:
   }
 
   ///\en Multiplies on -1
-  ///\ru Умножение вектора на -1
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ -1
   inline Vector_Nt operator-() const {
     Vector_Nt result;
     result.v.resize(v.dim()); // has effect only for variable dimension storage
@@ -333,7 +333,7 @@ public:
     return result;
   }
 
-  ///\ru Сложение с присваиванием
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   template <size_t M, class storage2_t>
   inline Vector_Nt& operator+=(const Vector_Nt<T, M, storage2_t> &vect){
     size_t dim_=min(v.dim(),vect.dim());
@@ -342,7 +342,7 @@ public:
     return *this;
   }
 
-  ///\ru Вычитание с присваиванием
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   template <size_t M, class storage2_t>
   inline Vector_Nt& operator-=(const Vector_Nt<T, M, storage2_t> &vect){
     size_t dim_=min(v.dim(),vect.dim());
@@ -351,14 +351,14 @@ public:
     return *this;
   }
 
-  ///\ru Умножение на коэффициент с присваиванием
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   inline Vector_Nt& operator*=(const T &coeff){
     for (size_t i=0; i<v.dim(); i++)
       v[i]*=coeff;
     return *this;
   }
 
-  ///\ru Деление на скаляр с присваиванием
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   inline Vector_Nt& operator/=(const T &coeff){
     for (size_t i=0; i<v.dim(); i++)
       v[i]/=coeff;
@@ -366,7 +366,7 @@ public:
   }
 
   ///\en Norm squared
-  ///\ru Квадрат нормы вектора
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   T norm2() const {
     T result=0;
     for (size_t i=0; i<v.dim(); i++)
@@ -375,13 +375,13 @@ public:
   }
 
   ///\en Norm
-  ///\ru Норма вектора
+  ///\ru пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   T norm() const {
     return sqrt(norm2());
   }
 
   ///\en Returns norm and normalizes vector on newnorm
-  ///\ru Возвращает норму и нормализует вектор на newnorm
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ newnorm
   T normalize(T newnorm=1.){
     T norm=this->norm();
     if(norm>=MULT_EPSILON*numeric_limits<T>::epsilon()){
@@ -443,13 +443,13 @@ public:
   ///    returned vector is in the range [-cell[i]/2,cell[i]/2)
   ///    flags indicate the periodicity in specific directions: 0x1 for X, 0x2 for Y, 0x4 for Z
   ///    Note that \a cell dimension is not checked.
-  ///\ru Ближайший образ в прямоугольной ячейке
-  ///    Считаем, что все пространство разделено на ячейки - параллелепипеды с ребрами, параллельными
-  ///    осям координат и диагональю, заданной вектором rcell, причем начало координат является 
-  ///    центром одной из ячеек. Если *this находится центральной ячейке, возвращается копия *this.\n
-  ///    Иначе, если *this находится в кубе 3*3 ячейки с центром в начале координат, то создает образ 
-  ///    *this в центральной ячейке.\n
-  ///    Иначе, возвращает неопределенное значение.  
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+  ///    пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+  ///    пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ rcell, пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 
+  ///    пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅ *this пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ *this.\n
+  ///    пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ *this пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ 3*3 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ 
+  ///    *this пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.\n
+  ///    пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.  
   template <size_t M, class storage2_t>
   Vector_Nt rcell1(const Vector_Nt<T, M, storage2_t> &cell,int flags=0xffff) const{
     Vector_Nt ret(*this);
@@ -469,9 +469,9 @@ public:
   ///\en reduction to elementary cell [0, cell[i]) (FOR REDUCTION TO ELEMENTARY CELL)
   ///    flags indicate the periodicity in specific directions: 0x1 for X, 0x2 for Y, 0x4 for Z
   ///    Note that \a cell dimension is not checked.
-  ///\ru Почти то же, что и rcell1, но без ограничения на положение *this и с другой системой ячеек.
-  ///    В начале координат находится не центр ячейки, а ее угол. Может работать медленнее из-за наличия 
-  ///    операции деления по модулю с плавающей точкой
+  ///\ru пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ, пїЅпїЅпїЅ пїЅ rcell1, пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ *this пїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
+  ///    пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ-пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ 
+  ///    пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
   template <size_t M, class storage2_t>
   Vector_Nt rcell(const Vector_Nt<T, M, storage2_t> &cell, int flags=0xffff) const {
     Vector_Nt ret(*this);
@@ -486,7 +486,7 @@ public:
 
   ///\en the same as rcell, but start point of zero cell is p1
   ///    Note that \a p1,  \a cell dimensions are not checked.
-  ///\ru то же самое, что и rcell, только начало нулевой ячейки имеет координаты p1
+  ///\ru пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅ rcell, пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ p1
   template <size_t M, class storage2_t, size_t P, class storage3_t>
   Vector_Nt rpcell(const Vector_Nt<T, M, storage2_t> &p1, const Vector_Nt<T, P, storage3_t> &cell, int flags=0xfff) const {
     Vector_Nt ret(*this);
@@ -502,7 +502,7 @@ public:
   }
   
   ///\en returns maximal vector component and its index
-  ///\ru Возвращает максимальную компоненту вектора и ее индекс в ind 
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ ind 
   T maxcoord(int *ind=NULL) const {
     if(!v.dim())
       return 0.;
@@ -519,7 +519,7 @@ public:
   }
 
   ///\en returns minimal vector component and its index
-  ///\ru Возвращает минимальную компоненту вектора и ее индекс в ind 
+  ///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ ind 
   T mincoord(int *ind=NULL) const {
     if(!v.dim())
       return 0.;
@@ -582,7 +582,7 @@ public:
 
 
 /*
-  //r Выводит вектор в поток вывода по умолчанию, в формате (x,y,z)\\n
+  //r пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (x,y,z)\\n
   void print() const{
     cout<< "(";
     for(size_t i=0;i<v.dim();i++){
@@ -620,7 +620,7 @@ class  Vector_N: public Vector_Nt<vec_type, N>::type{
 };
 
 ///\en returns polygon area based on vectors vect1 and vect2
-///\ru возвращает площадь параллелограмма, построенного на векторах vect1 и vect2
+///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ vect1 пїЅ vect2
 inline vec_type vec_area(const Vector_2 &vect1, const Vector_2 &vect2) {
   return fabs(vect1[0]*vect2[1]-vect1[1]*vect2[0]);
 };
@@ -632,23 +632,23 @@ inline vec_type vec_area(const Vector_3 &vect1, const Vector_3 &vect2) {
 
 
 ///\en finds the maximum distance between vector pairs
-///\ru Находит максимальное расстояние между векторами va1[i], va2[i], i=1..n
-///    \param va1 - массив Vector_3[n]
-///    \param n - длина массивов va1 и va2
+///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ va1[i], va2[i], i=1..n
+///    \param va1 - пїЅпїЅпїЅпїЅпїЅпїЅ Vector_3[n]
+///    \param n - пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ va1 пїЅ va2
 vec_type dist_max(Vector_3 *va1,Vector_3 *va2,int n);
 
 ///\en finds average distance between vector pairs
-///\ru Находит среднее расстояние между векторами va1[i], va2[i], i=1..n
+///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ va1[i], va2[i], i=1..n
 vec_type dist_av(Vector_3 *va1,Vector_3 *va2,int n);
 
 ///\en finds the average difference norm between two vector sets of the same length
 ///    optionally gives the indices for maximal and minimal difference
 ///    va2 can be NULL, then the norm of va1 is used
-///\ru Находит среднее расстояние между va1[i] и va2[i], а также, по желанию, индексы, на которых достигается min и max расстояние
+///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ va1[i] пїЅ va2[i], пїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ min пїЅ max пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 vec_type diff_av(Vector_3 *va1,Vector_3 *va2,int n, int *minind=0, int *maxind=0);
 
 ///\en finds suitable perpendicular to a vector
-///\ru Находит перпендикуляр к вектору vAB
+///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ vAB
 Vector_3 FindPerp(const Vector_3 &vAB);
 
 ///\en Returns the average (center) vector of the vector array
@@ -664,11 +664,11 @@ Vector_3 GetIScopei(const Vector_3 *varr,int *indarr,int n,Vector_3* box_min,Vec
 // neue Funktionen
 
 ///\en clears vector array with optional integer index
-///\ru Очистка массива векторов, с поддержкой индексирования 
-///    В данном Vector_3 vec[] обнуляет n координат. Если ind==NULL, то 
-///    очищает первые n элементов. Если ind!=NULL, то для i=0..n-1
-///    очищает vec[ind[i]]
-///    См. \ref indexed_calculations.
+///\ru пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 
+///    пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ Vector_3 vec[] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ n пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅ ind==NULL, пїЅпїЅ 
+///    пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ n пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅ ind!=NULL, пїЅпїЅ пїЅпїЅпїЅ i=0..n-1
+///    пїЅпїЅпїЅпїЅпїЅпїЅпїЅ vec[ind[i]]
+///    пїЅпїЅ. \ref indexed_calculations.
 void clear_vecarri(int n,Vector_3 *vec, int *ind=0);
 
 ///\en reflects the vector ini+dir*t+0.5*force*t^2 to be inside a box limited by 0 and box sizes

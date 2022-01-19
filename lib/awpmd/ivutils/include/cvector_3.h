@@ -9,8 +9,6 @@
  *
  *
  *****************************************************************************/
-/*r @file vector_3.h @brief работа с трехмерными комплексными векторами
-*/
 
 # ifndef CVECTOR_3A_H
 # define CVECTOR_3A_H
@@ -84,3 +82,4 @@ inline cVector_3 from_parts(const Vector_3 real_part, const Vector_3 imag_part) 
 }
 
 # endif // __CVECTOR_3A_H
+

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,25 +12,25 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(create_box,CreateBox)
-
+// clang-format off
+CommandStyle(create_box,CreateBox);
+// clang-format on
 #else
 
 #ifndef LMP_CREATE_BOX_H
 #define LMP_CREATE_BOX_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class CreateBox : protected Pointers {
+class CreateBox : public Command {
  public:
   CreateBox(class LAMMPS *);
   void command(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -47,7 +47,7 @@ E: Cannot create_box after simulation box is defined
 
 A simulation box can only be defined once.
 
-E: Cannot run 2d simulation with nonperiodic Z dimension
+E: Cannot run 2d simulation with non-periodic Z dimension
 
 Use the boundary command to make the z dimension periodic in order to
 run a 2d simulation.

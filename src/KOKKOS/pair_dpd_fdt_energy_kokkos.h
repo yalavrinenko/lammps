@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(dpd/fdt/energy/kk,PairDPDfdtEnergyKokkos<LMPDeviceType>)
-PairStyle(dpd/fdt/energy/kk/device,PairDPDfdtEnergyKokkos<LMPDeviceType>)
-PairStyle(dpd/fdt/energy/kk/host,PairDPDfdtEnergyKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(dpd/fdt/energy/kk,PairDPDfdtEnergyKokkos<LMPDeviceType>);
+PairStyle(dpd/fdt/energy/kk/device,PairDPDfdtEnergyKokkos<LMPDeviceType>);
+PairStyle(dpd/fdt/energy/kk/host,PairDPDfdtEnergyKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_DPD_FDT_ENERGY_KOKKOS_H
 #define LMP_PAIR_DPD_FDT_ENERGY_KOKKOS_H
 
@@ -88,9 +89,9 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
 
   struct params_dpd {
     KOKKOS_INLINE_FUNCTION
-    params_dpd(){cut=0;a0=0;sigma=0;kappa=0;alpha=0;};
+    params_dpd() {cut=0;a0=0;sigma=0;kappa=0;alpha=0;};
     KOKKOS_INLINE_FUNCTION
-    params_dpd(int i){cut=0;a0=0;sigma=0;kappa=0;alpha=0;};
+    params_dpd(int /*i*/) {cut=0;a0=0;sigma=0;kappa=0;alpha=0;};
     F_FLOAT cut,a0,sigma,kappa,alpha;
   };
 
@@ -132,7 +133,7 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   typename ArrayTypes<DeviceType>::t_f_array f;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
   typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
-  double *rmass;
+  typename ArrayTypes<DeviceType>::t_float_1d rmass;
   typename AT::t_efloat_1d dpdTheta;
   typename AT::t_efloat_1d d_duCond,d_duMech;
   HAT::t_efloat_1d h_duCond,h_duMech;

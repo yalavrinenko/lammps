@@ -22,15 +22,15 @@ typedef complex<double> lapack_complex_double;
   #endif /* __cplusplus */
   void dgetrf_( const lapack_int* m, const lapack_int* n, double* a, const lapack_int* lda, 
                 lapack_int* ipiv, lapack_int* info );
-  void dgetrs_( const char* trans, const lapack_int* n, const lapack_int* nrhs, 
-							  const double* a, const lapack_int* lda, const lapack_int* ipiv, 
+  void dgetrs_( const char* trans, const lapack_int* n, const lapack_int* nrhs,
+							  const double* a, const lapack_int* lda, const lapack_int* ipiv,
 							  double* b, const lapack_int* ldb, lapack_int* info );
-  void dgetri_( const lapack_int* n, double* a, const lapack_int* lda, 
-                const lapack_int* ipiv, double* work, const lapack_int* lwork, 
+  void dgetri_( const lapack_int* n, double* a, const lapack_int* lda,
+                const lapack_int* ipiv, double* work, const lapack_int* lwork,
                 lapack_int* info );
-  void zpptrf_( const char* uplo, const lapack_int* n, lapack_complex_double* ap, 
+  void zpptrf_( const char* uplo, const lapack_int* n, lapack_complex_double* ap,
                 lapack_int* info );
-  void zpptri_( const char* uplo, const lapack_int* n, lapack_complex_double* ap, 
+  void zpptri_( const char* uplo, const lapack_int* n, lapack_complex_double* ap,
                 lapack_int* info );
   void zhpevd_( const char* jobz, const char* uplo, const lapack_int* n,
 							  lapack_complex_double* ap, double* w, lapack_complex_double* z,
@@ -40,7 +40,7 @@ typedef complex<double> lapack_complex_double;
   #ifdef __cplusplus
   }
   #endif /* __cplusplus */
-  
+
 #else
 
   //#define MKL_Complex8 lapack_complex_float

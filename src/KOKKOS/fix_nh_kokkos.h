@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -71,8 +72,8 @@ class FixNHKokkos : public FixNH {
   typename ArrayTypes<DeviceType>::t_x_array x;
   typename ArrayTypes<DeviceType>::t_v_array v;
   typename ArrayTypes<DeviceType>::t_f_array_const f;
-  double *rmass;
-  typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
+  typename ArrayTypes<DeviceType>::t_float_1d rmass;
+  typename ArrayTypes<DeviceType>::t_float_1d mass;
   typename ArrayTypes<DeviceType>::t_int_1d type;
   typename ArrayTypes<DeviceType>::t_int_1d mask;
 };

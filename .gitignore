@@ -9,8 +9,10 @@
 *.d
 *.x
 *.exe
+*.sif
 *.dll
 *.pyc
+a.out
 __pycache__
 
 Obj_*
@@ -22,9 +24,11 @@ log.cite
 .*.swp
 *.orig
 *.rej
+vgcore.*
 .vagrant
 \#*#
 .#*
+.vscode
 
 .DS_Store
 .DS_Store?
@@ -34,11 +38,14 @@ log.cite
 ehthumbs.db
 Thumbs.db
 .clang-format
+.lammps_history
 
 #cmake
 /build*
 /CMakeCache.txt
 /CMakeFiles/
+/Testing
 /Makefile
+/Testing
 /cmake_install.cmake
 /lmp

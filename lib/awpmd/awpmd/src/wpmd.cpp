@@ -285,7 +285,7 @@ int
 AWPMD::set_electrons(int s, int n, const Vector_3P x, const Vector_3P v, const double *w, const double *pw, double mass,
                      const double *q, bool pw_is_vel) {
   if (s < 0 || s > 1)
-    return LOGERR(-1, fmt("AWPMD.set_electrons: invaid s setting (%d)!", s), LINFO);
+    return LOGERR(-1, fmt_iv("AWPMD.set_electrons: invaid s setting (%d)!", s), LINFO);
 
   calc_state &= (CALC_ELECTRONS_SET | CALC_IONS_SET);
   calc_state |= CALC_ELECTRONS_SET;
@@ -691,10 +691,10 @@ int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
       ZPPTRF("L", &nes, Y[s].arr, &info);
       // analyze return code here
       if (info < 0)
-        return LOGERR(info, fmt("AWPMD.interacton: call to ZPTRF failed (exitcode %d)!", info), LINFO);
+        return LOGERR(info, fmt_iv("AWPMD.interacton: call to ZPTRF failed (exitcode %d)!", info), LINFO);
       ZPPTRI("L", &nes, Y[s].arr, &info);
       if (info < 0)
-        return LOGERR(info, fmt("AWPMD.interacton: call to ZPTRI failed (exitcode %d)!", info), LINFO);
+        return LOGERR(info, fmt_iv("AWPMD.interacton: call to ZPTRI failed (exitcode %d)!", info), LINFO);
 
 
       /*f1=fopen(fmt("matrY_%d.d",s),"wt");
@@ -1131,7 +1131,7 @@ int AWPMD::norm_factorize(int s) {
   int nes8 = ne[s] * 8, info;
   DGETRF(&nes8, &nes8, Norm[s].arr, &nes8, &ipiv[0], &info);
   if (info < 0)
-    return LOGERR(info, fmt("AWPMD.norm_factorize: call to DGETRF failed (exitcode %d)!", info), LINFO);
+    return LOGERR(info, fmt_iv("AWPMD.norm_factorize: call to DGETRF failed (exitcode %d)!", info), LINFO);
 
   norm_matrix_state[s] = NORM_FACTORIZED;
   return 1;
@@ -1151,7 +1151,7 @@ int AWPMD::norm_invert(int s) {
 
   DGETRI(&nes8, Norm[s].arr, &nes8, &ipiv[0], (double *) IDD.arr, &IDD_size, &info); // use IDD for work storage
   if (info < 0)
-    return LOGERR(info, fmt("AWPMD.norm_invert: call to DGETRI failed (exitcode %d)!", info), LINFO);
+    return LOGERR(info, fmt_iv("AWPMD.norm_invert: call to DGETRI failed (exitcode %d)!", info), LINFO);
 
   norm_matrix_state[s] = NORM_INVERTED;
   return 1;

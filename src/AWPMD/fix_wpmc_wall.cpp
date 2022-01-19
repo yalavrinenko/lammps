@@ -27,7 +27,6 @@ LAMMPS_NS::FixWallAwpmd::FixWallAwpmd(LAMMPS_NS::LAMMPS *lammps, int i,
 
   this->vector_flag = true;
   this->size_vector = 2;
-  this->virial_flag = 1;
 }
 
 LAMMPS_NS::FixWallAwpmd::~FixWallAwpmd() {
@@ -42,15 +41,18 @@ int LAMMPS_NS::FixWallAwpmd::setmask() {
 std::unique_ptr<BoxHamiltonian>
 LAMMPS_NS::FixWallAwpmd::construct_box(char **pString, double half_box_length,
                                        int pcount) {
-  auto box_fraction = force->numeric(FLERR, pString[3]);
-  auto eigenE = force->numeric(FLERR, pString[4]);
-  double prj_ord = force->numeric(FLERR, pString[5]);
+  auto numeric = [this](char const* str){
+    return utils::numeric(FLERR, str, false, lmp);
+  };
+  auto box_fraction =numeric(pString[3]);
+  auto eigenE = numeric(pString[4]);
+  double prj_ord = numeric(pString[5]);
 
   for (auto i = 0; i < pcount; ++i) {
     if (std::strcmp(pString[i], "box") == 0) {
-      auto Lx = force->numeric(FLERR, pString[i + 1]);
-      auto Ly = force->numeric(FLERR, pString[i + 2]);
-      auto Lz = force->numeric(FLERR, pString[i + 3]);
+      auto Lx = numeric(pString[i + 1]);
+      auto Ly = numeric(pString[i + 2]);
+      auto Lz = numeric(pString[i + 3]);
 
       half_box_length = 0.5 * std::min(Lx, std::min(Ly, Lz));
       wall_squares = {Lz * Ly, Lx * Lz, Lx * Ly};

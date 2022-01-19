@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://www.lammps.org/, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,38 +16,26 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-// clang-format off
-FixStyle(nve/awpmd,FixNVEAwpmd);
-// clang-format on
+
+FixStyle(nve/awpmd,FixNVEAwpmd)
+
 #else
 
 #ifndef LMP_FIX_NVE_awpmd_H
 #define LMP_FIX_NVE_awpmd_H
 
-#include "fix.h"
+#include "../fix_nve.h"
 
 namespace LAMMPS_NS {
 
-class FixNVEAwpmd : public Fix {
+class FixNVEAwpmd : public FixNVE {
  public:
   FixNVEAwpmd(class LAMMPS *, int, char **);
-  int setmask();
-  virtual void init();
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  void initial_integrate_respa(int, int, int);
-  void final_integrate_respa(int, int);
-  void reset_dt();
-
- protected:
-  double dtv, dtf;
-  double *step_respa;
-  int mass_require;
-
-  class PairAWPMDCut *awpmd_pair;
+  void initial_integrate(int) override;
+  void final_integrate() override;
 };
 
-}    // namespace LAMMPS_NS
+}
 
 #endif
 #endif

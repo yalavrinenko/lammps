@@ -301,7 +301,7 @@ int AWPMD_split::set_electrons(int s, int nel, const Vector_3P x, const Vector_3
                                const Vector_2 *c, const int *splits, double mass, const double *q, bool pw_is_vel,
                                double q0) {
   if (s < 0 || s > 1)
-    return LOGERR(-1, fmt("AWPMD_split.set_electrons: invaid spin setting (%d)!", s), LINFO);
+    return LOGERR(-1, fmt_iv("AWPMD_split.set_electrons: invaid spin setting (%d)!", s), LINFO);
   calc_state &= CALC_IONS_SET;  // refereshes all previously calculated quantities
   calc_state |= CALC_ELECTRONS_SET;
   // calculating the total n
@@ -370,7 +370,7 @@ int AWPMD_split::set_electrons(int s, int nel, const Vector_3P x, const Vector_3
 int AWPMD_split::get_electrons(int s, Vector_3P x, Vector_3P v, double *w, double *pw, Vector_2 *c, int *splits,
                                double mass) {
   if (s < 0 || s > 1)
-    return LOGERR(-1, fmt("AWPMD_split.set_electrons: invaid spin setting (%d)!", s), LINFO);
+    return LOGERR(-1, fmt_iv("AWPMD_split.set_electrons: invaid spin setting (%d)!", s), LINFO);
 
   if (c) {
     if (!c_polar_mode) {
@@ -402,7 +402,7 @@ int AWPMD_split::get_electrons(int s, Vector_3P x, Vector_3P v, double *w, doubl
 
 int AWPMD_split::get_splits_spl2(int s, double *c0, double *c1) const {
   if (s < 0 || s > 1)
-    return LOGERR(-1, fmt("AWPMD_split.get_splits_spl2: invaid spin setting (%d)!", s), LINFO);
+    return LOGERR(-1, fmt_iv("AWPMD_split.get_splits_spl2: invaid spin setting (%d)!", s), LINFO);
 
   if (c0 && c1) {
     if (!c_polar_mode) {
@@ -1485,7 +1485,7 @@ int AWPMD_split::calc_overlaps() {
       ZPPTRF("L", &nes, Y[s].arr, &info);
       // analyze return code here
       if (info < 0)
-        return LOGERR(info, fmt("AWPMD.calc_overlaps: call to ZPTRF failed (exitcode %d)!", info), LINFO);
+        return LOGERR(info, fmt_iv("AWPMD.calc_overlaps: call to ZPTRF failed (exitcode %d)!", info), LINFO);
 
 
       cdouble rr = 0.;
@@ -1497,7 +1497,7 @@ int AWPMD_split::calc_overlaps() {
 
       ZPPTRI("L", &nes, Y[s].arr, &info);
       if (info < 0)
-        return LOGERR(info, fmt("AWPMD.calc_overlaps: call to ZPTRI failed (exitcode %d)!", info), LINFO);
+        return LOGERR(info, fmt_iv("AWPMD.calc_overlaps: call to ZPTRI failed (exitcode %d)!", info), LINFO);
 
 
       /*f1=fopen(fmt("matrY_%d.d",s),"wt");
@@ -1858,7 +1858,7 @@ int AWPMD_split::norm_factorize(int s) {
       DGETRF(&dim, &dim, Normh[s][c].arr, &dim, &ipiv[l], &info);
       l += dim;
       if (info < 0)
-        return LOGERR(info, fmt("AWPMD_split.norm_factorize: call to DGETRF failed (exitcode %d)!", info), LINFO);
+        return LOGERR(info, fmt_iv("AWPMD_split.norm_factorize: call to DGETRF failed (exitcode %d)!", info), LINFO);
       std::vector<double> sarr(dim);
       for (int i = 0; i < dim; i++)
         sarr[i] = Normh[s][c](i, i);
@@ -1986,7 +1986,7 @@ int AWPMD_split::prepare_constraints(int s, int c) {
   // LU decomposition
   DGETRF(&dim, &nconstr, cmatr.arr, &dim, &ipiv[0], &info);
   if (info < 0)
-    LOGERR(info, fmt("AWPMD_split.prepare_constraints: call to DGETRF failed (exitcode %d)!", info), LINFO);
+    LOGERR(info, fmt_iv("AWPMD_split.prepare_constraints: call to DGETRF failed (exitcode %d)!", info), LINFO);
 
   // making pivots
   constr_pivots[s][c].resize(dim);
@@ -2039,7 +2039,7 @@ int AWPMD_split::prepare_constraints(int s, int c) {
   DGETRS("T", &nconstr, &ddim, cmatr.arr, &dim, &ipiv[0], Jh[s][c].arr, &nconstr, &info);
   // analyze return code here
   if (info < 0)
-    return LOGERR(info, fmt("AWPMD_split.prepare_constraints: call to DGETRS failed (exitcode %d)!", info), LINFO);
+    return LOGERR(info, fmt_iv("AWPMD_split.prepare_constraints: call to DGETRS failed (exitcode %d)!", info), LINFO);
 
 
 # if 0
@@ -2287,7 +2287,7 @@ int AWPMD_split::calc_norm_forces() {
 
         DGETRF(&dim, &dim, matr.arr, &dim, &ipiv[0], &info); // matrix is transpose !!!
         if (info < 0)
-          LOGERR(info, fmt("AWPMD_split.calc_norm_forces: call to DGETRF failed (exitcode %d)!", info), LINFO);
+          LOGERR(info, fmt_iv("AWPMD_split.calc_norm_forces: call to DGETRF failed (exitcode %d)!", info), LINFO);
 
 
         for (int i = 0; i < dim; i++)
@@ -2299,7 +2299,7 @@ int AWPMD_split::calc_norm_forces() {
         vector<double> work(lwork);
         DGETRI(&dim, matr.arr, &dim, &ipiv[0], &work[0], &lwork, &info);  // matrix is transpose !!
         if (info != 0)
-          LOGERR(info, fmt("AWPMD_split.calc_norm_forces: call to DGETRI failed (exitcode %d)!", info), LINFO);
+          LOGERR(info, fmt_iv("AWPMD_split.calc_norm_forces: call to DGETRI failed (exitcode %d)!", info), LINFO);
 
         // multipying the inverse matrix by force
         vector<double> lhs(dim);
@@ -2519,7 +2519,7 @@ int AWPMD_split::calc_norm_forces() {
 
       DGETRF(&dim, &dim, matr.arr, &dim, &ipiv[0], &info); // matrix is transpose !!!
       if (info < 0)
-        LOGERR(info, fmt("AWPMD_split.calc_norm_forces: call to DGETRF failed (exitcode %d)!", info), LINFO);
+        LOGERR(info, fmt_iv("AWPMD_split.calc_norm_forces: call to DGETRF failed (exitcode %d)!", info), LINFO);
 
 
       for (int i = 0; i < dim; i++)
@@ -2531,7 +2531,7 @@ int AWPMD_split::calc_norm_forces() {
       vector<double> work(lwork);
       DGETRI(&dim, matr.arr, &dim, &ipiv[0], &work[0], &lwork, &info);  // matrix is transpose !!
       if (info != 0)
-        LOGERR(info, fmt("AWPMD_split.calc_norm_forces: call to DGETRI failed (exitcode %d)!", info), LINFO);
+        LOGERR(info, fmt_iv("AWPMD_split.calc_norm_forces: call to DGETRI failed (exitcode %d)!", info), LINFO);
 
       // multipying the inverse matrix by force
       vector<double> lhs(dim);
@@ -2729,7 +2729,7 @@ int AWPMD_split::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
   //2. calculating overlap matrix
   int info = calc_overlaps();
   if (info < 0)
-    return LOGERR(info, fmt("AWPMD.interacton: overlap matrix inversion failed!"), LINFO);
+    return LOGERR(info, fmt_iv("AWPMD.interacton: overlap matrix inversion failed!"), LINFO);
 
 
 # if 1
@@ -3877,7 +3877,7 @@ int AWPMD_split::check_degeneracy_constraint(int action, double prj_tolerance, i
         ZHPEVD("V", "U", &dim, (MKL_Complex16 *) &arrp[0], &eigen_val[0], (MKL_Complex16 *) &eigen_vect[0], &dim,
                (MKL_Complex16 *) &work[0], &lwork, &rwork[0], &lrwork, &iwork[0], &liwork, &info);
         if (info != 0) {
-          LOGERR(info, fmt("AWPMD_split.check_degeneracy_constraint: call to ZHPEVD failed (exitcode %d)!", info),
+          LOGERR(info, fmt_iv("AWPMD_split.check_degeneracy_constraint: call to ZHPEVD failed (exitcode %d)!", info),
                  LINFO);
           return 0;
         }
@@ -3927,13 +3927,13 @@ int AWPMD_split::check_degeneracy_constraint(int action, double prj_tolerance, i
             }
             int res = add_force_constraint(s, c, prj_evectr, 1e-20);
             if (res != 1) {
-              LOGERR(-1, fmt("AWPMD_split.check_degeneracy_constraint: adding dependent vector (r)?", 0), LINFO);
+              LOGERR(-1, fmt_iv("AWPMD_split.check_degeneracy_constraint: adding dependent vector (r)?", 0), LINFO);
               return 0;
             }
             imposed++;
             res = add_force_constraint(s, c, prj_evecti, 1e-20);
             if (res != 1) {
-              LOGERR(-1, fmt("AWPMD_split.check_degeneracy_constraint: adding dependent vector (i)?", 0), LINFO);
+              LOGERR(-1, fmt_iv("AWPMD_split.check_degeneracy_constraint: adding dependent vector (i)?", 0), LINFO);
               return 0;
             }
             imposed++;

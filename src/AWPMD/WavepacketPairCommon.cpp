@@ -15,6 +15,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include <utils.h>
 
 #include <wpmd_split.h>
 
@@ -66,7 +67,7 @@ LAMMPS_NS::WavepacketPairCommon::~WavepacketPairCommon() {
 void LAMMPS_NS::WavepacketPairCommon::settings(int narg, char **arg) {
   if (narg < 1) error->all(FLERR, "Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR, arg[0]);
+  cut_global = utils::numeric(FLERR, arg[0], true, lmp);
 
   wpmd->calc_ei = wpmd->calc_ii = wpmd->calc_ee = true;
 
@@ -107,11 +108,12 @@ void LAMMPS_NS::WavepacketPairCommon::coeff(int narg, char **arg) {
   }
 
   int ilo, ihi, jlo, jhi;
-  force->bounds(FLERR, arg[0], atom->ntypes, ilo, ihi);
-  force->bounds(FLERR, arg[1], atom->ntypes, jlo, jhi);
+
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   double cut_one = cut_global;
-  if (narg == 3) cut_one = force->numeric(FLERR, arg[2]);
+  if (narg == 3) cut_one = utils::numeric(FLERR, arg[2], false, lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

@@ -87,7 +87,7 @@ class remove_if_it{
   iter2 beg2, end2;
   pred_t Pr;
   
-  // протаскивает beg1 сквозь последовательность (beg2,end2), если beg1 в нее попадает
+  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ beg1 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (beg2,end2), пїЅпїЅпїЅпїЅ beg1 пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   void check_beg1(){
     iter2 it2=beg2;
     for(;beg1!=end1 && it2!=end2;++it2){
@@ -505,7 +505,7 @@ int average_files(filename_it beg, filename_it end, const char *output){
       comments.clear();
     f=fopen((*beg).c_str(),"rt");
     if(!f){
-      LOGMSG(vblWARN,fmt("average_files: can't open the file '%s', skipped!",(const char *)(*beg).c_str()),0);
+      LOGMSG(vblWARN,fmt_iv("average_files: can't open the file '%s', skipped!",(const char *)(*beg).c_str()),0);
       continue;
     }
     int line=0;
@@ -531,7 +531,7 @@ int average_files(filename_it beg, filename_it end, const char *output){
         table.resize(ncol);
       }
       else if(num<ncol){
-        LOGMSG(vblWARN,fmt("average_files: unexpected number of entries at line %d in '%s', file skipped!",line,(const char *)(*beg).c_str()),0);
+        LOGMSG(vblWARN,fmt_iv("average_files: unexpected number of entries at line %d in '%s', file skipped!",line,(const char *)(*beg).c_str()),0);
         skip=true;
         break;
       }
@@ -551,7 +551,7 @@ int average_files(filename_it beg, filename_it end, const char *output){
     if(!gtable.size())
       gtable=table;
     else if(gtable[0].size()>table[0].size()){
-      LOGMSG(vblWARN,fmt("average_files: number of lines in '%s' is too small, file skipped!",(const char *)(*beg).c_str()),0);
+      LOGMSG(vblWARN,fmt_iv("average_files: number of lines in '%s' is too small, file skipped!",(const char *)(*beg).c_str()),0);
       continue;
     }
     else{ // summing up
@@ -565,11 +565,11 @@ int average_files(filename_it beg, filename_it end, const char *output){
   if(f)
     fclose(f);
   if(!fix_comm)
-    return LOGERR(0,fmt("average_files: no valid files with column data found!"),0);
+    return LOGERR(0,fmt_iv("average_files: no valid files with column data found!"),0);
   
   f=fopen(output,"wt");
   if(!f)
-    return LOGERR(-1,fmt("average_files: can't open the file '%s' for writing",output),0);
+    return LOGERR(-1,fmt_iv("average_files: can't open the file '%s' for writing",output),0);
   // retaining comment structure of the first valid file
   size_t iline=0;
   for(size_t i=0;i<comments.size();i++){
@@ -601,7 +601,7 @@ int write_ascii(const char *fname, arg_it abeg, arg_it aend,
                const char *mode="wt", const char *tailer=""){
   FILE *f=fopen(fname,mode);
   if(!f)
-    return LOGERR(-1,fmt("write_ascii: can't open file '%s' intended for writing (mode: %s)!",fname,mode),0);
+    return LOGERR(-1,fmt_iv("write_ascii: can't open file '%s' intended for writing (mode: %s)!",fname,mode),0);
   fprintf(f,"%s",header);
   for(;abeg!=aend;++abeg){
     fprintf(f,arg_format,(*abeg));

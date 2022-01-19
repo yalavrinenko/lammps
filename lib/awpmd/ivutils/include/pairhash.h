@@ -38,7 +38,7 @@ $Date: 2014/07/18 14:04:37 $
  * derivative fixes
  *
  * Revision 1.3  2011/06/11 18:18:50  morozov
- * USER-AWPMD compiles on Linux now!
+ * AWPMD compiles on Linux now!
  *
  * Revision 1.2  2011/06/11 16:53:55  valuev
  * sync with LAMMPS

@@ -444,7 +444,7 @@ else()
 endif()
 
 foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
-        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM LATTE MESSAGE MSCG COMPRESS ML-PACE)
+        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM LATTE MESSAGE MSCG COMPRESS ML-PACE AWPMD)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -537,7 +537,7 @@ endforeach()
 ##############################################
 # add lib sources of (simple) enabled packages
 ############################################
-foreach(PKG_LIB POEMS ATC AWPMD H5MD MESONT)
+foreach(PKG_LIB POEMS ATC H5MD MESONT)
   if(PKG_${PKG_LIB})
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
     if(PKG_LIB STREQUAL "mesont")
@@ -552,77 +552,13 @@ foreach(PKG_LIB POEMS ATC AWPMD H5MD MESONT)
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
     set_target_properties(${PKG_LIB} PROPERTIES OUTPUT_NAME lammps_${PKG_LIB}${LAMMPS_MACHINE})
     target_link_libraries(lammps PRIVATE ${PKG_LIB})
-    if(PKG_LIB STREQUAL "awpmd")
-      target_include_directories(awpmd PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
-    elseif(PKG_LIB STREQUAL "h5md")
+    if(PKG_LIB STREQUAL "h5md")
       target_include_directories(h5md PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/h5md/include ${HDF5_INCLUDE_DIRS})
     else()
       target_include_directories(${PKG_LIB} PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB})
     endif()
   endif()
 endforeach()
-
-if(PKG_AWPMD OR PKG_WPMD-DFT OR PKG_WPMD-NVGPU-DFT)
-  find_package(MKL REQUIRED)
-  set(CMAKE_CXX_STANDARD 14)
-  if(WIN32)
-    if(${CMAKE_GENERATOR} MATCHES "Visual Studio 15 2017")
-      set(HAVE_MATH ON)
-      set(HAVE_ERF ON)
-      add_definitions("-DERF_H") # don't include erf.h
-    else()
-      set(HAVE_MATH OFF)
-      set(HAVE_ERF OFF)
-    endif()
-	  add_definitions("-DFU=0")
-
-    if(${HAVE_MATH})
-      add_definitions("-DNO_CMNMATH")
-    endif()
-  else(NOT WIN32)
-    add_definitions("-DUNIX=1")
-    add_definitions("-DLINFO=1")
-    add_definitions("-DFU=1")
-  endif(WIN32)
-
-  add_definitions(-DUSE_AWPMD=1)
-
-  include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/include")
-  include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include")
-  include_directories(${MKL_INCLUDE_DIR})
-  include_directories(${IVUTILS_INCLUDE_DIR}/../src)
-
-  add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd" ${LAMMPS_LIB_BINARY_DIR}/awpmd)
-  add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils" ${LAMMPS_LIB_BINARY_DIR}/ivutils)
-
-  if (PKG_WPMD-DFT)
-    set(wpmd_dft_source_dir "${LAMMPS_SOURCE_DIR}/USER-AWPMD/WPMD-DFT")
-    file(GLOB wpmd_dft_sources ${wpmd_dft_source_dir}/[^.]*.cpp)
-    file(GLOB wpmd_dft_headers ${wpmd_dft_source_dir}/[^.]*.h)
-    list(APPEND LIB_SOURCES ${wpmd_dft_sources})
-
-    RegisterStyles(${wpmd_dft_source_dir})
-
-    include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft" ${wpmd_dft_source_dir})
-    add_subdirectory(${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft ${CMAKE_CURRENT_BINARY_DIR}/wpmd-dft-bin)
-    list(APPEND LAMMPS_LINK_LIBS wpmd_dft_unit_cpu)
-  endif()
-
-  if (PKG_WPMD-NVGPU-DFT)
-    set(wpmd_nvgpu_dft_source_dir "${LAMMPS_SOURCE_DIR}/USER-AWPMD/WPMD-DFT/NVGPU")
-    file(GLOB wpmd_nvgpu_dft_sources ${wpmd_nvgpu_dft_source_dir}/[^.]*.cpp)
-    file(GLOB wpmd_nvgpu_dft_headers ${wpmd_nvgpu_dft_source_dir}/[^.]*.h)
-    list(APPEND LIB_SOURCES ${wpmd_nvgpu_dft_sources})
-
-    RegisterStyles(${wpmd_nvgpu_dft_source_dir})
-
-    include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft" ${wpmd_nvgpu_dft_source_dir})
-    add_subdirectory(${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft/nvgpu ${CMAKE_CURRENT_BINARY_DIR}/wpmd-nvgpu-dft-bin)
-    list(APPEND LAMMPS_LINK_LIBS wpmd_dft_unit_nvgpu)
-  endif()
-
-  list(APPEND LAMMPS_LINK_LIBS awpmd ivutils ${MKL_LIBRARIES})
-endif()
 
 if(PKG_ATC)
   if(LAMMPS_SIZES STREQUAL "BIGBIG")

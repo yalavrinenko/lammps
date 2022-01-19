@@ -393,7 +393,7 @@ public:
   ///\en Starts adding new electron: continue with \ref add_split functions.
   int add_electron(int s){
     if(s < 0 || s > 1)
-      return LOGERR(-1,fmt("AWPMD_split.add_electron: invaid spin setting (%d)!",s),LINFO);
+      return LOGERR(-1,fmt_iv("AWPMD_split.add_electron: invalid spin setting (%d)!",s),LINFO);
     calc_state&= (CALC_ELECTRONS_SET|CALC_IONS_SET);
     calc_state|= CALC_ELECTRONS_SET;
     s_add=s;
@@ -802,7 +802,7 @@ public:
         ZPPTRF("L",&nes,Z[s].arr,&info);
         // analyze return code here
         if(info<0)
-          return LOGERR(info,fmt("AWPMD.get_harm_mean_value: call to ZPTRF failed (exitcode %d)!",info),LINFO);
+          return LOGERR(info,fmt_iv("AWPMD.get_harm_mean_value: call to ZPTRF failed (exitcode %d)!",info),LINFO);
 
 
         for(int i=0; i<nes; i++)
@@ -810,7 +810,7 @@ public:
 
         ZPPTRI("L",&nes,Z[s].arr,&info);
         if(info<0)
-          return LOGERR(info,fmt("AWPMD.get_harm_mean_value: call to ZPTRI failed (exitcode %d)!",info),LINFO);
+          return LOGERR(info,fmt_iv("AWPMD.get_harm_mean_value: call to ZPTRI failed (exitcode %d)!",info),LINFO);
         /*f1=fopen(fmt("matrY_%d.d",s),"wt");
         fileout(f1,Y[s],"%15g");
         fclose(f1);*/
@@ -917,7 +917,7 @@ typename term2_t::result_t AWPMD_split::exp_value_2(term2_t &term, int s){
   //2. calculating overlap matrix if needed (internal check inside)
   int info=calc_overlaps();
   if (info < 0) {
-    LOGERR(info, fmt("AWPMD_split.exp_value_2: overlap matrix inversion failed!"), LINFO);
+    LOGERR(info, fmt_iv("AWPMD_split.exp_value_2: overlap matrix inversion failed!"), LINFO);
     return res;
   }
 

@@ -91,12 +91,14 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "
 endif()
 
 # we require C++11 without extensions
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11) 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
 # ugly hack for MSVC which by default always reports an old C++ standard in the __cplusplus macro
 if(MSVC)
-  add_compile_options(/Zc:__cplusplus)
+  #add_compile_options(/Zc:__cplusplus)
+  #target_compile_definitions(lammps PRIVATE /Zc:__cplusplus)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus")
 endif()
 
 # export all symbols when building a .dll file on windows
@@ -229,8 +231,6 @@ set(STANDARD_PACKAGES
   UEF
   VORONOI
   VTK
-  WPMD-DFT
-  WPMD-NVGPU-DFT
   YAFF)
 
 set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT INTEL OPENMP)
@@ -281,6 +281,10 @@ else()
   add_library(mpi_stubs STATIC ${MPI_SOURCES})
   set_target_properties(mpi_stubs PROPERTIES OUTPUT_NAME lammps_mpi_stubs${LAMMPS_MACHINE})
   target_include_directories(mpi_stubs PUBLIC $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    target_include_directories(mpi_stubs PRIVATE "${LAMMPS_SOURCE_DIR}/WINDOWS/extra")
+  endif()
+
   if(BUILD_SHARED_LIBS)
     target_link_libraries(lammps PRIVATE mpi_stubs)
     target_include_directories(lammps INTERFACE $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
@@ -325,8 +329,6 @@ pkg_depends(DIELECTRIC KSPACE)
 pkg_depends(DIELECTRIC EXTRA-PAIR)
 pkg_depends(CG-DNA MOLECULE)
 pkg_depends(CG-DNA ASPHERE)
-pkg_depends(WPMD-NVGPU-DFT WPMD-DFT)
-pkg_depends(WPMD-DFT AWPMD)
 
 # detect if we may enable OpenMP support by default
 set(BUILD_OMP_DEFAULT OFF)
@@ -472,9 +474,11 @@ foreach(HEADER cmath)
   endif(NOT FOUND_${HEADER})
 endforeach(HEADER)
 
-set(MATH_LIBRARIES "m" CACHE STRING "math library")
-mark_as_advanced( MATH_LIBRARIES )
-target_link_libraries(lammps PRIVATE ${MATH_LIBRARIES})
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  set(MATH_LIBRARIES "m" CACHE STRING "math library")
+  mark_as_advanced( MATH_LIBRARIES )
+  target_link_libraries(lammps PRIVATE ${MATH_LIBRARIES})
+endif()
 
 ######################################
 # Generate Basic Style files
@@ -537,7 +541,7 @@ endforeach()
 ##############################################
 # add lib sources of (simple) enabled packages
 ############################################
-foreach(PKG_LIB POEMS ATC AWPMD H5MD MESONT)
+foreach(PKG_LIB POEMS ATC H5MD MESONT)
   if(PKG_${PKG_LIB})
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
     if(PKG_LIB STREQUAL "mesont")
@@ -552,77 +556,13 @@ foreach(PKG_LIB POEMS ATC AWPMD H5MD MESONT)
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
     set_target_properties(${PKG_LIB} PROPERTIES OUTPUT_NAME lammps_${PKG_LIB}${LAMMPS_MACHINE})
     target_link_libraries(lammps PRIVATE ${PKG_LIB})
-    if(PKG_LIB STREQUAL "awpmd")
-      target_include_directories(awpmd PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
-    elseif(PKG_LIB STREQUAL "h5md")
+    if(PKG_LIB STREQUAL "h5md")
       target_include_directories(h5md PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/h5md/include ${HDF5_INCLUDE_DIRS})
     else()
       target_include_directories(${PKG_LIB} PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB})
     endif()
   endif()
 endforeach()
-
-if(PKG_AWPMD OR PKG_WPMD-DFT OR PKG_WPMD-NVGPU-DFT)
-  find_package(MKL REQUIRED)
-  set(CMAKE_CXX_STANDARD 14)
-  if(WIN32)
-    if(${CMAKE_GENERATOR} MATCHES "Visual Studio 15 2017")
-      set(HAVE_MATH ON)
-      set(HAVE_ERF ON)
-      add_definitions("-DERF_H") # don't include erf.h
-    else()
-      set(HAVE_MATH OFF)
-      set(HAVE_ERF OFF)
-    endif()
-	  add_definitions("-DFU=0")
-
-    if(${HAVE_MATH})
-      add_definitions("-DNO_CMNMATH")
-    endif()
-  else(NOT WIN32)
-    add_definitions("-DUNIX=1")
-    add_definitions("-DLINFO=1")
-    add_definitions("-DFU=1")
-  endif(WIN32)
-
-  add_definitions(-DUSE_AWPMD=1)
-
-  include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/include")
-  include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include")
-  include_directories(${MKL_INCLUDE_DIR})
-  include_directories(${IVUTILS_INCLUDE_DIR}/../src)
-
-  add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd" ${LAMMPS_LIB_BINARY_DIR}/awpmd)
-  add_subdirectory("${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils" ${LAMMPS_LIB_BINARY_DIR}/ivutils)
-
-  if (PKG_WPMD-DFT)
-    set(wpmd_dft_source_dir "${LAMMPS_SOURCE_DIR}/USER-AWPMD/WPMD-DFT")
-    file(GLOB wpmd_dft_sources ${wpmd_dft_source_dir}/[^.]*.cpp)
-    file(GLOB wpmd_dft_headers ${wpmd_dft_source_dir}/[^.]*.h)
-    list(APPEND LIB_SOURCES ${wpmd_dft_sources})
-
-    RegisterStyles(${wpmd_dft_source_dir})
-
-    include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft" ${wpmd_dft_source_dir})
-    add_subdirectory(${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft ${CMAKE_CURRENT_BINARY_DIR}/wpmd-dft-bin)
-    list(APPEND LAMMPS_LINK_LIBS wpmd_dft_unit_cpu)
-  endif()
-
-  if (PKG_WPMD-NVGPU-DFT)
-    set(wpmd_nvgpu_dft_source_dir "${LAMMPS_SOURCE_DIR}/USER-AWPMD/WPMD-DFT/NVGPU")
-    file(GLOB wpmd_nvgpu_dft_sources ${wpmd_nvgpu_dft_source_dir}/[^.]*.cpp)
-    file(GLOB wpmd_nvgpu_dft_headers ${wpmd_nvgpu_dft_source_dir}/[^.]*.h)
-    list(APPEND LIB_SOURCES ${wpmd_nvgpu_dft_sources})
-
-    RegisterStyles(${wpmd_nvgpu_dft_source_dir})
-
-    include_directories("${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft" ${wpmd_nvgpu_dft_source_dir})
-    add_subdirectory(${LAMMPS_LIB_SOURCE_DIR}/awpmd/awpmd/awpmd-dft/nvgpu ${CMAKE_CURRENT_BINARY_DIR}/wpmd-nvgpu-dft-bin)
-    list(APPEND LAMMPS_LINK_LIBS wpmd_dft_unit_nvgpu)
-  endif()
-
-  list(APPEND LAMMPS_LINK_LIBS awpmd ivutils ${MKL_LIBRARIES})
-endif()
 
 if(PKG_ATC)
   if(LAMMPS_SIZES STREQUAL "BIGBIG")
@@ -647,7 +587,7 @@ endif()
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
 ######################################################################
-foreach(PKG_WITH_INCL CORESHELL QEQ OPENMP DPD-SMOOTH KOKKOS OPT INTEL GPU)
+foreach(PKG_WITH_INCL CORESHELL QEQ OPENMP DPD-SMOOTH KOKKOS OPT INTEL GPU AWPMD)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -671,7 +611,10 @@ endif()
 # and after everything else that is compiled locally
 ######################################################################
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  target_link_libraries(lammps PRIVATE -lwsock32 -lpsapi)
+  target_link_libraries(lammps PRIVATE wsock32.lib psapi.lib)
+  target_include_directories(lammps PRIVATE "${LAMMPS_SOURCE_DIR}/WINDOWS/extra")
+  target_compile_definitions(lammps PRIVATE "-Dpclose=_pclose")
+  target_compile_definitions(lammps PRIVATE "-D_CRT_SECURE_NO_WARNINGS")
 endif()
 
 ######################################################

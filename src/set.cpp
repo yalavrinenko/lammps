@@ -50,7 +50,8 @@ enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
      THETA,THETA_RANDOM,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
      SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
-     SMD_CONTACT_RADIUS,DPDTHETA,IVEC,DVEC,IARRAY,DARRAY,SPIN_WPMD, ERADIUS};
+     SMD_CONTACT_RADIUS,DPDTHETA,IVEC,DVEC,IARRAY,DARRAY,
+     SPIN_WPMD, ERADIUS, ETAG, CS};
 
 #define BIG INT_MAX
 
@@ -573,20 +574,45 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg], "spin/wpmd") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal set command");
+
       if (utils::strmatch(arg[iarg + 1], "^v_")) varparse(arg[iarg + 1], 1);
       else dvalue = utils::numeric(FLERR, arg[iarg + 1], true, lmp);
+
       if (!atom->spin_flag)
         error->all(FLERR, "Cannot set spin/wpmd for this atom style");
       set(SPIN_WPMD);
       iarg += 2;
-    } else if (strcmp(arg[iarg], "eradius")) {
+    } else if (strcmp(arg[iarg], "eradius") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal set command");
+
       if (utils::strmatch(arg[iarg + 1], "v_")) varparse(arg[iarg + 1], 1);
       else dvalue = utils::numeric(FLERR, arg[iarg + 1], true, lmp);
+
       if (!atom->eradius_flag)
         error->all(FLERR, "Cannot set eradius for this atom style");
       set(ERADIUS);
       iarg += 2;
+    } else if (strcmp(arg[iarg], "etag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal set command");
+
+      if (utils::strmatch(arg[iarg + 1], "v_")) varparse(arg[iarg + 1], 1);
+      else  ivalue = utils::inumeric(FLERR, arg[iarg + 1], true, lmp);
+
+      if (!atom->etag_flag) error->all(FLERR, "Cannot set etag for this atom style");
+      set(ETAG);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "cs") == 0) {
+      if (iarg + 3 > narg) error->all(FLERR, "Illegal set command");
+
+      if (utils::strmatch(arg[iarg + 1], "v_")) varparse(arg[iarg + 1], 1);
+      else  xvalue = utils::numeric(FLERR, arg[iarg + 1], true, lmp);
+
+      if (utils::strmatch(arg[iarg + 2], "v_")) varparse(arg[iarg + 2], 2);
+      else  yvalue = utils::numeric(FLERR, arg[iarg + 2], true, lmp);
+
+      if (!atom->cs_flag) error->all(FLERR, "Cannot set etag for this atom style");
+      set(CS);
+      iarg += 3;
     }
     else {
       // set custom per-atom vector or array or error out
@@ -951,15 +977,6 @@ void Set::set(int keyword)
       sp[i][3] = dvalue;
     }
 
-    //set spin for wavepacket atom style
-
-    else if (keyword == SPIN_WPMD){
-      atom->spin[i] = (int)dvalue;
-    }
-
-    else if (keyword == ERADIUS){
-      atom->eradius[i] = dvalue;
-    }
     // set quaternion orientation of ellipsoid or tri or body particle
     // set quaternion orientation of ellipsoid or tri or body particle
     // enforce quat rotation vector in z dir for 2d systems
@@ -1044,6 +1061,25 @@ void Set::set(int keyword)
       atom->darray[index_custom][i][icol_custom-1] = dvalue;
     }
 
+    //set spin for wavepacket atom style
+    else if (keyword == SPIN_WPMD) {
+      atom->spin[i] = (int) dvalue;
+    }
+
+    //set electron radius for wavepacket and eff atom style
+    else if (keyword == ERADIUS) {
+      atom->eradius[i] = dvalue;
+    }
+
+    //set wavepacket etag
+    else if (keyword == ETAG) {
+      atom->etag[i] = ivalue;
+    }
+
+    else if (keyword == CS) {
+      atom->cs[i][0] = xvalue;
+      atom->cs[i][1] = yvalue;
+    }
     count++;
   }
 

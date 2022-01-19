@@ -5,10 +5,11 @@
 #ifndef DERIVS_ADAPTIVE_MESH_INTEGRATOR_HPP
 #define DERIVS_ADAPTIVE_MESH_INTEGRATOR_HPP
 
+#include <algorithm>
 #include <vector>
 #include <cmath>
 #include <limits>
-#include "utils/Logger.hpp"
+#include "../utils/Logger.hpp"
 
 template<typename real_t>
 class value_range {
@@ -201,11 +202,12 @@ public:
   output_t integrate(integration_unit_t &engine, integration_args_t &&... args) {
     return engine.template integrate<output_t>(cells_begin_, cells_end_, std::forward<integration_args_t>(args)...);
   }
-
+# if 0
   template<typename ... foreach_args_t>
   void for_each(integration_unit_t &engine, foreach_args_t &&... args) {
     engine.template for_each(cells_begin_, cells_end_, std::forward<foreach_args_t>(args)...);
   }
+# endif
 
   std::vector<cell_t> const &mesh_cells() const { return cells_; }
 

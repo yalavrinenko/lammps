@@ -1,75 +1,55 @@
-/* -*- c++ -*- ----------------------------------------------------------
- LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- https://www.lammps.org/, Sandia National Laboratories
- Steve Plimpton, sjplimp@sandia.gov
-
- Copyright (2003) Sandia Corporation.  Under the terms of Contract
- DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
- certain rights in this software.  This software is distributed under
- the GNU General Public License.
-
- See the README file in the top-level LAMMPS directory.
- ------------------------------------------------------------------------- */
-/* ----------------------------------------------------------------------
-   Contributing author: Ilya Valuev (JIHT RAS)
-------------------------------------------------------------------------- */
-
+//
+// Created by yalavrinenko on 16.03.2020.
+//
 #ifdef PAIR_CLASS
-// clang-format off
-PairStyle(awpmd/cut,PairAWPMDCut);
-// clang-format on
+
+PairStyle(awpmd/cut,PairAWPMD)
+
 #else
+#ifndef LAMMPS_PAIR_AWPMD_CUT_H
+#define LAMMPS_PAIR_AWPMD_CUT_H
 
-#ifndef LMP_PAIR_AWPMD_CUT_H
-#define LMP_PAIR_AWPMD_CUT_H
-
-#include "pair.h"
-
-class AWPMD_split;
+#include "WavepacketPairCommon.h"
+#include <map>
+#include <stdexcept>
 
 namespace LAMMPS_NS {
+  class PairAWPMD: public WavepacketPairCommon {
+  public:
+    explicit PairAWPMD(class LAMMPS* lmp): WavepacketPairCommon(lmp) {
+      //throw std::runtime_error("Check pair! AWPMD pair req. tests and full impl.");
+    }
 
-class PairAWPMDCut : public Pair {
-  friend class FixNVEAwpmd;
+    void settings(int i, char **pString) override;
 
- public:
-  PairAWPMDCut(class LAMMPS *);
-  virtual ~PairAWPMDCut();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  void min_pointers(double **, double **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
+  protected:
+    struct awpmd_pair_index {
+      int tag{};
+      unsigned lmp_index{};
+      unsigned wpmd_index{};
 
-  void min_xf_pointers(int, double **, double **);
-  void min_xf_get(int);
-  void min_x_set(int);
-  double memory_usage();
+      awpmd_pair_index(unsigned l_index, unsigned w_index, int tag) : lmp_index(l_index), wpmd_index(w_index),
+                                                                      tag(tag) {}
 
- private:
-  int flexible_pressure_flag;
-  double cut_global;
-  double **cut;
+      bool operator < (awpmd_pair_index const &v) const{
+        return this->tag < v.tag;
+      }
+    };
 
-  int nmax;                          // number of additional variables for minimizer
-  double *min_var, *min_varforce;    // additional variables for minimizer
+    using awpmd_ions = std::vector<awpmd_pair_index>;
+    using awpmd_electrons = std::map<unsigned, std::vector<awpmd_pair_index>>;
+    using awpmd_packets = std::tuple<awpmd_ions, awpmd_electrons>;
 
-  void allocate();
+    awpmd_packets make_packets() const;
+    void init_wpmd(awpmd_ions &ions, awpmd_electrons &electrons);
 
-  void virial_eradius_compute();
+    awpmd_energies compute_energy_force() override;
 
-  AWPMD_split *wpmd;         // solver object
-  double ermscale;           // scale of width mass for motion
-  double width_pbc;          // setting for width pbc
-  double half_box_length;    // calculated by coeff function
-};
+    double electron_ke_{};
+    double ermscale{};
+    double width_pbc{};
+  };
+}
 
-}    // namespace LAMMPS_NS
-
-#endif
+#endif //LAMMPS_PAIR_AWPMD_CUT_H
 #endif

@@ -104,6 +104,8 @@ accelerated styles exist.
 * :doc:`airebo/morse <pair_airebo>` - AIREBO with Morse instead of LJ
 * :doc:`atm <pair_atm>` - Axilrod-Teller-Muto potential
 * :doc:`awpmd/cut <pair_awpmd>` - Antisymmetrized Wave Packet MD potential for atoms and electrons
+* :doc:`wpmd/cut <pair_wpmd>` - Wave Packet MD with Hartree approximation for atoms and electrons
+* :doc:`wpmd/dft/cut <pair_wpmd_dft>` Wave Packet MD with Hartree approximation and exchange-correlation intreaction for atoms and electrons
 * :doc:`beck <pair_beck>` - Beck potential
 * :doc:`body/nparticle <pair_body_nparticle>` - interactions between body particles
 * :doc:`body/rounded/polygon <pair_body_rounded_polygon>` - granular-style 2d polygon potential

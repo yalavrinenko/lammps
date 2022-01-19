@@ -1,0 +1,78 @@
+variable MAX_L equal 5
+variable outpath string "H2.wpmd-dft.dat"
+
+units real
+newton on
+boundary m m m
+processors  1 * *
+atom_style wavepacket
+
+#START INIT SECTION
+region  box block -100 100 -100 100 -100 100
+create_box  3 box
+create_atoms 1 single 2.5 0 0
+create_atoms 1 single -2.5 0 0
+create_atoms 2 single 2.5 0 0
+create_atoms 3 single -2.5 0 0
+
+mass  1 0.0544616997098749
+set type 1 charge 1
+set type 1 spin/wpmd 0
+
+mass 2 0.000544616997098749
+set type 2 charge -1
+set  type 2 spin/wpmd 1
+set  type 2 eradius 0.8660254037844386
+
+mass  3 0.000544616997098749
+set type 3 charge -1
+set type 3 spin/wpmd -1
+set type 3 eradius 0.8660254037844386
+
+group ion type 1
+group eup type 2
+group edown type 3
+group electrons type 2 3
+
+velocity all create 20 877785 dist gaussian
+#END INIT SECTION
+
+
+#PAIR_STYLE
+pair_style  wpmd/dft/cut 100 mesh adaptive 0.7 2.5
+pair_coeff  * *
+#END_PAIR_STYLE
+
+compute energies all pair wpmd/dft/cut
+variable eng_total equal etotal
+variable etotal_ev equal v_eng_total/627.509474*27.211386
+
+variable N equal 100
+variable dr equal ${MAX_L}/${N}
+
+thermo  1
+thermo_modify norm yes
+thermo_style custom step v_MAX_L v_etotal_ev pe temp
+
+fix ave all ave/time 1 100 10000 v_MAX_L v_etotal_ev file ${outpath} off 1
+
+label main_loop
+
+variable X equal ${MAX_L}/2.0
+
+set atom 1 x ${X}
+set atom 2 x -${X}
+
+set atom 3 x ${X}
+set atom 4 x -${X}
+
+fix mc all mc/wpmd 20 ev ex ew ewp
+
+run 10000
+
+unfix mc
+
+variable MAX_L equal ${MAX_L}-${dr}
+
+if "${MAX_L} <= 0" then quit
+jump SELF main_loop

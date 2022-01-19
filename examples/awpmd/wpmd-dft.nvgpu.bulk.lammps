@@ -1,0 +1,111 @@
+#PARAMETER SECTION
+variable dvalue equal 0.028 #10e+24 cm^{-3}
+variable tvalue equal 3 #1000K
+variable md_steps equal 10000 #Steps
+
+variable density equal ${dvalue}*(1e+24)
+variable temperature equal ${tvalue}*1000
+
+log wpmd_bulk_${density}_${temperature}.log
+
+variable Ni equal 32  #N ions
+variable Ne equal ${Ni} #N electrons
+#END PARAMS
+
+variable Ne_half equal ${Ne}/2
+variable V equal ${Ni}/(${density}/1e24)
+variable L equal (${V}^(1.0/3.0))/2.0
+variable LCut equal ${L}*4.0
+variable LH equal ${L}*2.0
+
+variable outpath string "H_wpmd-dft_${density}_${temperature}"
+
+units real
+newton on
+boundary m m m
+processors  1 * *
+atom_style wavepacket
+
+#START INIT SECTION
+region  box block -${L} ${L} -${L} ${L} -${L} ${L}
+create_box  3 box
+create_atoms 1 random ${Ni} 124577 box
+create_atoms 2 random ${Ne_half} 222422 box
+create_atoms 3 random ${Ne_half} 333424 box
+
+mass  1 1.00784 #H mass
+set type 1 charge 2
+set type 1 spin/wpmd 0
+
+mass 2 5.486e-4
+set type 2 charge -1
+set  type 2 spin/wpmd 1
+set  type 2 eradius 0.86
+
+mass  3 5.486e-4
+set type 3 charge -1
+set type 3 spin/wpmd -1
+set type 3 eradius 0.86
+
+group ion type 1
+group eup type 2
+group edown type 3
+group electrons type 2 3
+
+velocity ion create ${temperature} 877785 dist gaussian
+velocity eup create ${temperature} 872464 dist gaussian
+velocity edown create ${temperature} 121346 dist gaussian
+#END INIT SECTION
+
+#PAIR_STYLE
+pair_style  wpmd/dft/cut/nvgpu ${LCut} mesh adaptive 0.7 2.5 dynamic on
+pair_coeff  * *
+#END_PAIR_STYLE
+
+comm_modify vel yes
+
+#FIX_SECTION
+fix w1 all wall/wpmd 10.0 box ${LH} #Harmonic trap
+
+compute kinetik all ke
+
+compute energies all pair wpmd/dft/cut/nvgpu
+
+variable wall_energy equal f_w1[1]
+variable wall_pressure equal f_w1[2]
+variable wall_energy_ev equal v_wall_energy/627.509474*27.211386
+
+variable eng_total equal etotal
+variable etotal_ev equal v_eng_total/627.509474*27.211386
+
+compute all_temp all temp
+
+shell mkdir ${outpath}
+shell mkdir ./${outpath}/dumps
+
+fix ave all ave/time 1 10 10 v_etotal_ev c_energies v_wall_energy_ev c_kinetik c_all_temp v_wall_pressure file ./${outpath}/nvt_thermo.dat off 1
+
+thermo  1
+thermo_modify norm yes
+thermo_style custom step v_etotal_ev pe temp c_kinetik c_all_temp v_wall_pressure
+
+timestep 0.0001
+#STAGE 1
+fix md all nvt/wpmd temp ${temperature} ${temperature} $(100*dt)
+run 5000
+unfix md
+
+timestep 0.001
+#STAGE 2
+fix md all nvt/wpmd temp ${temperature} ${temperature} $(100*dt)
+run ${md_steps}
+unfix md
+
+fix md all nve/wpmd
+run 10000
+unfix md
+
+unfix ave
+unfix w1
+
+write_restart ./${outpath}/main.restart

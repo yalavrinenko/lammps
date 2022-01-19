@@ -100,9 +100,13 @@ struct log_exception_traits<enum vbLEVELS>{
 
 
 // format a string
-const char *fmt(const char *format,...);
 std::string fmt_s(const char *format,...);
 std::string fmt_va(const char *format, va_list);
+
+template <typename ... T>
+char const* fmt_iv(const char *format, T const& ... args){
+  return fmt_s(format, args...).c_str(); //bad, bad, bad, bad!!! TODO: make safe solution
+}
 
 # if USE_WX
 ///\en Here arguments are wxStrings (not working!)

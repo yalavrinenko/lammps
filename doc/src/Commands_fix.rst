@@ -78,6 +78,7 @@ OPT.
    * :doc:`flow/gauss <fix_flow_gauss>`
    * :doc:`freeze (k) <fix_freeze>`
    * :doc:`gcmc <fix_gcmc>`
+   * :doc:`mc/wpmd <fix_mc_wpmd>`
    * :doc:`gld <fix_gld>`
    * :doc:`gle <fix_gle>`
    * :doc:`gravity (ko) <fix_gravity>`
@@ -117,6 +118,7 @@ OPT.
    * :doc:`nph/asphere (o) <fix_nph_asphere>`
    * :doc:`nph/body <fix_nph_body>`
    * :doc:`nph/eff <fix_nh_eff>`
+   * :doc:`nph/wpmd <fix_nh_wpmd>`
    * :doc:`nph/sphere (o) <fix_nph_sphere>`
    * :doc:`nphug <fix_nphug>`
    * :doc:`npt (giko) <fix_nh>`
@@ -124,17 +126,19 @@ OPT.
    * :doc:`npt/body <fix_npt_body>`
    * :doc:`npt/cauchy <fix_npt_cauchy>`
    * :doc:`npt/eff <fix_nh_eff>`
+   * :doc:`npt/wpmd <fix_nh_wpmd>`
    * :doc:`npt/sphere (o) <fix_npt_sphere>`
    * :doc:`npt/uef <fix_nh_uef>`
    * :doc:`numdiff <fix_numdiff>`
    * :doc:`nve (giko) <fix_nve>`
    * :doc:`nve/asphere (gi) <fix_nve_asphere>`
    * :doc:`nve/asphere/noforce <fix_nve_asphere_noforce>`
-   * :doc:`nve/awpmd <fix_nve_awpmd>`
+   * :doc:`nve/awpmd <fix_nve_wpmd>`
    * :doc:`nve/body <fix_nve_body>`
    * :doc:`nve/dot <fix_nve_dot>`
    * :doc:`nve/dotc/langevin <fix_nve_dotc_langevin>`
    * :doc:`nve/eff <fix_nve_eff>`
+   * :doc:`nve/wpmd <fix_nh_wpmd>`
    * :doc:`nve/limit <fix_nve_limit>`
    * :doc:`nve/line <fix_nve_line>`
    * :doc:`nve/manifold/rattle <fix_nve_manifold_rattle>`
@@ -147,6 +151,7 @@ OPT.
    * :doc:`nvt/asphere (o) <fix_nvt_asphere>`
    * :doc:`nvt/body <fix_nvt_body>`
    * :doc:`nvt/eff <fix_nh_eff>`
+   * :doc:`nvt/wpmd <fix_nh_wpmd>`
    * :doc:`nvt/manifold/rattle <fix_nvt_manifold_rattle>`
    * :doc:`nvt/sllod (iko) <fix_nvt_sllod>`
    * :doc:`nvt/sllod/eff <fix_nvt_sllod_eff>`
@@ -259,4 +264,5 @@ OPT.
    * :doc:`wall/region <fix_wall_region>`
    * :doc:`wall/region/ees <fix_wall_ees>`
    * :doc:`wall/srd <fix_wall_srd>`
+   * :doc:`wall/wpmd <fix_wall_wpmd>`
    * :doc:`widom <fix_widom>`

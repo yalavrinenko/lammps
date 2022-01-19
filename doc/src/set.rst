@@ -23,7 +23,8 @@ Syntax
   *improper* or *sph/e* or *sph/cv* or *sph/rho* or
   *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or
   *edpd/temp* or *edpd/cv* or *cc* or
-  *i_name* or *d_name* or *i2_name* or *d2_name*
+  *i_name* or *d_name* or *i2_name* or *d2_name* or
+  *spin/wpmd* or *eradius* or *etag* or *cs*
 
   .. parsed-literal::
 
@@ -130,6 +131,12 @@ Syntax
                          column specified as i2_name[N] where N is 1 to Ncol
        *d2_name* value = column of a custom floating-point array with name
                          column specified as d2_name[N] where N is 1 to Ncol
+       *spin/wpmd* value = atom spin for wavepacket or electron atom style
+       *eradius* value = electron radius or wavepacket radius
+       *etag* value = wavepacket tag
+       *cs* values = re_cs im_cs
+         re_cs = real coefficient for packet split
+         im_cs = imag coefficient for packet split
 
 Examples
 """"""""

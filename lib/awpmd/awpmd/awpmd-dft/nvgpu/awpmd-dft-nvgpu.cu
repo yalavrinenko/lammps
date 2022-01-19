@@ -202,8 +202,8 @@ std::tuple<double, double> XCEnergy_nvgpu::adaptive_mesh_integration(std::vector
     compute_forces(derivatives, wavepackets, energy_eval);
   }
 
-  return std::make_tuple<double, double>(thrust::get<0>(xck_energy),
-                                         thrust::get<1>(xck_energy));
+  return std::make_tuple<double, double>((double)thrust::get<0>(xck_energy),
+                                         (double)thrust::get<1>(xck_energy));
 }
 
 std::tuple<double, double> XCEnergy_nvgpu::regular_mesh_integration(
@@ -224,8 +224,8 @@ std::tuple<double, double> XCEnergy_nvgpu::regular_mesh_integration(
     compute_forces(derivatives, wavepackets, energy_eval);
   }
 
-  return std::make_tuple<double, double>(thrust::get<0>(xck_energy),
-                                         thrust::get<1>(xck_energy));
+  return std::make_tuple<double, double>((double)thrust::get<0>(xck_energy),
+                                         (double)thrust::get<1>(xck_energy));
 }
 
 void

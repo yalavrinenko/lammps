@@ -32,7 +32,6 @@ const char *logfmt(const char *format,...){
   va_end(args);
   return buff;
 }
-
 std::string fmt_s(const char *format,...)
 {
     va_list args;

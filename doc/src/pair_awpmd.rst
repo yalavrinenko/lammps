@@ -14,7 +14,7 @@ Syntax
 * zero or more keyword/value pairs may be appended
 * keyword = *hartree* or *dproduct* or *uhf* or *free* or *pbc* or *fix* or *harm* or *ermscale* or *flex_press*
 
-  .. parsed-literal::
+.. parsed-literal::
 
        *hartree* value = none
        *dproduct* value = none
@@ -44,8 +44,8 @@ Description
 """""""""""
 
 This pair style contains an implementation of the Antisymmetrized Wave
-Packet Molecular Dynamics (AWPMD) method.  Need citation here.  Need
-basic formulas here.  Could be links to other documents.
+Packet Molecular Dynamics (AWPMD) method. [TODO:Need citation here.  Need
+basic formulas here.  Could be links to other documents].
 
 Rc is the cutoff.
 
@@ -114,7 +114,17 @@ This pair style can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
- none
+This pair is part of the AWPMD package.  It is only enabled if LAMMPS was
+built with that package.  See the :doc:`Build package <Build_package>`
+doc page for more info.
+
+This pair is work only with *real* and *electron* units due to energy conversion units.
+
+This pair required :doc:`wavepacket <atom_style>` or :doc:`electron <atom_style>` atom style.
+
+This pair does not support trajectory integration and works only with :doc:`fix mc/wpmd <fix_mc_wpmd>`.
+
+MPI version has not tested well yet.
 
 Related commands
 """"""""""""""""

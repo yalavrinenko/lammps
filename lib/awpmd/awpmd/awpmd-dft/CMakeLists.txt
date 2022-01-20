@@ -18,12 +18,14 @@ set(SOURCE_FILES_CPU awpmd-dft.hpp awpmd-dft-cpu.cpp
         utils/SpaceMesh.cpp utils/DerivativesFunction.cpp
         numeric/cpu_integrator.hpp)
 
+add_library(wpmd_dft_unit_cpu ${BUILDCONF} ${SOURCE_FILES_CPU} ${XCAPPROX_SRC})
+
 option(DEBUG_WAVEPACKET "Use dummy wavepacket for debug" OFF)
 if (DEBUG_WAVEPACKET)
     message(WARNING "USE Dummy Wavepacket class")
-    add_definitions(-DSEPARATE_DEBUG)
+    target_compile_definitions(wpmd_dft_unit_cpu PRIVATE -DSEPARATE_DEBUG)
 else (DEBUG_WAVEPACKET)
-    include_directories("../../ivutils/include/")
+    target_include_directories(wpmd_dft_unit_cpu PRIVATE "../../ivutils/include/")
 endif (DEBUG_WAVEPACKET)
 
-add_library(wpmd_dft_unit_cpu ${BUILDCONF} ${SOURCE_FILES_CPU} ${XCAPPROX_SRC})
+

@@ -54,7 +54,7 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
 
   DFTConfig mesh_config;
   auto get_next_float = [pString, this](size_t i) {
-    return force->numeric(FLERR, pString[i+1]);
+    return utils::numeric(FLERR, pString[i+1], false, lmp);
   };
   for (int i = 1; i < nargs; i++){
     if (std::strcmp(pString[i], "adaptive") == 0) {
@@ -85,10 +85,10 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
   }
 
   auto electron_count = std::count_if(atom->spin, atom->spin + atom->nlocal + atom->nghost,
-                                      [](auto &spin) { return std::abs(spin) == 1; });
+                                      [](int spin) { return std::abs(spin) == 1; });
 
   mesh_config.units.Hartree2Energy =  627.509474;
-  mesh_config.units.Distance2Bohr = 1.0 / (0.52917721092 * force->angstrom);
+  mesh_config.units.Distance2Bohr = 1.0f / (0.52917721092 * force->angstrom);
 
   const double SPACE_MESH_SCALE = mesh_config.units.Distance2Bohr;
 
@@ -150,7 +150,7 @@ void LAMMPS_NS::PairAWPMD_DFTCut::settings(int i, char **pString) {
   PairWPMD::settings(i, pString);
 
   auto electron_count = std::count_if(atom->spin, atom->spin + atom->nlocal + atom->nghost,
-                                      [](auto &spin) { return std::abs(spin) == 1; });
+                                      [](int spin) { return std::abs(spin) == 1; });
 
   xc_energy_ = new XCEnergy_cpu(electron_count, make_dft_config(i, pString));
 }

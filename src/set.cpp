@@ -579,7 +579,7 @@ void Set::command(int narg, char **arg)
         error->all(FLERR, "Cannot set spin/wpmd for this atom style");
       set(SPIN_WPMD);
       iarg += 2;
-    } else if (strcmp(arg[iarg], "eradius")) {
+    } else if (strcmp(arg[iarg], "eradius") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal set command");
       if (utils::strmatch(arg[iarg + 1], "v_")) varparse(arg[iarg + 1], 1);
       else dvalue = utils::numeric(FLERR, arg[iarg + 1], true, lmp);

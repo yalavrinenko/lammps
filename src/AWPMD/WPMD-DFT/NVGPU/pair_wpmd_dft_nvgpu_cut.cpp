@@ -16,11 +16,11 @@ void LAMMPS_NS::PairAWPMD_DFT_NVGPUCut::settings(int argc, char **pString) {
   LAMMPS_NS::PairWPMD::settings(argc, pString);
 
   auto electron_count = std::count_if(atom->spin, atom->spin + atom->nlocal + atom->nghost,
-                                      [](auto &spin) { return std::abs(spin) == 1; });
+                                      [](int &spin) { return std::abs(spin) == 1; });
   int gpu_per_node = 1;
   for (auto i = 0; i < argc; ++i){
     if (!std::strcmp(pString[i], "gppn")){
-      gpu_per_node = static_cast<int>(force->numeric(FLERR, pString[i+1]));
+      gpu_per_node = static_cast<int>(utils::numeric(FLERR, pString[i+1], false, lmp));
     }
   }
 

@@ -8,7 +8,7 @@
 #include <vector>
 #include <cmath>
 #include <limits>
-#include "utils/Logger.hpp"
+#include "../utils/Logger.hpp"
 
 template<typename real_t>
 class value_range {

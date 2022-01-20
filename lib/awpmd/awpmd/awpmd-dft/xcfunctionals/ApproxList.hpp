@@ -6,8 +6,8 @@
 #define MDUTILS_LIB_APPROXLIST_HPP
 
 #include "TableApproximation.hpp"
-#include "xcfunctionals/LDA.hpp"
-#include "xcfunctionals/LSDA.hpp"
-#include "xcfunctionals/ModLDA.hpp"
+#include "../xcfunctionals/LDA.hpp"
+#include "../xcfunctionals/LSDA.hpp"
+#include "../xcfunctionals/ModLDA.hpp"
 
 #endif //MDUTILS_LIB_APPROXLIST_HPP

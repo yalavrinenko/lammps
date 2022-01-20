@@ -48,7 +48,7 @@ if (PKG_WPMD-NVGPU-DFT)
     set(wpmd_nvgpu_dft_source_dir "${LAMMPS_SOURCE_DIR}/AWPMD/WPMD-DFT/NVGPU")
     file(GLOB wpmd_nvgpu_dft_sources ${wpmd_nvgpu_dft_source_dir}/[^.]*.cpp)
     file(GLOB wpmd_nvgpu_dft_headers ${wpmd_nvgpu_dft_source_dir}/[^.]*.h)
-    target_sources(lammps ${wpmd_nvgpu_dft_sources})
+    target_sources(lammps PRIVATE ${wpmd_nvgpu_dft_sources})
 
     RegisterStyles(${wpmd_nvgpu_dft_source_dir})
 

@@ -20,7 +20,7 @@ void LAMMPS_NS::PairAWPMD_DFT_NVGPUCut::settings(int argc, char **pString) {
   int gpu_per_node = 1;
   for (auto i = 0; i < argc; ++i){
     if (!std::strcmp(pString[i], "gppn")){
-      gpu_per_node = static_cast<int>(utils::numeric(FLERR, pString[i+1], false, lmp));
+      gpu_per_node = utils::inumeric(FLERR, pString[i+1], false, lmp);
     }
   }
 

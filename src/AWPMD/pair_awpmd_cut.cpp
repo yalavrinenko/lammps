@@ -140,7 +140,7 @@ void LAMMPS_NS::PairAWPMD::init_wpmd(awpmd_ions &ions, awpmd_electrons &electron
       Vector_3 rv = Vector_3(v[insert_index][0], v[insert_index][1], v[insert_index][2]);
 
       double pv = m * atom->ervel[insert_index];
-      Vector_2 cc = Vector_2(atom->cs[insert_index][0], atom->cs[insert_index][1]);
+      Vector_2 cc = Vector_2(atom->cs[insert_index][0], atom->cs[insert_index][1]); //atom->cs[2*insert_index], atom->cs[2*insert_index + 1]
 
       e_split_index.wpmd_index = (unsigned) wpmd->add_split(xx, rv, atom->eradius[insert_index], pv, cc, m,
                                                             atom->q[insert_index],

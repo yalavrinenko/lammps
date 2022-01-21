@@ -17,7 +17,7 @@ namespace LAMMPS_NS {
   class PairAWPMD: public WavepacketPairCommon {
   public:
     explicit PairAWPMD(class LAMMPS* lmp): WavepacketPairCommon(lmp) {
-      throw std::runtime_error("Check pair! AWPMD pair req. tests and full impl.");
+      //throw std::runtime_error("Check pair! AWPMD pair req. tests and full impl.");
     }
 
     void settings(int i, char **pString) override;

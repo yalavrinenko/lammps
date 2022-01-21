@@ -23,8 +23,7 @@ namespace LAMMPS_NS{
     electron_p = 2,
     electron_w = 3,
     electron_pw = 4,
-    electron_c0 = 5, //Not impl
-    electron_c1 = 6, //Not impl
+    electron_c = 5, //Not impl
     ion_p = 7
   };
 
@@ -45,49 +44,6 @@ namespace LAMMPS_NS{
     virtual size_t unpack(const double *data, size_t size, std::unordered_map<int, int> const &ghost_map) = 0;
   protected:
     filter_func _filter;
-  };
-
-  class MC3DVectorSystem: public MCSystem{
-  public:
-    void save(size_t size) override {
-      storage.clear();
-      storage.reserve(size);
-      for (auto i = 0; i < size; ++i)
-        if (_filter(i)){
-          storage.push_back({src[i][0], src[i][1], src[i][2]});
-        }
-      storage.shrink_to_fit();
-    }
-
-    void restore(size_t size) override {
-      auto insert_iterator = storage.begin();
-      for (auto i = 0; i < size; ++i)
-        if (_filter(i)){
-          src[i][0] = (*insert_iterator)[0];
-          src[i][1] = (*insert_iterator)[1];
-          src[i][2] = (*insert_iterator)[2];
-          ++insert_iterator;
-        }
-    }
-
-    void make(size_t size, mc_stepper &stepper) override;
-
-    std::vector<double> pack(size_t size, int *tag) const override;
-
-    size_t object_size() const override {
-      return 4;
-    }
-
-    size_t unpack(const double *data, size_t size, std::unordered_map<int, int> const &ghost_map) override;
-
-  public:
-    MC3DVectorSystem(double** &source, filter_func &&filter):
-        src(source), MCSystem(std::forward<filter_func>(filter)){
-    }
-
-  private:
-    double** &src;
-    std::vector<std::array<double, 3>> storage;
   };
 
   class MCScalarSystem: public MCSystem{
@@ -122,9 +78,8 @@ namespace LAMMPS_NS{
       return 2;
     }
 
-  public:
-    MCScalarSystem(double* &source, filter_func &&filter):
-        src(source), MCSystem(std::forward<filter_func>(filter)){
+    MCScalarSystem(double* &source, filter_func filter):
+        src(source), MCSystem(std::move(filter)){
     }
 
   private:
@@ -184,6 +139,82 @@ namespace LAMMPS_NS{
     void adjust(){
       max_shift *= engine.adjust();
     }
+  };
+
+  template<unsigned Dimension>
+  class MCVectorSystem: public MCSystem{
+  public:
+    void save(size_t size) override {
+      storage.clear();
+      storage.reserve(size);
+      for (auto i = 0ul; i < size; ++i)
+        if (_filter(i)){
+          storage.emplace_back();
+          for (auto j = 0u; j < Dim; ++j)
+            storage.back()[j] = src[i][j];
+
+        }
+      storage.shrink_to_fit();
+    }
+
+    void restore(size_t size) override {
+      auto insert_iterator = storage.begin();
+      for (auto i = 0ul; i < size; ++i)
+        if (_filter(i)){
+          for (auto j = 0u; j < Dim; ++j)
+            src[i][j] = (*insert_iterator)[j];
+          ++insert_iterator;
+        }
+    }
+
+    void make(size_t size, mc_stepper &stepper) override{
+      for (auto i = 0u; i < size; ++i)
+        if (_filter(i)) {
+          for (auto j = 0; j < Dim; ++j)
+            stepper.make_shift(src[i][j]);
+        }
+    }
+
+    std::vector<double> pack(size_t size, int *tag) const override {
+      std::vector<double> buffer;
+      buffer.reserve(size + size * Dim);
+      for (auto i = 0u; i < size; ++i) {
+        if (_filter(i)) {
+          buffer.push_back(tag[i]);
+          for (auto j = 0; j < Dim; ++j)
+            buffer.push_back(src[i][j]);
+        }
+      }
+      return buffer;
+    }
+
+    size_t object_size() const override {
+      return 1 + Dim;
+    }
+
+    size_t unpack(const double *data, size_t size, std::unordered_map<int, int> const &ghost_map) override {
+      size_t unpacked = 0;
+      auto iter = 0;
+      while (iter < size) {
+        int tag = (int) data[iter++];
+        if (ghost_map.count(tag)) {
+          for (auto j = 0u; j < Dim; ++j)
+            src[ghost_map.at(tag)][j] = data[iter++];
+          ++unpacked;
+        } else {
+          iter += Dim;
+        }
+      }
+      return unpacked;
+    }
+
+    MCVectorSystem(double** &source, filter_func &&filter):
+        src(source), MCSystem(std::forward<filter_func>(filter)){
+    }
+    constexpr static unsigned Dim = Dimension;
+  private:
+    double** &src;
+    std::vector<std::array<double, Dim>> storage;
   };
 
   class MCStepperSet{

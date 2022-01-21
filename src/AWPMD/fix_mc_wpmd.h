@@ -3,7 +3,7 @@
 //
 #ifdef FIX_CLASS
 
-FixStyle(wpmc/awpmd,FixWPMCAwpmd)
+FixStyle(mc/wpmd,FixMCAwpmd)
 
 #else
 
@@ -20,9 +20,9 @@ FixStyle(wpmc/awpmd,FixWPMCAwpmd)
 
 namespace LAMMPS_NS {
 
-  class FixWPMCAwpmd : public Fix {
+  class FixMCAwpmd : public Fix {
   public:
-    FixWPMCAwpmd(class LAMMPS *, int, char **);
+    FixMCAwpmd(class LAMMPS *, int, char **);
 
     void final_integrate() override;
 
@@ -39,7 +39,7 @@ namespace LAMMPS_NS {
 
     double memory_usage() override;
 
-    ~FixWPMCAwpmd() override;
+    ~FixMCAwpmd() override;
 
     double compute_vector(int i) override;
 

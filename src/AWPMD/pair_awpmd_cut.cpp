@@ -23,6 +23,8 @@ LAMMPS_NS::WavepacketPairCommon::awpmd_energies LAMMPS_NS::PairAWPMD::compute_en
   awpmd_electrons electrons;
   std::vector<Vector_3> fi;
 
+  wpmd->norm_mode = AWPMD_split::NORMALIZE;
+
   std::tie(ions, electrons) = this->make_packets();
   this->init_wpmd(ions, electrons);
 
@@ -78,14 +80,15 @@ LAMMPS_NS::WavepacketPairCommon::awpmd_energies LAMMPS_NS::PairAWPMD::compute_en
 
 LAMMPS_NS::PairAWPMD::awpmd_packets LAMMPS_NS::PairAWPMD::make_packets() const {
   int *spin = atom->spin;
-  int *etag = atom->tag;
+  int *tag = atom->tag;
+  int *etag = atom->etag;
 
   awpmd_ions ions;
   awpmd_electrons electrons{};
 
-  auto insert_particle = [&ions, &electrons, spin, etag, this](unsigned index) {
+  auto insert_particle = [&ions, &electrons, spin, etag, tag, this](unsigned index) {
     if (spin[index] == 0) {
-      ions.emplace_back(index, 0, etag[index]);
+      ions.emplace_back(index, 0, tag[index]);
     } else if (spin[index] == 1 || spin[index] == -1) {
       electrons[etag[index]].emplace_back(index, 0, etag[index]);
     } else {

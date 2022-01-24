@@ -69,7 +69,6 @@ namespace LAMMPS_NS {
     Compute *temp, *pe;
 
     double energy_old = std::numeric_limits<double>::max();
-    int v_id = -1;
 
     double target_temperature = 1.0;
 

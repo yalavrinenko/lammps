@@ -42,13 +42,10 @@ namespace LAMMPS_NS {
 
     nevery = 1;
 
-    v_id = input->variable->find(args[3]);
     temp = modify->compute[modify->find_compute("thermo_temp")];
     pe = modify->compute[modify->find_compute("thermo_pe")];
-    if (v_id == -1)
-      error->all(FLERR, "Fix wpmc/awpmd requires a valid variable style");
 
-    target_temperature = utils::numeric(FLERR, args[4], true, lmp) * force->boltz;
+    target_temperature = utils::numeric(FLERR, args[3], true, lmp) * force->boltz;
     output.like_vars.accepted_count = output.like_vars.rejected_count = 0.0;
 
     init_mc_steppers(narg, args);
@@ -98,8 +95,8 @@ namespace LAMMPS_NS {
   void FixMCAwpmd::init_mc_steppers(int argc, char **argv) {
     unsigned const ARG_SHIFT = 5u;
 
-    auto electron_filter = [this](int index) { return atom->spin[index] != 0; };
-    auto ion_filter = [this](int index) { return atom->spin[index] == 0; };
+    auto electron_filter = [this](int index) { return this->atom->mask[index] && atom->spin[index] != 0; };
+    auto ion_filter = [this](int index) { return this->atom->mask[index] && atom->spin[index] == 0; };
     unsigned long engine_seed =  std::random_device{}();
     if (comm->nprocs > 1)
       MPI_Bcast(&engine_seed, 1, MPI_UNSIGNED_LONG, 0, world);

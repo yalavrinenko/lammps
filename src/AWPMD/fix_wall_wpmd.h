@@ -3,7 +3,7 @@
 //
 #ifdef FIX_CLASS
 
-FixStyle(wall/awpmd,FixWallAwpmd)
+FixStyle(wall/wpmd,FixWallWpmd)
 
 #else
 #ifndef LAMMPS_FIX_WPMC_WALL_H
@@ -16,11 +16,11 @@ class WavePacket;
 
 namespace LAMMPS_NS {
   class WavepacketPairCommon;
-  class FixWallAwpmd : public Fix {
+  class FixWallWpmd : public Fix {
   public:
-    FixWallAwpmd(class LAMMPS *lammps, int i, char **pString);
+    FixWallWpmd(class LAMMPS *lammps, int i, char **pString);
 
-    ~FixWallAwpmd() override;
+    ~FixWallWpmd() override;
 
     int setmask() override;
 

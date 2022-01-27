@@ -13,6 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * mc/wpmd = style name of this fix command
 * T = temperature of the ideal gas reservoir (temperature units)
+* zero or more keyword/value pairs may be appended
 
 .. parsed-literal::
 

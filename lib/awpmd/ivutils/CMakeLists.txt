@@ -24,6 +24,12 @@ if(WIN32)
   endif()
   target_compile_definitions(ivutils PRIVATE -DFU=0)
 
+  target_compile_definitions(ivutils PRIVATE "-D_CRT_SECURE_NO_WARNINGS")
+  target_compile_definitions(ivutils PRIVATE "-D_SCL_SECURE_NO_WARNINGS")
+  target_compile_definitions(ivutils PRIVATE "-D_CRT_SECURE_NO_DEPRECATE")
+  target_compile_definitions(ivutils PRIVATE "-D_USE_MATH_DEFINES")
+    
+
   if(${HAVE_MATH})
     target_compile_definitions(ivutils PRIVATE -DNO_CMNMATH)
   endif()

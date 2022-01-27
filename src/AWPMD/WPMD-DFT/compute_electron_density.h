@@ -38,7 +38,7 @@ protected:
   std::vector<XCEnergy_cpu::cell_density> cells_;
 
   LAMMPS_NS::Region *region_ = nullptr;
-  std::array<int, 3> nbins_{{1, 1, 1}};
+  std::array<int, 3> nbins_{1, 1, 1};
   std::array<double, 3> axis_{};
   std::array<bool, 3> vary_axis_{{false, false, false}};
   std::vector<XCEnergy::WavePacketInfo> packets_;

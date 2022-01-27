@@ -11,7 +11,12 @@ if(WIN32)
         set(HAVE_ERF OFF)
     endif()
     target_compile_definitions(lammps PRIVATE -DFU=0)
-
+    
+    target_compile_definitions(lammps PRIVATE "-D_CRT_SECURE_NO_WARNINGS")
+    target_compile_definitions(lammps PRIVATE "-D_SCL_SECURE_NO_WARNINGS")
+    target_compile_definitions(lammps PRIVATE "-D_CRT_SECURE_NO_DEPRECATE")
+    target_compile_definitions(lammps PRIVATE "-D_USE_MATH_DEFINES")
+    
     if(${HAVE_MATH})
         target_compile_definitions(lammps PRIVATE -DNO_CMNMATH)
     endif()

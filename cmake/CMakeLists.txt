@@ -91,7 +91,7 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "
 endif()
 
 # we require C++11 without extensions
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14) ## IV !!
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
 # ugly hack for MSVC which by default always reports an old C++ standard in the __cplusplus macro
@@ -281,6 +281,10 @@ else()
   add_library(mpi_stubs STATIC ${MPI_SOURCES})
   set_target_properties(mpi_stubs PROPERTIES OUTPUT_NAME lammps_mpi_stubs${LAMMPS_MACHINE})
   target_include_directories(mpi_stubs PUBLIC $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    target_include_directories(mpi_stubs PRIVATE "${LAMMPS_SOURCE_DIR}/WINDOWS/extra")
+  endif()
+
   if(BUILD_SHARED_LIBS)
     target_link_libraries(lammps PRIVATE mpi_stubs)
     target_include_directories(lammps INTERFACE $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
@@ -608,6 +612,9 @@ endif()
 ######################################################################
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   target_link_libraries(lammps PRIVATE -lwsock32 -lpsapi)
+  target_include_directories(lammps PRIVATE "${LAMMPS_SOURCE_DIR}/WINDOWS/extra")
+  target_compile_definitions(lammps PRIVATE "-Dpclose=_pclose")
+
 endif()
 
 ######################################################

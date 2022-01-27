@@ -1,5 +1,5 @@
 find_package(MKL REQUIRED)
-set(CMAKE_CXX_STANDARD 14)
+#set(CMAKE_CXX_STANDARD 14)
 
 if(WIN32)
     if(${CMAKE_GENERATOR} MATCHES "Visual Studio 15 2017")

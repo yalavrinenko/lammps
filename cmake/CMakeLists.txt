@@ -611,7 +611,7 @@ endif()
 # and after everything else that is compiled locally
 ######################################################################
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  target_link_libraries(lammps PRIVATE -lwsock32 -lpsapi)
+  target_link_libraries(lammps PRIVATE wsock32.lib psapi.lib)
   target_include_directories(lammps PRIVATE "${LAMMPS_SOURCE_DIR}/WINDOWS/extra")
   target_compile_definitions(lammps PRIVATE "-Dpclose=_pclose")
 

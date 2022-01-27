@@ -30,9 +30,9 @@
 #include <cstring>
 #include <ctime>
 
-#if defined(__linux__)
+//#if defined(__linux__)
 #include <unistd.h>    // for readlink
-#endif
+//#endif
 
 #if defined(__APPLE__)
 #include <fcntl.h>    // for fcntl

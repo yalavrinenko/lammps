@@ -12,6 +12,7 @@ ComputeStyle(denprof,ComputeDensityAwpmd)
 #include <awpmd-dft-cpu.hpp>
 #include <region.h>
 #include <memory.h>
+#include <array>
 
 class ComputeDensityAwpmd: public LAMMPS_NS::Compute{
 public:

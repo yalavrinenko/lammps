@@ -91,7 +91,7 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "
 endif()
 
 # we require C++11 without extensions
-set(CMAKE_CXX_STANDARD 14) ## IV !!
+set(CMAKE_CXX_STANDARD 11) 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
 # ugly hack for MSVC which by default always reports an old C++ standard in the __cplusplus macro

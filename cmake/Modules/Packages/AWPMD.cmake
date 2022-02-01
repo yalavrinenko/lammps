@@ -2,10 +2,10 @@ find_package(MKL REQUIRED)
 set(CMAKE_CXX_STANDARD 14)
 
 if(WIN32)
-    if(${CMAKE_GENERATOR} MATCHES "Visual Studio 15 2017")
+    if(MSVC_VERSION GREATER_EQUAL 1900)
         set(HAVE_MATH ON)
         set(HAVE_ERF ON)
-        target_compile_definitions(lammps PRIVATE -DERF_H) # don't include erf.h
+        target_compile_definitions(lammps PRIVATE -DHAVE_ERF) # don't include erf.h
     else()
         set(HAVE_MATH OFF)
         set(HAVE_ERF OFF)

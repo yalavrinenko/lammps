@@ -476,9 +476,11 @@ foreach(HEADER cmath)
   endif(NOT FOUND_${HEADER})
 endforeach(HEADER)
 
-set(MATH_LIBRARIES "m" CACHE STRING "math library")
-mark_as_advanced( MATH_LIBRARIES )
-target_link_libraries(lammps PRIVATE ${MATH_LIBRARIES})
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  set(MATH_LIBRARIES "m" CACHE STRING "math library")
+  mark_as_advanced( MATH_LIBRARIES )
+  target_link_libraries(lammps PRIVATE ${MATH_LIBRARIES})
+endif()
 
 ######################################
 # Generate Basic Style files
@@ -614,7 +616,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   target_link_libraries(lammps PRIVATE wsock32.lib psapi.lib)
   target_include_directories(lammps PRIVATE "${LAMMPS_SOURCE_DIR}/WINDOWS/extra")
   target_compile_definitions(lammps PRIVATE "-Dpclose=_pclose")
-
+  target_compile_definitions(lammps PRIVATE "-D_CRT_SECURE_NO_WARNINGS")
 endif()
 
 ######################################################

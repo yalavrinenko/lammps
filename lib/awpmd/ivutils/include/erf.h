@@ -1,7 +1,7 @@
 # ifndef ERF_H
 # define ERF_H
 
-# ifdef _WIN32
+# if defined(_WIN32) && !defined(HAVE_ERF)
 
 # ifdef __cplusplus
 extern "C" {

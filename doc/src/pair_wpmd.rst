@@ -17,94 +17,59 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style awpmd/cut -1
-   pair_style awpmd/cut 40.0 uhf free
-   pair_coeff * *
-   pair_coeff 2 2 20.0
+   pair_style wpmd/cut -1
+   pair_style wpmd/cut 40.0
 
 Description
 """""""""""
 
-This pair style contains an implementation of the Antisymmetrized Wave
-Packet Molecular Dynamics (AWPMD) method.  Need citation here.  Need
-basic formulas here.  Could be links to other documents.
+This pair style contains an implementation of the Wave
+Packet Molecular Dynamics (WPMD) method with Hartree approximation[TODO::cite art].
 
-Rc is the cutoff.
+.. math::
+    U_{ii}(r) = \frac{C}{r}
 
-The pair_style command allows for several optional keywords
-to be specified.
+    U_{ei}(r, s) = \frac{C}{r} \textrm{Erf}(-\frac{Ar}{s})
 
-The *hartree*, *dproduct*, and *uhf* keywords specify the form of the
-initial trial wave function for the system.  If the *hartree* keyword
-is used, then a Hartree multielectron trial wave function is used.  If
-the *dproduct* keyword is used, then a trial function which is a
-product of two determinants for each spin type is used.  If the *uhf*
-keyword is used, then an unrestricted Hartree-Fock trial wave function
-is used.
+    U_{ee}(r, s_1, s_2) = \frac{C}{r} \textrm{Erf}(-\frac{Ar}{f(s_1, s_2)}),
 
-The *free*, *pbc*, and *fix* keywords specify a width constraint on
-the electron wave packets.  If the *free* keyword is specified, then there is no
-constraint.  If the *pbc* keyword is used and *Plen* is specified as
--1, then the maximum width is half the shortest box length.  If *Plen*
-is a positive value, then the value is the maximum width.  If the
-*fix* keyword is used and *Flen* is specified as -1, then electrons
-have a constant width that is read from the data file.  If *Flen* is a
-positive value, then the constant width for all electrons is set to
-*Flen*\ .
+where :math:`A`, :math:`C` --- unit coefficients, :math:`f(s_1, s_2)` is a function[TODO: add full definition].
 
-The *harm* keyword allow oscillations in the width of the
-electron wave packets.  More details are needed.
+The pair has only one parameter: `Rc` is the cutoff.
 
-The *ermscale* keyword specifies a unitless scaling factor
-between the electron masses and the width variable mass.  More
-details needed.
-
-If the *flex_press* keyword is used, then a contribution from the
-electrons is added to the total virial and pressure of the system.
-
-This potential is designed to be used with :doc:`atom_style wavepacket <atom_style>` definitions, in order to handle the
-description of systems with interacting nuclei and explicit electrons.
+This potential is designed to be used with :doc:`atom_style wavepacket <atom_style>` definitions,
+in order to handle the description of systems with interacting nuclei and explicit electrons.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
-commands, or by mixing as described below:
-
-* cutoff (distance units)
-
-For *awpmd/cut*, the cutoff coefficient is optional.  If it is not
-used (as in some of the examples above), the default global value
-specified in the pair_style command is used.
-
+commands, or by mixing as described below.
 ----------
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The :doc:`pair_modify <pair_modify>` mix, shift, table, and tail options
-are not relevant for this pair style.
+are not relevant for this pair style. For minimization of the system's energy with `wpmd/cut` pair
+should use a :doc:`fix mc/wpmd <fix mc_wpmd>`.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`,
+so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*, *middle*, *outer* keywords.
-
 ----------
 
 Restrictions
 """"""""""""
- none
+This pair is part of the AWPMD package.  It is only enabled if LAMMPS was
+built with that package.  See the :doc:`Build package <Build_package>`
+doc page for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`
-
-Default
-"""""""
-
-These are the defaults for the pair_style keywords: *hartree* for the
-initial wave function, *free* for the wave packet width.

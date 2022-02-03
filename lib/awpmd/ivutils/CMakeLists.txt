@@ -14,10 +14,10 @@ include_directories(${IVUTILS_INCLUDE_DIR})
 add_library(ivutils ${BUILDCONF} ${IVUTILS_SOURCES} ${IVUTILS_HEADERS})
 
 if(WIN32)
-  if(${CMAKE_GENERATOR} MATCHES "Visual Studio 15 2017")
+  if(MSVC_VERSION GREATER_EQUAL 1900)
     set(HAVE_MATH ON)
     set(HAVE_ERF ON)
-    target_compile_definitions(ivutils PRIVATE -DERF_H) # don't include erf.h
+    target_compile_definitions(ivutils PRIVATE -DHAVE_ERF) # don't include erf.h
   else()
     set(HAVE_MATH OFF)
     set(HAVE_ERF OFF)

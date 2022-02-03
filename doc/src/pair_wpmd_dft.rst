@@ -36,27 +36,61 @@ Description
 """""""""""
 
 This pair style contains an implementation of the Wave
-Packet Molecular Dynamics (WPMD) method with Hartree approximation[TODO::cite art].
+Packet Molecular Dynamics (WPMD) method with density functional theory extension :ref:`(wpmddft) <wpmddft>`.
+
+WPMD-DFT uses Hartree approximation (same as in :doc:`pair wpmd/cut <wpmd/cut>`) for evaluation of Coulomb interaction. The additional exchange-correlation
+energy evaluates via numerical integration of xc-functionals on 3d mesh.
 
 .. math::
-    U_{ii}(r) = \frac{C}{r}
+    E = E_\mathrm{Hartree} + E_\mathrm{a}
 
-    U_{ei}(r, s) = \frac{C}{r} \textrm{Erf}(-\frac{Ar}{s})
+    E_\mathrm{a}[n] = (T_\mathrm{s}[n] - \sum_{i} T_\mathrm{s}[n_i]) +
+                    (E_\mathrm{XC}[n] - \sum_{i} E_\mathrm{XC}[n_i])
 
-    U_{ee}(r, s_1, s_2) = \frac{C}{r} \textrm{Erf}(-\frac{Ar}{f(s_1, s_2)}),
+    n = n(r) = \sum_{k=1}^{N_\mathrm{e}} \varphi(\vec{r}) \varphi^*(\vec{r})
 
-where :math:`A`, :math:`C` --- unit coefficients, :math:`f(s_1, s_2)` is a function[TODO: add full definition].
+    n_i = n_i(r) = \varphi(\vec r) \varphi^*(\vec r)
 
-The pair has only one parameter: `Rc` is the cutoff.
+where :math:`N_\mathrm{e}` --- number of wavepackets.
 
-This potential is designed to be used with :doc:`atom_style wavepacket <atom_style>` definitions,
-in order to handle the description of systems with interacting nuclei and explicit electrons.
+The exchange-correlation energy evaluated in local density approximation with spin as:
 
-The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
-above, or in the data file or restart files read by the
-:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
-commands, or by mixing as described below.
+.. math::
+    E_{\mathrm XC}^{\mathrm LSDA}[n_\uparrow,n_\downarrow]=
+        \int\epsilon_{\mathrm XC}(n_\uparrow,n_\downarrow)n (\mathbf{r})\, d\mathbf{r},
+
+        n(\mathbf{r}) = n_\uparrow(\mathbf{r}) + n_\downarrow (\mathbf{r}),
+
+Additional kinetic energy of uniform noninteractive electon gas is:
+
+.. math::
+    T_\mathrm{s}[n] = \frac{3}{10}(3\pi^2)^{2/3} \int n(\mathbf{r})^{5/3}\, d\mathbf{r}.
+
+The pair has several parameters:
+
+* The *Rc* is the cutoff radius for Coulomb interaction. Due to accurate account of long range interaction
+should be grater then cell size.
+
+* The *mesh* keyword is set up type of 3d space mesh for numerical integration. There are two types of meshes
+ware implemented: *regular* and *adaptive*. The *regular* option sets the regular mesh with fixed cell size.
+Additional parameter *NCells* set the number of cells for one direction. The total cell size is
+:math:`\mathrm{NCells}`. The *adaptive* option sets the adaptive mesh with variable cell size that depend
+on the gradient of electron density. The cell width will be grater or equal *min_cell_size*. The parameter
+*cell_cutoff* define the maximum distance from cell center to packet center. The adaptive mesh refinement
+algorithm increase a performance of simulation due to decreasing of cells number.
+
+* The *dynamic* keyword is enable a force calculation from exchange-correlation interaction. Forces calculates
+by numerical integration over a mesh linked to wavepacket.
+.. math::
+      \frac{\partial E_{\mathrm{a}}}{\partial q} =
+    \left(\frac{\partial T_\mathrm{s}[n]}{\partial n} + \frac{\partial E_\mathrm{XC}[n]}{\partial n}\right)
+    \frac{\partial n}{\partial q}.
+
+* The *force_mesh_cell* keyword is set the number of cells for force calculation per packet in one direction.
+The total number of cells is a cube of *force_mesh_cell*.
+
+This potential inherit all properties of :doc:`pair wpmd/cut <wpmd/cut>`.
+
 ----------
 
 Mixing, shift, table, tail correction, restart, rRESPA info
@@ -77,7 +111,7 @@ This pair style can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
-This pair is part of the AWPMD package.  It is only enabled if LAMMPS was
+This pair is part of the WPMD-DFT package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
@@ -85,3 +119,9 @@ Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`
+
+.. _wpmddft:
+
+**(wpmddft)** Lavrinenko, Yaroslav, et al. "Equilibrium properties of warm dense deuterium
+calculated by the wave packet molecular dynamics and density functional theory method."
+Physical Review E 104.4 (2021): 045304.

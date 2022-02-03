@@ -14,6 +14,7 @@
 #include <utils/DerivativesFunction.hpp>
 #include <wpmd_split.h>
 #include <xcfunctionals/LSDA.hpp>
+#include <error.h>
 
 LAMMPS_NS::PairAWPMD_DFTCut::PairAWPMD_DFTCut(LAMMPS_NS::LAMMPS *lammps) : PairAWPMD_DFTCut(lammps, nullptr) {
 }
@@ -53,30 +54,30 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
   unsigned int MeshSize = 50;
 
   DFTConfig mesh_config;
-  auto get_next_float = [pString, this](size_t i) {
+  auto get_float_at = [pString, this](size_t i) {
     return utils::numeric(FLERR, pString[i+1], false, lmp);
   };
   for (int i = 1; i < nargs; i++){
-    if (std::strcmp(pString[i], "adaptive") == 0) {
-      is_daptive_mesh = true;
+    if (std::strcmp(pString[i], "mesh") == 0){
+      if (std::strcmp(pString[i + 1], "adaptive") == 0) {
+        is_daptive_mesh = true;
+
+        mesh_config.min_cell = get_float_at(i + 2);
+        mesh_config.max_distance = get_float_at(i + 3);
+
+      } else if (std::strcmp(pString[i + 1], "regular") == 0) {
+        is_daptive_mesh = false;
+        MeshSize = static_cast<unsigned int>(get_float_at(i + 2));
+      } else
+        error->all(FLERR, "Invalid space mesh type");
     }
 
-    if (std::strcmp(pString[i], "min_cell_size") == 0)
-      mesh_config.min_cell = get_next_float(i);
-
-    if (std::strcmp(pString[i], "max_distance") == 0)
-      mesh_config.max_distance = get_next_float(i);
-
-    if (std::strcmp(pString[i], "regular") == 0) {
-      is_daptive_mesh = false;
-      MeshSize = get_next_float(i);
+    if (std::strcmp(pString[i], "dynamic") == 0) {
+      calc_force_ = std::strcmp(pString[i + 1], "on") == 0;
     }
 
-    if (std::strcmp(pString[i], "dynamic") == 0)
-      calc_force_ = true;
-
-    if (std::strcmp(pString[i], "force_mesh_bins") == 0){
-      mesh_config.force_cell_bins = get_next_float(i);
+    if (std::strcmp(pString[i], "force_mesh_cells") == 0){
+      mesh_config.force_cell_bins = static_cast<unsigned long>(get_float_at(i));
     }
 
     if (std::strcmp(pString[i], "xc_table") == 0){

@@ -44,8 +44,8 @@ Description
 """""""""""
 
 This pair style contains an implementation of the Antisymmetrized Wave
-Packet Molecular Dynamics (AWPMD) method.  Need citation here.  Need
-basic formulas here.  Could be links to other documents.
+Packet Molecular Dynamics (AWPMD) method. [TODO:Need citation here.  Need
+basic formulas here.  Could be links to other documents].
 
 Rc is the cutoff.
 

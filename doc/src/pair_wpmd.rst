@@ -69,6 +69,8 @@ This pair is part of the AWPMD package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
+This pair is work only with *real* unit due to energy conversion units.
+
 Related commands
 """"""""""""""""
 

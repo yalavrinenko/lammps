@@ -120,6 +120,7 @@ This pair is part of the WPMD-NVGPU-DFT package.  It is only enabled if LAMMPS w
 built with that package. This pair requires a nvidia cuda version 9.0 or higher and c++14.
 See the :doc:`Build package <Build_package>` doc page for more info.
 
+This pair is work only with *real* unit due to energy conversion units.
 Default
 """""""
 By default the *mesh* is *regular* with size per one axe is equal to 50. The *dynamic* is *off*.

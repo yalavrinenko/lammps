@@ -3,7 +3,7 @@
 //
 #ifdef FIX_CLASS
 
-FixStyle(nvt/awpmd,FixNVTAwpmd)
+FixStyle(nvt/wpmd,FixNVTWpmd)
 
 #else
 #ifndef LAMMPS_FIX_NVT_AWPMD_H
@@ -11,9 +11,9 @@ FixStyle(nvt/awpmd,FixNVTAwpmd)
 
 #include "../fix_nvt.h"
 namespace LAMMPS_NS {
-  class FixNVTAwpmd : public FixNVT {
+  class FixNVTWpmd : public FixNVT {
   public:
-    FixNVTAwpmd(class LAMMPS *, int, char **);
+    FixNVTWpmd(class LAMMPS *, int, char **);
 
     void final_integrate() override;
 

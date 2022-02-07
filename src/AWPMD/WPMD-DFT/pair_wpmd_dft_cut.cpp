@@ -55,7 +55,7 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
 
   DFTConfig mesh_config;
   auto get_float_at = [pString, this](size_t i) {
-    return utils::numeric(FLERR, pString[i+1], false, lmp);
+    return utils::numeric(FLERR, pString[i], false, lmp);
   };
   for (int i = 1; i < nargs; i++){
     if (std::strcmp(pString[i], "mesh") == 0){
@@ -65,19 +65,23 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
         mesh_config.min_cell = get_float_at(i + 2);
         mesh_config.max_distance = get_float_at(i + 3);
 
+        i += 2;
       } else if (std::strcmp(pString[i + 1], "regular") == 0) {
         is_daptive_mesh = false;
         MeshSize = static_cast<unsigned int>(get_float_at(i + 2));
+        i += 1;
       } else
         error->all(FLERR, "Invalid space mesh type");
     }
 
     if (std::strcmp(pString[i], "dynamic") == 0) {
       calc_force_ = std::strcmp(pString[i + 1], "on") == 0;
+      ++i;
     }
 
     if (std::strcmp(pString[i], "force_mesh_cells") == 0){
       mesh_config.force_cell_bins = static_cast<unsigned long>(get_float_at(i));
+      ++i;
     }
 
     if (std::strcmp(pString[i], "xc_table") == 0){

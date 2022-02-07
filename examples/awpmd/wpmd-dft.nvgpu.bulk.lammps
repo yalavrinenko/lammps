@@ -1,7 +1,7 @@
 #PARAMETER SECTION
 variable dvalue equal 0.028 #10e+24 cm^{-3}
 variable tvalue equal 3 #1000K
-variable md_steps equal 50000 #Steps
+variable md_steps equal 10000 #Steps
 
 variable density equal ${dvalue}*(1e+24)
 variable temperature equal ${tvalue}*1000
@@ -58,14 +58,14 @@ velocity edown create ${temperature} 121346 dist gaussian
 #END INIT SECTION
 
 #PAIR_STYLE
-pair_style  wpmd/dft-nvgpu/cut ${LCut} mesh adaptive 0.7 2.5 dynamic
+pair_style  wpmd/dft-nvgpu/cut ${LCut} mesh adaptive 0.7 2.5 dynamic on
 pair_coeff  * *
 #END_PAIR_STYLE
 
 comm_modify vel yes
 
 #FIX_SECTION
-fix w1 all wall/awpmd 10 10.0 10 box ${LH} ${LH} ${LH} #Harmonic trap
+fix w1 all wall/wpmd 10.0 box ${LH} #Harmonic trap
 
 compute kinetik all ke
 

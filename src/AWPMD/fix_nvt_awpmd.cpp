@@ -10,13 +10,13 @@
 #include "respa.h"
 #include "error.h"
 
-LAMMPS_NS::FixNVTAwpmd::FixNVTAwpmd(LAMMPS_NS::LAMMPS *lammps, int argc, char **argv) :
+LAMMPS_NS::FixNVTWpmd::FixNVTWpmd(LAMMPS_NS::LAMMPS *lammps, int argc, char **argv) :
     FixNVT(lammps, argc, argv){
   if (!atom->wavepacket_flag)
     error->all(FLERR,"Fix nve/awpmd requires atom style wavepacket");
 }
 
-void LAMMPS_NS::FixNVTAwpmd::initial_integrate(int i) {
+void LAMMPS_NS::FixNVTWpmd::initial_integrate(int i) {
   if (atom->mass || atom->rmass) {
     for (int i = 0; i < atom->nlocal; i++) {
       if (atom->mask[i] & groupbit) {
@@ -31,7 +31,7 @@ void LAMMPS_NS::FixNVTAwpmd::initial_integrate(int i) {
   FixNVT::initial_integrate(i);
 }
 
-void LAMMPS_NS::FixNVTAwpmd::final_integrate() {
+void LAMMPS_NS::FixNVTWpmd::final_integrate() {
   if (atom->mass || atom->rmass) {
     for (int i = 0; i < atom->nlocal; i++) {
       if (atom->mask[i] & groupbit) {

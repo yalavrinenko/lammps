@@ -115,6 +115,12 @@ This pair is part of the WPMD-DFT package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
+Default
+"""""""
+By default the *mesh* is *regular* with size per one axe is equal to 50. The *dynamic* is *off*.
+
+----------
+
 Related commands
 """"""""""""""""
 

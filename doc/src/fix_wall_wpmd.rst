@@ -10,7 +10,7 @@ Syntax
    fix ID group-ID wall/wpmd k keyword values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* k = wall potential strength (??? unit)
+* k = wall potential strength (??? unit) TODO: Discuss the units
 * zero or more keyword/value pairs may be appended to args
 
   .. parsed-literal::

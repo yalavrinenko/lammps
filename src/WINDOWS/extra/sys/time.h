@@ -2,9 +2,11 @@
 #define GETTIMEOFDAY_H
 
 //#include <config.h>
+#include <time.h>
 #include <sys/timeb.h>
 //#include "../include/time.h"
 
+//#include <sysinfoapi.h>
 
 struct timeval 
 {
@@ -13,6 +15,10 @@ struct timeval
 };
 
 
+inline int GetTickCount(){
+  clock_t t = clock();
+  return (int)((1000*(float)t)/CLOCKS_PER_SEC);
+}
 
 
 

@@ -30,7 +30,7 @@
 #include <cstring>
 #include <ctime>
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(_MSC_VER)
 #include <unistd.h>    // for readlink
 #endif
 

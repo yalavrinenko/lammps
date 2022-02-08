@@ -108,11 +108,11 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
                        domain->boxhi[1] - domain->boxlo[1],
                        domain->boxhi[2] - domain->boxlo[2]};
 
-  uint grid_size[] = {static_cast<unsigned int>(comm->procgrid[0]),
+  unsigned int grid_size[] = {static_cast<unsigned int>(comm->procgrid[0]),
                    static_cast<unsigned int>(comm->procgrid[1]),
                    static_cast<unsigned int>(comm->procgrid[2])};
 
-  uint my_grid_pos[] = {static_cast<unsigned int>(comm->myloc[0]),
+  unsigned int my_grid_pos[] = {static_cast<unsigned int>(comm->myloc[0]),
                      static_cast<unsigned int>(comm->myloc[1]),
                      static_cast<unsigned int>(comm->myloc[2])};
 

@@ -14,15 +14,21 @@ include_directories(${IVUTILS_INCLUDE_DIR})
 add_library(ivutils ${BUILDCONF} ${IVUTILS_SOURCES} ${IVUTILS_HEADERS})
 
 if(WIN32)
-  if(${CMAKE_GENERATOR} MATCHES "Visual Studio 15 2017")
+  if(MSVC_VERSION GREATER_EQUAL 1900)
     set(HAVE_MATH ON)
     set(HAVE_ERF ON)
-    target_compile_definitions(ivutils PRIVATE -DERF_H) # don't include erf.h
+    target_compile_definitions(ivutils PRIVATE -DHAVE_ERF) # don't include erf.h
   else()
     set(HAVE_MATH OFF)
     set(HAVE_ERF OFF)
   endif()
   target_compile_definitions(ivutils PRIVATE -DFU=0)
+
+  target_compile_definitions(ivutils PRIVATE "-D_CRT_SECURE_NO_WARNINGS")
+  target_compile_definitions(ivutils PRIVATE "-D_SCL_SECURE_NO_WARNINGS")
+  target_compile_definitions(ivutils PRIVATE "-D_CRT_SECURE_NO_DEPRECATE")
+  target_compile_definitions(ivutils PRIVATE "-D_USE_MATH_DEFINES")
+    
 
   if(${HAVE_MATH})
     target_compile_definitions(ivutils PRIVATE -DNO_CMNMATH)

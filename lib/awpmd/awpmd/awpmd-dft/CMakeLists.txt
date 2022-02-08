@@ -29,3 +29,28 @@ else (DEBUG_WAVEPACKET)
 endif (DEBUG_WAVEPACKET)
 
 
+if(WIN32)
+  if(${CMAKE_GENERATOR} MATCHES "Visual Studio 15 2017")
+    set(HAVE_MATH ON)
+    set(HAVE_ERF ON)
+    target_compile_definitions(wpmd_dft_unit_cpu PRIVATE -DERF_H) # don't include erf.h
+  else()
+    set(HAVE_MATH OFF)
+    set(HAVE_ERF OFF)
+  endif()
+  target_compile_definitions(wpmd_dft_unit_cpu PRIVATE -DFU=0)
+
+  target_compile_definitions(wpmd_dft_unit_cpu PRIVATE "-D_CRT_SECURE_NO_WARNINGS")
+  target_compile_definitions(wpmd_dft_unit_cpu PRIVATE "-D_SCL_SECURE_NO_WARNINGS")
+  target_compile_definitions(wpmd_dft_unit_cpu PRIVATE "-D_CRT_SECURE_NO_DEPRECATE")
+  target_compile_definitions(wpmd_dft_unit_cpu PRIVATE "-D_USE_MATH_DEFINES")
+    
+
+  if(${HAVE_MATH})
+    target_compile_definitions(wpmd_dft_unit_cpu PRIVATE -DNO_CMNMATH)
+  endif()
+else(NOT WIN32)
+  target_compile_definitions(wpmd_dft_unit_cpu PRIVATE "-DUNIX=1")
+  target_compile_definitions(wpmd_dft_unit_cpu PRIVATE "-DLINFO=1")
+  target_compile_definitions(wpmd_dft_unit_cpu PRIVATE "-DFU=1")
+endif(WIN32)

@@ -58,7 +58,7 @@ velocity edown create ${temperature} 121346 dist gaussian
 #END INIT SECTION
 
 #PAIR_STYLE
-pair_style  wpmd/dft-nvgpu/cut ${LCut} mesh adaptive 0.7 2.5 dynamic on
+pair_style  wpmd/dft/cut/nvgpu ${LCut} mesh adaptive 0.7 2.5 dynamic on
 pair_coeff  * *
 #END_PAIR_STYLE
 
@@ -69,7 +69,7 @@ fix w1 all wall/wpmd 10.0 box ${LH} #Harmonic trap
 
 compute kinetik all ke
 
-compute energies all pair wpmd/dft-nvgpu/cut 
+compute energies all pair wpmd/dft/cut/nvgpu
 
 variable wall_energy equal f_w1[1]
 variable wall_pressure equal f_w1[2]

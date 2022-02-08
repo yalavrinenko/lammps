@@ -3,7 +3,7 @@
 //
 #ifdef PAIR_CLASS
 
-PairStyle(wpmd/dft-nvgpu/cut,PairAWPMD_DFT_NVGPUCut)
+PairStyle(wpmd/dft/cut/nvgpu,PairAWPMD_DFT_NVGPUCut)
 
 #else
 #ifndef LAMMPS_PAIR_AWPMD_DFT_NVGPU_CUT_H

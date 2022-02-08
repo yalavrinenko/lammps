@@ -1,14 +1,16 @@
 .. index:: pair_style wpmd/dft/cut
+.. index:: pair_style wpmd/dft/cut/nvgpu
 
 pair_style wpmd/dft/cut command
 ============================
+Accelerator Variants: *wpmd/dft/cut/nvgpu*
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   pair_style wpmd/dft/cut Rc keyword values ...
+    pair_style wpmd/dft/cut Rc keyword values ...
 
 * Rc = global cutoff, -1 means cutoff of half the shortest box length
 
@@ -22,6 +24,7 @@ Syntax
         *dynamic* = on or off
         *force_mesh_cells* value = NCells
             NCells = number of cells for mesh linked with packet
+        *gppn* = number of GPU per one node (for accelerator version only)
 Examples
 """"""""
 
@@ -31,6 +34,8 @@ Examples
     pair_style wpmd/dft/cut 15.0 mesh adaptive 0.7 2.5
     pair_style wpmd/dft/cut 15.0 mesh regular 100
     pair_style wpmd/dft/cut 15.0 mesh adaptive 0.7 2.5 dynamic on force_mesh_cells 11
+    pair_style wpmd/dft/cut/nvgpu 15.0 mesh adaptive 0.7 2.5 dynamic on force_mesh_cells 11 gppn 3
+    pair_style wpmd/dft/cut/nvgpu 15.0 mesh regular 100 dynamic on force_mesh_cells 11
 
 Description
 """""""""""
@@ -89,6 +94,10 @@ by numerical integration over a mesh linked to wavepacket.
 * The *force_mesh_cell* keyword is set the number of cells for force calculation per packet in one direction.
 The total number of cells is a cube of *force_mesh_cell*.
 
+* The *gppn* keyword is set the number of gpu per one node.
+This is required for correct task scattering to multiple gpus.
+
+
 This potential inherit all properties of :doc:`pair wpmd/cut <wpmd/cut>`.
 
 ----------
@@ -111,11 +120,13 @@ This pair style can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
-This pair is part of the WPMD-DFT package.  It is only enabled if LAMMPS was
+This pair is part of the WPMD-DFT or WPMD-NVGPU-DFT package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
 This pair is work only with *real* unit due to energy conversion units.
+
+GPU acceleration is available for nvidia gpus only.
 Default
 """""""
 By default the *mesh* is *regular* with size per one axe is equal to 50. The *dynamic* is *off*.

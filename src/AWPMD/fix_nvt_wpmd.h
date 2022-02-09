@@ -9,15 +9,13 @@ FixStyle(nvt/wpmd,FixNVTWpmd)
 #ifndef LAMMPS_FIX_NVT_AWPMD_H
 #define LAMMPS_FIX_NVT_AWPMD_H
 
-#include "../fix_nvt.h"
+#include "fix_nh_wpmd.h"
 namespace LAMMPS_NS {
-  class FixNVTWpmd : public FixNVT {
+  class FixNVTWpmd : public FixNHWpmd {
   public:
     FixNVTWpmd(class LAMMPS *, int, char **);
 
-    void final_integrate() override;
-
-    void initial_integrate(int i) override;
+    ~FixNVTWpmd() override = default;
   };
 }
 

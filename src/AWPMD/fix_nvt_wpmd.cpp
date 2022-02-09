@@ -9,38 +9,20 @@
 #include "update.h"
 #include "respa.h"
 #include "error.h"
+#include <modify.h>
+#include <group.h>
 
 LAMMPS_NS::FixNVTWpmd::FixNVTWpmd(LAMMPS_NS::LAMMPS *lammps, int argc, char **argv) :
-    FixNVT(lammps, argc, argv){
+    FixNHWpmd(lammps, argc, argv){
   if (!atom->wavepacket_flag)
     error->all(FLERR,"Fix nve/awpmd requires atom style wavepacket");
-}
 
-void LAMMPS_NS::FixNVTWpmd::initial_integrate(int i) {
-  if (atom->mass || atom->rmass) {
-    for (int i = 0; i < atom->nlocal; i++) {
-      if (atom->mask[i] & groupbit) {
-        double dtfm = dtf / ((atom->mass) ? atom->mass[atom->type[i]] : atom->rmass[atom->type[i]]);
-        if (atom->spin[i] != 0) {
-          atom->ervel[i] += -dtfm * atom->erforce[i];
-          atom->eradius[i] += dtv * atom->ervel[i];
-        }
-      }
-    }
-  }
-  FixNVT::initial_integrate(i);
-}
+  if (!tstat_flag)
+    error->all(FLERR,"Temperature control must be used with fix nvt");
+  if (pstat_flag)
+    error->all(FLERR,"Pressure control can not be used with fix nvt");
 
-void LAMMPS_NS::FixNVTWpmd::final_integrate() {
-  if (atom->mass || atom->rmass) {
-    for (int i = 0; i < atom->nlocal; i++) {
-      if (atom->mask[i] & groupbit) {
-        double dtfm = dtf / ((atom->mass) ? atom->mass[atom->type[i]] : atom->rmass[atom->type[i]]);
-        if (abs(atom->spin[i]) != 0) {
-          atom->ervel[i] += -dtfm * atom->erforce[i];
-        }
-      }
-    }
-  }
-  FixNVT::final_integrate();
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} {} temp",id_temp,group->names[igroup]));
+  tcomputeflag = 1;
 }

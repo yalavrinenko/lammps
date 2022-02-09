@@ -101,6 +101,10 @@ fix md all nvt/wpmd temp ${temperature} ${temperature} $(100*dt)
 run ${md_steps}
 unfix md
 
+fix md all nve/wpmd
+run 10000
+unfix md
+
 unfix ave
 unfix w1
 

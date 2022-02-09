@@ -17,7 +17,7 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(nve/awpmd,FixNVEAwpmd)
+FixStyle(nve/wpmd,FixNVEWpmd)
 
 #else
 
@@ -28,9 +28,9 @@ FixStyle(nve/awpmd,FixNVEAwpmd)
 
 namespace LAMMPS_NS {
 
-class FixNVEAwpmd : public FixNVE {
+class FixNVEWpmd : public FixNVE {
  public:
-  FixNVEAwpmd(class LAMMPS *, int, char **);
+  FixNVEWpmd(class LAMMPS *, int, char **);
   void initial_integrate(int) override;
   void final_integrate() override;
 };

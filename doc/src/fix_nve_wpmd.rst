@@ -1,4 +1,4 @@
-.. index:: fix nve/awpmd
+.. index:: fix nve/wpmd
 
 fix nve/awpmd command
 =====================
@@ -8,23 +8,23 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID nve/awpmd
+   fix ID group-ID nve/wpmd
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* nve/awpmd = style name of this fix command
+* nve/wpmd = style name of this fix command
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   fix 1 all nve/awpmd
+   fix 1 all nve/wpmd
 
 Description
 """""""""""
 
 Perform constant NVE integration to update position and velocity for
-nuclei and electrons in the group for the :doc:`Antisymmetrized Wave Packet Molecular Dynamics <pair_awpmd>` model.  V is volume; E is energy.
+nuclei and electrons in the group for the :doc:`Wave Packet Molecular Dynamics <pair_awpmd>` model.  V is volume; E is energy.
 This creates a system trajectory consistent with the microcanonical
 ensemble.
 

@@ -2,8 +2,8 @@
 // Created by yalavrinenko on 19.09.2019.
 //
 
-#include "fix_nvt_awpmd.h"
-#include "fix_nve_awpmd.h"
+#include "fix_nvt_wpmd.h"
+#include "fix_nve_wpmd.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"

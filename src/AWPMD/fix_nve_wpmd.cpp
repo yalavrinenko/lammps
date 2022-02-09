@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include "fix_nve_awpmd.h"
+#include "fix_nve_wpmd.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -28,7 +28,7 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixNVEAwpmd::FixNVEAwpmd(LAMMPS *lmp, int narg, char **arg) :
+FixNVEWpmd::FixNVEWpmd(LAMMPS *lmp, int narg, char **arg) :
   FixNVE(lmp, narg, arg)
 {
   if (!atom->wavepacket_flag)
@@ -39,7 +39,7 @@ FixNVEAwpmd::FixNVEAwpmd(LAMMPS *lmp, int narg, char **arg) :
    allow for only per-type  mass
 ------------------------------------------------------------------------- */
 
-void FixNVEAwpmd::initial_integrate(int vflag)
+void FixNVEWpmd::initial_integrate(int vflag)
 {
   FixNVE::initial_integrate(vflag);
   if (atom->mass || atom->rmass) {
@@ -57,7 +57,7 @@ void FixNVEAwpmd::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAwpmd::final_integrate(){
+void FixNVEWpmd::final_integrate(){
   FixNVE::final_integrate();
   if (atom->mass || atom->rmass) {
     for (int i = 0; i < atom->nlocal; i++) {

@@ -135,7 +135,7 @@ void LAMMPS_NS::PairAWPMD::init_wpmd(awpmd_ions &ions, awpmd_electrons &electron
       auto &insert_index = e_split_index.lmp_index;
       if (spin[insert_index] != spin[main_packet_index])
         error->all(FLERR,
-                   fmt::format("WP splits for one electron should have the same spin (at particles {}, {}})!", insert_index,
+                   fmt::format("WP splits for one electron should have the same spin (at particles {}, {})!", insert_index,
                        main_packet_index));
 
       double m = atom->mass ? atom->mass[type[insert_index]] : force->e_mass;

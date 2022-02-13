@@ -18,13 +18,13 @@ Syntax
 .. parsed-literal::
 
      keyword = *ix*, *ex*, *iv*, *ev*, *ew*, *ewp* or *ec*
-        *ix* value = vary ions coordinates
+        *ix* value = vary ion coordinates
         *ex* value = vary wavepacket center coordinates
-        *iv* value = vary ions velocity
-        *ev* value = vary wavepacket velocity
-        *ew* value = vary wavepacket width
-        *ewp* value = vary wavepacket width impulse
-        *ec* value = vary wavepacket split coefficient
+        *iv* value = vary ion velocities
+        *ev* value = vary wavepacket velocities
+        *ew* value = vary wavepacket widths
+        *ewp* value = vary wavepacket width momenta
+        *ec* value = vary wavepacket split coefficients
 
 Examples
 """"""""
@@ -39,33 +39,33 @@ Description
 """""""""""
 
 This fix performs Monte Carlo (MC) moves within the simulation cell or region
-for :doc:`wavepacket <atom_style>` atom style. The fix change particle's coordinates,
-velocities and wavepacket's width and conjugated impulse at each step. The new configuration
-can be accepted or rejected after total energy evaluation. If energy of the new configuration
-is grater than before, this configuration can be accepted with probability
+for :doc:`wavepacket <atom_style>` atom style. The fix changes particles' coordinates,
+velocities and wavepackets' width and conjugated momenta at each step forming a trial particle configuration. The new configuration
+can be accepted or rejected after total energy evaluation. If the energy of the new configuration
+is grater than the enery of the previously accepted configuration, the current configuration can be accepted with probability
 
 .. math::
 p = A \exp(-dE/(k_{B}T)).
 
-This fix required arguments that describe operations that will be perform for the particle. On each step
-the only one operation will perform.
+This fix requires arguments that describe operations that will be performed for the particle while forming a trial confiuration. At each step
+only one of the following operations are performed.
 
-The *ix* and *ex* options mean that the fix will change particles and packets position on some small values.
+The *ix* and *ex* options mean that the fix will shift particles and packets positions by some small values.
 
 The *iv* and *ev* options mean that the fix will change change particles and packets velocities by small values.
 
-The *ew* option is valid only for wavepacket atom style and the fix will change packets width.
+The *ew* option is valid only for wavepacket atom style and the fix will change packets widths.
 
-The *ewp* option means that impulse related to packet width will be change during the step.
+The *ewp* option means that momenta related to the packet widths will be changed during the step.
 
-The *ec* option is valid only for wavepacket atom style and split representation of electron. This option means that
+The *ec* option is valid only for wavepacket atom style and the split representation of electrons. This option means that
 fix will change split coefficients for wavepackets.
 
-The amplitude of changes ajusted to provide 50% of accepted steps.
+The amplitude of changes is continuously ajusted to provide 50% of accepted steps in average.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-The fix does not writes any information to restarts files.
+The fix does not write any information to restarts files.
 
 This fix computes a vector of length 6, which can be accessed by various :doc:`output commands <Howto_output>`.
 The vector values are the following global cumulative quantities:
@@ -74,26 +74,26 @@ The vector values are the following global cumulative quantities:
 
 * 2. The energy of the last accepted configuration.
 
-* 3. The energy of current configuration.
+* 3. The energy of the current configuration.
 
 * 4. The number of accepted steps.
 
 * 5. The number of rejected steps.
 
-* 6. The id of the current action over a system. The integer number int range from 0 to k, where k is
-a number of options.
+* 6. The id of the current operation performed over a system in the current step. The integer number int ranges from 0 to k, where k is
+the number of possible operations.
 
 Restrictions
 """"""""""""
 
 This fix is part of the AWPMD package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
-doc page for more info. The fix oriented to work with atom style :doc:`wavepacket <atom_style>`,
-the usage with other styles is possible but didn't tested.
+doc page for more info. The fix is designed to work with atom style :doc:`wavepacket <atom_style>`,
+the usage with other styles is possible but has not been tested.
 
 Do not set "neigh_modify once yes" or else this fix will never be called. Reneighboring is required.
 
-Can be run in parallel, but some aspects of the MC part will decrease the scale of algorithm.
+Can be run in parallel, but some aspects of the MC part will decrease the parallel scaling of algorithm.
 
 This fix requires the `thermo  1`.
 

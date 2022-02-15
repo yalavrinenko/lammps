@@ -90,7 +90,7 @@ to the temperature or kinetic energy from the electron radial velocity.
    create temperature distributions that include the radial electronic
    degrees of freedom with the :doc:`velocity <velocity>` command, so the
    the user must allow for these degrees of freedom to equilibrate
-   (i.e. equi-partitioning of energy) through time integration.
+   (i.e. establish equi-partitioning of energy) through time integration.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

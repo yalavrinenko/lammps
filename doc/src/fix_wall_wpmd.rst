@@ -34,16 +34,17 @@ Description
 Restricts the simulation domain with a 3D harmonic potential with center at (0, 0, 0).
 .. math::
 
- E = k (r - L)^2,\ \textrm{for}\ \abs{r} > L/2, \\
+ E = k (\abs{r} - L/2)^2,\ \textrm{for}\ \abs{r} > L/2, \\
  E = 0,\ \textrm{for}\ -L/2 <= r <= L/2
 
-The potential interact with particles and wavepackets by generating a force on the particle in
-a direction perpendicular to the wall. This fix can be used to prevent wavepacket spreading.
+The potential interacts with particles and wavepackets by generating a force on the particle in
+a direction perpendicular to the wall. The potential acts on wavepackets in quantum manner 
+affecting both the center and width of the wavepacket. This fix can be used to prevent wavepacket spreading.
 
-The "wall" position is always centered and determined by *box* keyword that set a length L of the box
+The "wall" position is always centered at (0, 0, 0) and its size is determined by *box* keyword setting a length L of the box
 edge.
 
-The option *boundary* allows to enable or disable potential interaction for selected axes.
+The option *boundary* allows to enable or disable potential interaction for selected coordinate axes.
 
 ----------
 
@@ -65,11 +66,11 @@ The index in vector is:
 * 2 system pressure, evaluated as
 
 .. math::
-P = 1.0 / d \sum_{i=0}^{d} F_i/S_i,
+P = 1.0 / d \sum_{i=0}^{d} \abs{F_i}/L^2,
 
-where i is a axe index, d is a number of enable walls.
+where i is the coordinate axis index, F_i is the force of the wall, d is the number of enabled walls.
 
-Note that the scalar energy is the sum of interactions with all defined walls.
+Note that the scalar energy is the sum of interactions with all enabled walls.
 If you want the energy on a per-wall basis, you need to use multiple fix wall commands.
 
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -97,6 +98,6 @@ Default
 """""""
 
 The option defaults box = the minimum length of the simulation region edge,
-boundary = w w w, wall enable for all axes.
+boundary = w w w, wall enabled for all axes.
 
-----------
+----------                                                                                        

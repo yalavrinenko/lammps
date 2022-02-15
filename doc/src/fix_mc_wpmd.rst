@@ -19,12 +19,12 @@ Syntax
 
      keyword = *ix*, *ex*, *iv*, *ev*, *ew*, *ewp* or *ec*
         *ix* value = vary ion coordinates
-        *ex* value = vary wavepacket center coordinates
+        *ex* value = vary wavepacket center coordinates (electron positions)
         *iv* value = vary ion velocities
         *ev* value = vary wavepacket velocities
-        *ew* value = vary wavepacket widths
-        *ewp* value = vary wavepacket width momenta
-        *ec* value = vary wavepacket split coefficients
+        *ew* value = vary wavepacket widths (electron radii)
+        *ewp* value = vary wavepacket width momenta  (electron radius momenta)
+        *ec* value = vary wavepacket split coefficients (for multi-wavepacket electrons)
 
 Examples
 """"""""
@@ -39,7 +39,9 @@ Description
 """""""""""
 
 This fix performs Monte Carlo (MC) moves within the simulation cell or region
-for :doc:`wavepacket <atom_style>` atom style. The fix changes particles' coordinates,
+for :doc:`wavepacket <atom_style>` atom style. Electrons in this atom style may be represented by a sinle or multiple wavepackets. 
+For models with one wavepacket per electron the wavepacket center and width are identical with elcetron radius and radius momentum correspondingly.
+The fix changes particles' coordinates,
 velocities and wavepackets' width and conjugated momenta at each step forming a trial particle configuration. The new configuration
 can be accepted or rejected after total energy evaluation. If the energy of the new configuration
 is grater than the enery of the previously accepted configuration, the current configuration can be accepted with probability
@@ -50,9 +52,9 @@ p = A \exp(-dE/(k_{B}T)).
 This fix requires arguments that describe operations that will be performed for the particle while forming a trial confiuration. At each step
 only one of the following operations are performed.
 
-The *ix* and *ex* options mean that the fix will shift particles and packets positions by some small values.
+The *ix* and *ex* options mean that the fix will shift particles and electron (wavepacket) positions by some small values.
 
-The *iv* and *ev* options mean that the fix will change change particles and packets velocities by small values.
+The *iv* and *ev* options mean that the fix will change particles and packets velocities by small values.
 
 The *ew* option is valid only for wavepacket atom style and the fix will change packets widths.
 

@@ -58,7 +58,7 @@ energy evaluates via numerical integration of xc-functionals on 3d mesh.
 
 where :math:`N_\mathrm{e}` --- number of wavepackets.
 
-The exchange-correlation energy evaluated in local density approximation with spin as:
+The exchange-correlation energy is evaluated in local density approximation with spin as:
 
 .. math::
     E_{\mathrm XC}^{\mathrm LSDA}[n_\uparrow,n_\downarrow]=
@@ -74,31 +74,31 @@ Additional kinetic energy of uniform noninteractive electon gas is:
 The pair has several parameters:
 
 * The *Rc* is the cutoff radius for Coulomb interaction. Due to accurate account of long range interaction
-should be grater then cell size.
+should be grater than cell size.
 
 * The *mesh* keyword is set up type of 3d space mesh for numerical integration. There are two types of meshes
-ware implemented: *regular* and *adaptive*. The *regular* option sets the regular mesh with fixed cell size.
-Additional parameter *NCells* set the number of cells for one direction. The total cell size is
-:math:`\mathrm{NCells}`. The *adaptive* option sets the adaptive mesh with variable cell size that depend
+implemented: *regular* and *adaptive*. The *regular* option sets the regular mesh with fixed cell size.
+Additional parameter *NCells* sets the number of cells for one direction. The total cell size is
+:math:`\mathrm{NCells}`. The *adaptive* option sets the adaptive mesh with variable cell size that depends
 on the gradient of electron density. The cell width will be grater or equal *min_cell_size*. The parameter
 *cell_cutoff* define the maximum distance from cell center to packet center. The adaptive mesh refinement
-algorithm increase a performance of simulation due to decreasing of cells number.
+algorithm increases performance of simulation due to decreasing of cells number.
 
-* The *dynamic* keyword is enable a force calculation from exchange-correlation interaction. Forces calculates
+* The *dynamic* keyword enables force calculation from exchange-correlation interaction. The forces are calculated
 by numerical integration over a mesh linked to wavepacket.
 .. math::
       \frac{\partial E_{\mathrm{a}}}{\partial q} =
     \left(\frac{\partial T_\mathrm{s}[n]}{\partial n} + \frac{\partial E_\mathrm{XC}[n]}{\partial n}\right)
     \frac{\partial n}{\partial q}.
 
-* The *force_mesh_cell* keyword is set the number of cells for force calculation per packet in one direction.
+* The *force_mesh_cell* keyword sets the number of cells for force calculation per packet in one direction.
 The total number of cells is a cube of *force_mesh_cell*.
 
-* The *gppn* keyword is set the number of gpu per one node.
+* The *gppn* keyword sets the number of gpu per one node.
 This is required for correct task scattering to multiple gpus.
 
 
-This potential inherit all properties of :doc:`pair wpmd/cut <wpmd/cut>`.
+This potential inherits all properties of :doc:`pair wpmd/cut <wpmd/cut>`.
 
 ----------
 

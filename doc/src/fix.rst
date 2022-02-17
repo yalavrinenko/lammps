@@ -221,6 +221,7 @@ accelerated styles exist.
 * :doc:`flow/gauss <fix_flow_gauss>` - Gaussian dynamics for constant mass flux
 * :doc:`freeze <fix_freeze>` - freeze atoms in a granular simulation
 * :doc:`gcmc <fix_gcmc>` - grand canonical insertions/deletions
+* :doc:`mc/wpmd <fix_mc_wpmd>` - Monte-Carlo algorithm for wavepacket model
 * :doc:`gld <fix_gld>` - generalized Langevin dynamics integrator
 * :doc:`gle <fix_gle>` - generalized Langevin equation thermostat
 * :doc:`gravity <fix_gravity>` - add gravity to atoms in a granular simulation
@@ -260,6 +261,7 @@ accelerated styles exist.
 * :doc:`nph/asphere <fix_nph_asphere>` - NPH for aspherical particles
 * :doc:`nph/body <fix_nph_body>` - NPH for body particles
 * :doc:`nph/eff <fix_nh_eff>` - NPH for  nuclei and electrons in the electron force field model
+* :doc:`nph/wpmd <fix_nh_wpmd>` - NPH for  nuclei and electrons in the wavepacket model
 * :doc:`nph/sphere <fix_nph_sphere>` - NPH for spherical particles
 * :doc:`nphug <fix_nphug>` - constant-stress Hugoniostat integration
 * :doc:`npt <fix_nh>` - constant NPT time integration via Nose/Hoover
@@ -267,13 +269,14 @@ accelerated styles exist.
 * :doc:`npt/body <fix_npt_body>` - NPT for body particles
 * :doc:`npt/cauchy <fix_npt_cauchy>` - NPT with Cauchy stress
 * :doc:`npt/eff <fix_nh_eff>` - NPT for  nuclei and electrons in the electron force field model
+* :doc:`npt/wpmd <fix_nh_wpmd>` - NPT for  nuclei and electrons in the wavepacket model
 * :doc:`npt/sphere <fix_npt_sphere>` - NPT for spherical particles
 * :doc:`npt/uef <fix_nh_uef>` - NPT style time integration with diagonal flow
 * :doc:`numdiff <fix_numdiff>` - compute derivatives of per-atom data from finite differences
 * :doc:`nve <fix_nve>` - constant NVE time integration
 * :doc:`nve/asphere <fix_nve_asphere>` - NVE for aspherical particles
 * :doc:`nve/asphere/noforce <fix_nve_asphere_noforce>` - NVE for aspherical particles without forces
-* :doc:`nve/awpmd <fix_nve_awpmd>` - NVE for the Antisymmetrized Wave Packet Molecular Dynamics model
+* :doc:`nve/awpmd <fix_nve_wpmd>` - NVE for the Wave Packet Molecular Dynamics model
 * :doc:`nve/body <fix_nve_body>` - NVE for body particles
 * :doc:`nve/dot <fix_nve_dot>` - rigid body constant energy time integrator for coarse grain models
 * :doc:`nve/dotc/langevin <fix_nve_dotc_langevin>` - Langevin style rigid body time integrator for coarse grain models
@@ -285,6 +288,7 @@ accelerated styles exist.
 * :doc:`nve/sphere <fix_nve_sphere>` - NVE for spherical particles
 * :doc:`nve/spin <fix_nve_spin>` - NVE for a spin or spin-lattice system
 * :doc:`nve/tri <fix_nve_tri>` - NVE for triangles
+* :doc:`nve/wpmd <fix_nh_wpmd>` - NVE for nuclei and electrons in the wavepacket model
 * :doc:`nvk <fix_nvk>` - constant kinetic energy time integration
 * :doc:`nvt <fix_nh>` - NVT time integration via Nose/Hoover
 * :doc:`nvt/asphere <fix_nvt_asphere>` - NVT for aspherical particles
@@ -295,6 +299,7 @@ accelerated styles exist.
 * :doc:`nvt/sllod/eff <fix_nvt_sllod_eff>` - NVT for NEMD with SLLOD equations for the electron force field model
 * :doc:`nvt/sphere <fix_nvt_sphere>` - NVT for spherical particles
 * :doc:`nvt/uef <fix_nh_uef>` - NVT style time integration with diagonal flow
+* :doc:`nvt/wpmd <fix_nh_wpmd>` - NVT for nuclei and electrons in the wavepacket model
 * :doc:`oneway <fix_oneway>` - constrain particles on move in one direction
 * :doc:`orient/bcc <fix_orient>` - add grain boundary migration force for BCC
 * :doc:`orient/fcc <fix_orient>` - add grain boundary migration force for FCC
@@ -402,6 +407,7 @@ accelerated styles exist.
 * :doc:`wall/region <fix_wall_region>` - use region surface as wall
 * :doc:`wall/region/ees <fix_wall_ees>` - use region surface as wall for ellipsoidal particles
 * :doc:`wall/srd <fix_wall_srd>` - slip/no-slip wall for SRD particles
+* :doc:`wall/wpmd <fix_wall_wpmd>` - harmonic spring wall for wavepackets
 * :doc:`widom <fix_widom>` - Widom insertions of atoms or molecules
 
 Restrictions

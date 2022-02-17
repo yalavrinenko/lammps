@@ -52,7 +52,7 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 
 The :doc:`pair_modify <pair_modify>` mix, shift, table, and tail options
 are not relevant for this pair style. For minimization of the system's energy with `wpmd/cut` pair
-should use a :doc:`fix mc/wpmd <fix mc_wpmd>`.
+should use a :doc:`fix mc/wpmd <fix_mc_wpmd>`.
 
 This pair style writes its information to :doc:`binary restart files <restart>`,
 so pair_style and pair_coeff commands do not need
@@ -69,7 +69,11 @@ This pair is part of the AWPMD package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-This pair is work only with *real* unit due to energy conversion units.
+This pair is work only with *real* and *electron* units due to energy conversion units.
+
+This pair required :doc:`wavepacket <atom_style>` or :doc:`electron <atom_style>` atom style.
+
+The system evolution in time should be perform by fix with :doc:`*/wpmd <fix_nh_wpmd>` suffix.
 
 Related commands
 """"""""""""""""

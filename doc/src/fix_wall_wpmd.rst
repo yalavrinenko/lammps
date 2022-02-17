@@ -7,35 +7,39 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID wall/wpmd k keyword values ...
+   fix ID group-ID wall/wpmd epsilon keyword values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* k = wall potential strength (??? unit) TODO: Discuss the units
+* epsilon = wall potential strength in relative unit :math:`E_0`. (See description)
 * zero or more keyword/value pairs may be appended to args
 
   .. parsed-literal::
          box = length of the box edge L (distance units)
          width_force = take in account width part of force for pressure evaluation
-         boundary = enable or disable potential for x, y and z axes
+         axes = all or part of *x*, *y* and *z*
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-fix wall_0 all wall/wpmd 10.0
-fix wall_1 all wall/wpmd 10.0 box 10
-fix wall_2 ion wall/wpmd 10.0 box 10 boundary f f w
-fix wall_3 electron wall/wpmd 10.0 boundary w w w
+    fix wall_0 all wall/wpmd 10.0
+    fix wall_1 all wall/wpmd 10.0 box 10
+    fix wall_2 ion wall/wpmd 10.0 box 10 axes z
+    fix wall_3 electron wall/wpmd 10.0 axes x y z
 
 Description
 """""""""""
 
 Restricts the simulation domain with a 3D harmonic potential with center at (0, 0, 0).
-.. math::
 
- E = k (\abs{r} - L/2)^2,\ \textrm{for}\ \abs{r} > L/2, \\
- E = 0,\ \textrm{for}\ -L/2 <= r <= L/2
+.. math::
+    E = E_x + E_y + E_z = \epsilon \Big[ \Big( |x| - \frac{L}{2} \Big)^2
+        + \Big( |y| - \frac{L}{2} \Big)^2
+        + \Big( |z| - \frac{L}{2} \Big)^2 \Big] \\
+    E_x = 0,\ \textrm{for}\ -L/2 <= x <= L/2 \\
+    E_y = 0,\ \textrm{for}\ -L/2 <= y <= L/2 \\
+    E_z = 0,\ \textrm{for}\ -L/2 <= z <= L/2 \\
 
 The potential interacts with particles and wavepackets by generating a force on the particle in
 a direction perpendicular to the wall. The potential acts on wavepackets in quantum manner 
@@ -44,7 +48,7 @@ affecting both the center and width of the wavepacket. This fix can be used to p
 The "wall" position is always centered at (0, 0, 0) and its size is determined by *box* keyword setting a length L of the box
 edge.
 
-The option *boundary* allows to enable or disable potential interaction for selected coordinate axes.
+The option *axes* allows to set the axes that are restricted by harmonic potential.
 
 ----------
 
@@ -66,7 +70,7 @@ The index in vector is:
 * 2 system pressure, evaluated as
 
 .. math::
-P = 1.0 / d \sum_{i=0}^{d} \abs{F_i}/L^2,
+    P = 1.0 / d \sum_{i=0}^{d} |{F_i}|/L^2,
 
 where i is the coordinate axis index, F_i is the force of the wall, d is the number of enabled walls.
 
@@ -98,6 +102,4 @@ Default
 """""""
 
 The option defaults box = the minimum length of the simulation region edge,
-boundary = w w w, wall enabled for all axes.
-
-----------                                                                                        
+axes = x y z, wall enabled for all axes.

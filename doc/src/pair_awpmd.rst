@@ -114,7 +114,17 @@ This pair style can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
- none
+This pair is part of the AWPMD package.  It is only enabled if LAMMPS was
+built with that package.  See the :doc:`Build package <Build_package>`
+doc page for more info.
+
+This pair is work only with *real* and *electron* units due to energy conversion units.
+
+This pair required :doc:`wavepacket <atom_style>` or :doc:`electron <atom_style>` atom style.
+
+This pair does not support trajectory integration and works only with :doc:`fix mc/wpmd <fix_mc_wpmd>`.
+
+MPI version has not tested well yet.
 
 Related commands
 """"""""""""""""

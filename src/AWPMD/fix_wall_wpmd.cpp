@@ -57,11 +57,19 @@ LAMMPS_NS::FixWallWpmd::construct_box(char **pString, double half_box_length,
     }
     if (std::strcmp(pString[i], "width_force") == 0)
       use_width_force_ = true;
-    if (std::strcmp(pString[i], "boundary") == 0) {
-      has_force_[0] = pString[i + 1][0] == 'w';
-      has_force_[1] = pString[i + 2][0] == 'w';
-      has_force_[2] = pString[i + 3][0] == 'w';
-      i += 3;
+    if (std::strcmp(pString[i], "axes") == 0) {
+
+      auto is_keyword = [](char const* str){
+        return std::strcmp(str, "x") == 0
+            || std::strcmp(str, "y") == 0
+            || std::strcmp(str, "z") == 0;
+      };
+      auto j = 1;
+      while (is_keyword(pString[i + j])){
+        has_force_[pString[i + j][0] - 'x'] = true;
+        ++j;
+      }
+      i += j;
     }
   }
 

@@ -40,6 +40,8 @@ OPT.
    * :doc:`airebo/morse (io) <pair_airebo>`
    * :doc:`atm <pair_atm>`
    * :doc:`awpmd/cut <pair_awpmd>`
+   * :doc:`wpmd/cut <pair_wpmd>`
+   * :doc:`wpmd/dft/cut <pair_wpmd_dft>`
    * :doc:`beck (go) <pair_beck>`
    * :doc:`body/nparticle <pair_body_nparticle>`
    * :doc:`body/rounded/polygon <pair_body_rounded_polygon>`

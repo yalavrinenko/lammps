@@ -1,7 +1,7 @@
-.. index:: fix mc_wpmd
+.. index:: fix mc/wpmd
 
 fix mc/wpmd command
-================
+====================
 
 Syntax
 """"""
@@ -47,7 +47,7 @@ can be accepted or rejected after total energy evaluation. If the energy of the 
 is grater than the enery of the previously accepted configuration, the current configuration can be accepted with probability
 
 .. math::
-p = A \exp(-dE/(k_{B}T)).
+    p = A \exp(-dE/(k_{B}T)).
 
 This fix requires arguments that describe operations that will be performed for the particle while forming a trial confiuration. At each step
 only one of the following operations are performed.
@@ -72,32 +72,26 @@ The fix does not write any information to restarts files.
 This fix computes a vector of length 6, which can be accessed by various :doc:`output commands <Howto_output>`.
 The vector values are the following global cumulative quantities:
 
-* 1. Accept flag. The step was accepted if this flag is 1 and rejected otherwise.
-
-* 2. The energy of the last accepted configuration.
-
-* 3. The energy of the current configuration.
-
-* 4. The number of accepted steps.
-
-* 5. The number of rejected steps.
-
-* 6. The id of the current operation performed over a system in the current step. The integer number int ranges from 0 to k, where k is
-the number of possible operations.
+    * 1. Accept flag. The step was accepted if this flag is 1 and rejected otherwise.
+    * 2. The energy of the last accepted configuration.
+    * 3. The energy of the current configuration.
+    * 4. The number of accepted steps.
+    * 5. The number of rejected steps.
+    * 6. The id of the current operation performed over a system in the current step. The integer number int ranges from 0 to k, where k is the number of possible operations.
 
 Restrictions
 """"""""""""
 
 This fix is part of the AWPMD package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
-doc page for more info. The fix is designed to work with atom style :doc:`wavepacket <atom_style>`,
-the usage with other styles is possible but has not been tested.
+doc page for more info. The fix is designed to work with atom styles :doc:`wavepacket or electron <atom_style>`.
+The usage with other styles is possible but has not been tested.
 
 Do not set "neigh_modify once yes" or else this fix will never be called. Reneighboring is required.
 
 Can be run in parallel, but some aspects of the MC part will decrease the parallel scaling of algorithm.
 
-This fix requires the `thermo  1`.
+This fix requires the `thermo  1` command.
 
 Use of multiple fix mc/wpmd commands in the same input script can be
 problematic due to inconsistency between different fixes.
@@ -111,4 +105,3 @@ Related commands
 Default
 """""""
 
-----------

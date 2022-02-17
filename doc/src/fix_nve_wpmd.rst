@@ -1,6 +1,6 @@
 .. index:: fix nve/wpmd
 
-fix nve/awpmd command
+fix nve/wpmd command
 =====================
 
 Syntax

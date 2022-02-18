@@ -39,7 +39,7 @@ velocity all create 20 877785 dist gaussian
 
 
 #PAIR_STYLE
-pair_style  wpmd/dft/cut 100 mesh regular 50
+pair_style  wpmd/dft/cut 100 mesh adaptive 0.7 2.5
 pair_coeff  * *
 #END_PAIR_STYLE
 
@@ -68,7 +68,7 @@ set atom 4 x -${X}
 
 fix mc all mc/wpmd 20 ev ex ew ewp
 
-run 5000
+run 10000
 
 unfix mc
 

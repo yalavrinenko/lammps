@@ -135,6 +135,10 @@ class ComputePropertyAtom : public Compute {
   void pack_i2name(int);
   void pack_d2name(int);
 
+  void pack_cs_re(int);
+  void pack_cs_im(int);
+  void pack_etag(int);
+
   void pack_atom_style(int);
 };
 

@@ -330,7 +330,19 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (!avec_tri) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_corner3z;
 
-    } else if (strcmp(arg[iarg],"nbonds") == 0) {
+    } else if (strcmp(arg[iarg], "etag") == 0){
+      if (!atom->etag_flag)
+        error->all(FLERR, "Compute property/atom for atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_etag;
+    } else if(strcmp(arg[iarg], "cs_re") == 0){
+      if (!atom->cs_flag)
+        error->all(FLERR, "Compute property/atom for atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_cs_re;
+    } else if(strcmp(arg[iarg], "cs_im") == 0){
+      if (!atom->cs_flag)
+        error->all(FLERR, "Compute property/atom for atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_cs_im;
+    }  else if (strcmp(arg[iarg],"nbonds") == 0) {
       if (!atom->molecule_flag)
         error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_nbonds;
@@ -1879,4 +1891,40 @@ void ComputePropertyAtom::pack_d2name(int n)
 void ComputePropertyAtom::pack_atom_style(int n)
 {
   atom->avec->pack_property_atom(index[n],&buf[n],nvalues,groupbit);
+}
+
+void ComputePropertyAtom::pack_etag(int n) {
+  int *etag = atom->etag;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = etag[i];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+void ComputePropertyAtom::pack_cs_re(int n) {
+  auto *cs = atom->cs;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = cs[i][0];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+void ComputePropertyAtom::pack_cs_im(int n) {
+  auto *cs = atom->cs;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = cs[i][1];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
 }

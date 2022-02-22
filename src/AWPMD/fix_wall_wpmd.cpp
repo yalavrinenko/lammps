@@ -59,6 +59,8 @@ LAMMPS_NS::FixWallWpmd::construct_box(char **pString, double half_box_length,
       use_width_force_ = true;
     if (std::strcmp(pString[i], "axes") == 0) {
 
+      has_force_ = {false, false, false};
+
       auto is_keyword = [](char const* str){
         return std::strcmp(str, "x") == 0
             || std::strcmp(str, "y") == 0

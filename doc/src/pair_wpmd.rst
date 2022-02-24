@@ -27,13 +27,12 @@ This pair style contains an implementation of the Wave
 Packet Molecular Dynamics (WPMD) method with Hartree approximation[TODO::cite art].
 
 .. math::
-    U_{ii}(r) = \frac{C}{r}
+    U_{ii} = \frac{1}{{4\pi \varepsilon _0 }} \sum_{i<j} \frac{Z_i Z_j}{R_{ij}} \\
+    U_{ei} = -\frac{1}{{4\pi \varepsilon _0 }} \sum_{i,j} \frac{Z_j e^2}{R_{ij}} \textrm{erf} \Big( -\frac{\sqrt{3} R_{ij}}{\sqrt{2} s_i} \Big) \\
+    U_{ee} = \frac{1}{{4\pi \varepsilon _0 }} \sum_{i,j} \frac{e^2}{R_{ij}} \textrm{erf} \Big( -\frac{\sqrt{3} r_{ij}}{\sqrt{2(s_i^2 + s_j^2)}} \Big),
 
-    U_{ei}(r, s) = \frac{C}{r} \textrm{Erf}(-\frac{Ar}{s})
-
-    U_{ee}(r, s_1, s_2) = \frac{C}{r} \textrm{Erf}(-\frac{Ar}{f(s_1, s_2)}),
-
-where :math:`A`, :math:`C` --- unit coefficients, :math:`f(s_1, s_2)` is a function[TODO: add full definition].
+where :math:`Z` --- is an ion charge, :math:`R_{ij}` --- distance between ions or ion and electron,
+:math:`r_{ij}` --- distance between electrons.
 
 The pair has only one parameter: `Rc` is the cutoff.
 
@@ -45,6 +44,7 @@ types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below.
+
 ----------
 
 Mixing, shift, table, tail correction, restart, rRESPA info
@@ -61,6 +61,7 @@ to be specified in an input script that reads a restart file.
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*, *middle*, *outer* keywords.
+
 ----------
 
 Restrictions
@@ -79,3 +80,7 @@ Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`
+
+:doc:`pair_style awpmd/cut <pair_awpmd>`
+
+:doc:`pair_style eff/cut <pair_eff>`

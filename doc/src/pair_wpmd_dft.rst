@@ -146,6 +146,13 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
+
+:doc:`pair_style awpmd/cut <pair_awpmd>`
+
+:doc:`pair_style wpmd/cut <pair_wpmd>`
+
+:doc:`pair_style eff/cut <pair_eff>`
+
 .. _wpmddft:
 
 **[1]** Lavrinenko, Yaroslav, et al. "Equilibrium properties of warm dense deuterium

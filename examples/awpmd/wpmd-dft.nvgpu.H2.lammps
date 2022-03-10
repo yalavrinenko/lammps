@@ -39,11 +39,11 @@ velocity all create 20 877785 dist gaussian
 
 
 #PAIR_STYLE
-pair_style  wpmd/dft-nvgpu/cut 100 mesh adaptive 0.7 2.5 dynamic off
+pair_style  wpmd/dft/cut/nvgpu 100 mesh adaptive 0.7 2.5 dynamic off
 pair_coeff  * *
 #END_PAIR_STYLE
 
-compute energies all pair wpmd/dft-nvgpu/cut
+compute energies all pair wpmd/dft/cut/nvgpu
 variable eng_total equal etotal
 variable etotal_ev equal v_eng_total/627.509474*27.211386
 

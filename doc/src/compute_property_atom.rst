@@ -80,6 +80,9 @@ Syntax
            eradius = electron radius
            ervel = electron radial velocity
            erforce = electron radial force
+           cs_re = electron split coefficient (real part)
+           cs_im = electron split coefficient (imag part)
+           etag = electron split tag
 
   .. parsed-literal::
 

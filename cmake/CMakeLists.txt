@@ -231,8 +231,6 @@ set(STANDARD_PACKAGES
   UEF
   VORONOI
   VTK
-  WPMD-DFT
-  WPMD-NVGPU-DFT
   YAFF)
 
 set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT INTEL OPENMP)
@@ -331,8 +329,6 @@ pkg_depends(DIELECTRIC KSPACE)
 pkg_depends(DIELECTRIC EXTRA-PAIR)
 pkg_depends(CG-DNA MOLECULE)
 pkg_depends(CG-DNA ASPHERE)
-pkg_depends(WPMD-NVGPU-DFT WPMD-DFT)
-pkg_depends(WPMD-DFT AWPMD)
 
 # detect if we may enable OpenMP support by default
 set(BUILD_OMP_DEFAULT OFF)

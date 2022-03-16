@@ -158,6 +158,9 @@ void LAMMPS_NS::PairAWPMD::settings(int narg, char **arg) {
   WavepacketPairCommon::settings(narg, arg);
   if (narg < 1) error->all(FLERR, "Illegal pair_style command");
 
+  if (!comm->ghost_velocity)
+    error->all(FLERR, "pair_style requires ghost_velocity flag. Add comm_modify vel yes to your input script.");
+
   auto numeric = [this](char const* str) {
     return utils::numeric(FLERR, str, false, lmp);
   };

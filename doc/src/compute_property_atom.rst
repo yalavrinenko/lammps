@@ -32,7 +32,7 @@ Syntax
                              corner3x, corner3y, corner3z,
                              i_name, d_name, i2_name[I], d2_name[I],
                              vfrac, s0, spin, eradius, ervel, erforce,
-                             rho, drho, e, de, cv, buckling,
+                             rho, drho, e, de, cv, buckling, etag, cs_im, cs_re
 
   .. parsed-literal::
 

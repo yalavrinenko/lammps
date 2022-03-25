@@ -118,7 +118,10 @@ namespace LAMMPS_NS {
       } else if (!std::strcmp(argv[i], "ewp")) {
         steppers.add(lmp, stepper_type::electron_pw, random_seed, engine_seed).assign_subsystem(
             make_unique<MCScalarSystem>(atom->ervel, electron_filter));
-      } else if (!std::strcmp(argv[i], "ec")) {
+      } else if (!std::strcmp(argv[i], "ec_re")) {
+        steppers.add(lmp, stepper_type::electron_c, random_seed, engine_seed).assign_subsystem(
+            make_unique<MCVectorSystem<2>>(atom->cs, electron_filter));
+      } else if (!std::strcmp(argv[i], "ec_im")) {
         steppers.add(lmp, stepper_type::electron_c, random_seed, engine_seed).assign_subsystem(
             make_unique<MCVectorSystem<2>>(atom->cs, electron_filter));
       } else if (!std::strcmp(argv[i], "iv")) {

@@ -141,7 +141,17 @@ namespace LAMMPS_NS{
     }
   };
 
-  template<unsigned Dimension>
+  struct TrivialProjector{
+    double& operator() (double **data, unsigned row, unsigned col){
+      return data[row][col];
+    }
+
+    double const& operator() (double **data, unsigned row, unsigned col) const{
+      return data[row][col];
+    }
+  };
+
+  template<unsigned Dimension, typename Projector = TrivialProjector>
   class MCVectorSystem: public MCSystem{
   public:
     void save(size_t size) override {
@@ -214,6 +224,7 @@ namespace LAMMPS_NS{
     constexpr static unsigned Dim = Dimension;
   private:
     double** &src;
+    Projector proj_;
     std::vector<std::array<double, Dim>> storage;
   };
 

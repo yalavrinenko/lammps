@@ -3208,13 +3208,15 @@ int AWPMD_split::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
 
 
                     for (int j3 = 0; j3 < nspl[s2][c3]; j3++) {
+# if 0
                       double Mejj, Mfjj;
                       _mytie(Mejj, Mfjj) = check_part1(s1, ic1 + j1, s2, ic3 + j3);
                       double Mekj, Mfkj;
                       _mytie(Mekj, Mfkj) = check_part1(s1, ic2 + k2, s2, ic3 + j3);
                       if (!Mfjj && !Mfkj)
                         continue;
-
+# endif
+                      
 
                       cdouble cj3(split_c[s2][ic3 + j3][0], split_c[s2][ic3 + j3][1]);
                       WavePacket &wj3 = wp[s2][ic3 + j3];
@@ -3244,12 +3246,16 @@ int AWPMD_split::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
 
 
                       for (int k4 = (approx == HARTREE ? j3 : 0); k4 < nspl[s2][c4]; k4++) {
-                        double Mekk, Mfkk;
+                        /*double Mekk, Mfkk;
                         _mytie(Mekk, Mfkk) = check_part1(s1, ic2 + k2, s2 , ic4 + k4);
                         double Mejk, Mfjk;
                         _mytie(Mejk, Mfjk) = check_part1(s1, ic1 + j1, s2, ic4 + k4);
                         if (!Mfkk && !Mfjk)
-                          continue;
+                          continue;*/
+                        double Me4, Mf4;
+                        _mytie(Me4, Mf4) = check_part1(s1, ic1 + j1, ic2+k2, s2, ic3 + j3, ic4+k4);
+                        if (!Me4 && !Mf4)
+                          continue; 
 
 
                         int M34 = (c3 == c4 && j3 == k4 ? 1 : 2);
@@ -3271,14 +3277,14 @@ int AWPMD_split::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
                         // 3-4
                         WavePacket wk4 = wp[s2][ic4 + k4];
 # if 1
-                        if (Mfkk && Mfjj) {
+                        if (1 /*Mfkk && Mfjj*/) {
                           if (pbc)
                             move_to_image(wj3, wk4);
                           WavePacket wjk34 = conj(wj3) * wk4;
                           cdouble I034 = wjk34.integral();
                           if (norm(I034) > ovl_tolerance && norm(I012) > ovl_tolerance) {
-                            double Me = M0 * Mejj*Mekk;
-                            double Mf = M0 * Mfjj*Mfkk;
+                            double Me = M0 * Me4; // Mejj*Mekk;
+                            double Mf = M0 * Mf4; // Mfjj*Mfkk;
 
                             cdouble part_jk34 = conj(cj3) * ck4;
                             cVector_3 djk34 = wjk34.b / (2 * wjk34.a);
@@ -3348,15 +3354,15 @@ int AWPMD_split::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
 # endif
 # if 1
                         // 1-4
-                        if (approx != HARTREE && (approx == UHF && s1 == s2) && Mfjk && Mfkj) {
+                        if (approx != HARTREE && (approx == UHF && s1 == s2) /*&& Mfjk && Mfkj*/) {
                           wk4 = wp[s2][ic4 + k4];
                           if (pbc)
                             move_to_image(wj1, wk4);
                           WavePacket wjk14 = conj(wj1) * wk4;
                           cdouble I014 = wjk14.integral();
                           if (norm(I032) > ovl_tolerance && norm(I014) > ovl_tolerance) {
-                            double Me = M0 * Mejk*Mekj;
-                            double Mf = M0 * Mfjk*Mfkj;
+                            double Me = M0 * Me4; // Mejk*Mekj;
+                            double Mf = M0 * Mf4; // Mfjk*Mfkj;
 
 
                             cdouble part_jk14 = conj(cj1) * ck4;

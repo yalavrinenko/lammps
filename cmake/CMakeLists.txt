@@ -96,7 +96,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
 # ugly hack for MSVC which by default always reports an old C++ standard in the __cplusplus macro
 if(MSVC)
-  add_compile_options(/Zc:__cplusplus)
+  #add_compile_options(/Zc:__cplusplus)
+  #target_compile_definitions(lammps PRIVATE /Zc:__cplusplus)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus")
 endif()
 
 # export all symbols when building a .dll file on windows

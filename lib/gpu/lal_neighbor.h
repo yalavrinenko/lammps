@@ -21,6 +21,7 @@
 #include "lal_atom.h"
 #include "lal_neighbor_shared.h"
 #include <sstream>
+#include <algorithm>  // max
 
 #define IJ_SIZE 131072
 

@@ -625,7 +625,8 @@ public:
   ///\en Gets ordering for organizing loops without double counting
   /// \return true if the pair should be skipped
   bool skip_by_tag_order(int s1, int ic1, int c1, int s2, int ic2, int c2) const {
-    //return c1<c2;
+    return c1<c2;
+# if 0   
     int tag1 = partition1[s1][ic1];
     int tag2 = partition1[s2][ic2];
 
@@ -644,7 +645,33 @@ public:
 
     return res;
     //return std::abs(partition1[s][ic]);
+# endif
   }
+
+  ///\en 1 -- all my, -1 all other, 2 -- my mixed term, -2 -- other mixed term
+  int check_ee(int s1, int icj1, int ick2, int s2, int icj3, int ick4) const {
+    int tag[4];
+    tag[0] = partition1[s1][icj1];
+    tag[1] = partition1[s1][ick2];
+    tag[2] = partition1[s2][icj3];
+    tag[3] = partition1[s2][ick4];
+
+    int imaxt = 0;
+    bool has_neg = false;
+    for (int i = 0; i < 4; i++) {
+      if (tag[i] <= 0)
+        has_neg = true;
+      if (std::abs(tag[i]) > std::abs(tag[imaxt]))
+        imaxt = i;
+    }
+    if (!has_neg)
+      return 1;
+    else if (tag[imaxt] > 0) // dislocated pair is taken by node with the largest own tag
+      return 1;
+    else
+      return -1;
+  }
+
 
   ///\en 1 -- all my, -1 all other, 2 -- my mixed term, -2 -- other mixed term
   int check_ee(int s1,int icj1,int s2, int ick2) const {
@@ -652,11 +679,30 @@ public:
     int tag2 = partition1[s2][ick2];
 
     int res = -1;
+    if (tag1 <= 0) {
+      if (tag2 > 0 && std::abs(tag2) > std::abs(tag1)) // dislocated pair is taken by node with the largest own tag
+        return 1;
+      else
+        return -1;
+    }
+    else {  // tag1>0
+      if (tag2 > 0) // all at this node
+        return 1;
+      // dislocated pair is taken by node with the largest own tag
+      else if (std::abs(tag1) > std::abs(tag2)) // tag2<=0
+        return 1;
+      else
+        return -1;
+    }
+# if 0
+
+
     if (tag1 <= 0 && tag2 <= 0) // all at other partition
       res=  -1;
     else if (tag1 > 0 && tag2 > 0) // all at my partition
       res = 1;
     else {
+    
       int atag1 = std::abs(tag1);
       int atag2 = std::abs(tag2);
       int atag_min, atag_max, tag_min;
@@ -687,7 +733,7 @@ public:
     }
     //printf("Pair test: (%d)[%d]-(%d)[%d] %s\n", s1, std::abs(tag1), s2, std::abs(tag2), res<0 ? "other" : "my");
     return res;
-  
+# endif 
 /*
     int c1=(int)(partition1[s1][icj1]>0);
     int c2=(int)(partition1[s2][ick2]>0);
@@ -765,10 +811,9 @@ public:
   }
 
   ///\en Returns electron-electron inter-partition multipliers for energy (first) and force (second)
-  ///    for a 4- and 2- electron additive terms (all inter-partition interactions are
+  ///    for 2- electron additive terms (all inter-partition interactions are
   ///    calculated only once based on particle tags)
   ///    If force multiplier is zero, then the term may be omitted (energy will also be zero).
-  ///    NOW ASSIGNS BASED ON THE FIRST PAIR ONLY
   pair<double, double> check_part1(int s1,int icj1,int s2, int ick2) const {
     int res=check_ee(s1,icj1,s2,ick2);
     if(res==1){ // my term
@@ -790,12 +835,47 @@ public:
     return make_pair(0.,0.); // nonsense
   }
 
+  ///\en Returns electron-electron inter-partition multipliers for energy (first) and force (second)
+  ///    for 4-electron additive terms (all inter-partition interactions are
+  ///    calculated only once based on particle tags)
+  ///    If force multiplier is zero, then the term may be omitted (energy will also be zero).
+  pair<double, double> check_part1(int s1, int icj1, int ick2, int s2, int icj3, int ick4) const {
+    int res = check_ee(s1, icj1, ick2, s2, icj3, ick4);
+    if (res == 1) { // my term
+      //printf(" *\n");
+      return make_pair(1., 1.); // all at my partition
+    }
+    else if (res == -1) {
+      //printf(" \n");
+      return make_pair(0., 0.); // all at other partition
+    }
+    else if (res == 2) {
+      //printf(" *\n");
+      return make_pair(0.5, 1.0); // my inter-partition
+    }
+    else if (res == -2) {
+      //printf(" \n");
+      return make_pair(0., newton_pair ? 0.0 : 1.); // other inter-partition: must add force if newton comm is off
+    }
+    return make_pair(0., 0.); // nonsense
+  }
+
   ///\en Returns elctron-ion inter-partition multipliers for energy (first) and force (second)
   ///    for ion-electron additive terms (all inter-partition interactions are
   ///    calculated only once based on particle tags)
   ///    If force multiplier is zero, then the term may be omitted (energy will also be zero).
   ///    BASED ON ION ATTACHMENT
   pair<double,double> check_part1ei(int s1,int icj1,int ick2, int ion){
+    int tagi = partition1[2][ion];
+    if (tagi>0) {  // ion's node takes all
+      //printf(" *\n");
+      return make_pair(1., 1.); // my term
+    }
+    else {
+      //printf(" \n");
+      return make_pair(0., 0.); // all at other partition
+    }
+# if 0
     //printf("%d ",partition1[2][ion]);
     int ci=(int)(partition1[2][ion]>0);
 
@@ -812,6 +892,7 @@ public:
       //printf(" \n");
       return make_pair(0.,0.); // all at other partition
     }
+# endif
   }
 
   ///\en Returns ion-ion inter-partition multipliers for energy (first) and force (second)

@@ -635,7 +635,7 @@ void UCL_Device::add_properties(cl_device_id device_list) {
   size_t ext_str_size_ret;
   CL_SAFE_CALL(clGetDeviceInfo(device_list, CL_DEVICE_EXTENSIONS, 0, nullptr,
                                &ext_str_size_ret));
-  char buffer2[ext_str_size_ret];
+  char *buffer2 = new char[ext_str_size_ret]; // char buffer2[ext_str_size_ret];
   CL_SAFE_CALL(clGetDeviceInfo(device_list, CL_DEVICE_EXTENSIONS,
                                ext_str_size_ret, buffer2, nullptr));
   #if defined(CL_VERSION_2_1) || defined(CL_VERSION_3_0)
@@ -666,6 +666,7 @@ void UCL_Device::add_properties(cl_device_id device_list) {
     if (arch >= 3.0)
       op.has_shuffle_support=true;
   }
+  delete[] buffer2;
   #endif
 
   _properties.push_back(op);

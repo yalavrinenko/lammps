@@ -119,11 +119,17 @@ namespace LAMMPS_NS {
         steppers.add(lmp, stepper_type::electron_pw, random_seed, engine_seed).assign_subsystem(
             make_unique<MCScalarSystem>(atom->ervel, electron_filter));
       } else if (!std::strcmp(argv[i], "ec_re")) {
+        auto c_re_proj = [](double **src, unsigned i, unsigned j) -> double&{
+          return src[i][0];
+        };
         steppers.add(lmp, stepper_type::electron_c, random_seed, engine_seed).assign_subsystem(
-            make_unique<MCVectorSystem<2>>(atom->cs, electron_filter));
+            make_unique<MCVectorSystem<1, decltype(c_re_proj)>>(atom->cs, electron_filter, c_re_proj));
       } else if (!std::strcmp(argv[i], "ec_im")) {
+        auto c_im_proj = [](double **src, unsigned i, unsigned j) -> double&{
+          return src[i][1];
+        };
         steppers.add(lmp, stepper_type::electron_c, random_seed, engine_seed).assign_subsystem(
-            make_unique<MCVectorSystem<2>>(atom->cs, electron_filter));
+            make_unique<MCVectorSystem<1, decltype(c_im_proj)>>(atom->cs, electron_filter, c_im_proj));
       } else if (!std::strcmp(argv[i], "iv")) {
         steppers.add(lmp, stepper_type::ion_p, random_seed, engine_seed).assign_subsystem(
             make_unique<MCVectorSystem<3>>(atom->v, ion_filter));

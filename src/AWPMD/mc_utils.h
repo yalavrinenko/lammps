@@ -161,7 +161,7 @@ namespace LAMMPS_NS{
         if (_filter(i)){
           storage.emplace_back();
           for (auto j = 0u; j < Dim; ++j)
-            storage.back()[j] = src[i][j];
+            storage.back()[j] = proj_(src, i, j);
 
         }
       storage.shrink_to_fit();
@@ -172,7 +172,7 @@ namespace LAMMPS_NS{
       for (auto i = 0ul; i < size; ++i)
         if (_filter(i)){
           for (auto j = 0u; j < Dim; ++j)
-            src[i][j] = (*insert_iterator)[j];
+            proj_(src, i, j) = (*insert_iterator)[j];
           ++insert_iterator;
         }
     }
@@ -181,7 +181,7 @@ namespace LAMMPS_NS{
       for (auto i = 0u; i < size; ++i)
         if (_filter(i)) {
           for (auto j = 0; j < Dim; ++j)
-            stepper.make_shift(src[i][j]);
+            stepper.make_shift(proj_(src, i, j));
         }
     }
 
@@ -192,7 +192,7 @@ namespace LAMMPS_NS{
         if (_filter(i)) {
           buffer.push_back(tag[i]);
           for (auto j = 0; j < Dim; ++j)
-            buffer.push_back(src[i][j]);
+            buffer.push_back(proj_(src, i, j));
         }
       }
       return buffer;
@@ -209,7 +209,7 @@ namespace LAMMPS_NS{
         int tag = (int) data[iter++];
         if (ghost_map.count(tag)) {
           for (auto j = 0u; j < Dim; ++j)
-            src[ghost_map.at(tag)][j] = data[iter++];
+            proj_(src, ghost_map.at(tag), j) = data[iter++];
           ++unpacked;
         } else {
           iter += Dim;
@@ -218,8 +218,8 @@ namespace LAMMPS_NS{
       return unpacked;
     }
 
-    MCVectorSystem(double** &source, filter_func &&filter):
-        src(source), MCSystem(std::forward<filter_func>(filter)){
+    MCVectorSystem(double** &source, filter_func &&filter, Projector proj = {}):
+        src(source), MCSystem(std::forward<filter_func>(filter)), proj_{std::move(proj)}{
     }
     constexpr static unsigned Dim = Dimension;
   private:

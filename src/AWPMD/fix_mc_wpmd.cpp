@@ -93,7 +93,7 @@ namespace LAMMPS_NS {
   }
 
   void FixMCAwpmd::init_mc_steppers(int argc, char **argv) {
-    unsigned const ARG_SHIFT = 5u;
+    unsigned const ARG_SHIFT = 4u;
 
     auto electron_filter = [this](int index) { return this->atom->mask[index] && atom->spin[index] != 0; };
     auto ion_filter = [this](int index) { return this->atom->mask[index] && atom->spin[index] == 0; };

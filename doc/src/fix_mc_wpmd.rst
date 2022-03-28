@@ -24,7 +24,8 @@ Syntax
         *ev* value = vary wavepacket velocities
         *ew* value = vary wavepacket widths (electron radii)
         *ewp* value = vary wavepacket width momenta  (electron radius momenta)
-        *ec* value = vary wavepacket split coefficients (for multi-wavepacket electrons)
+        *ec_re* value = vary wavepacket split real coefficients (for multi-wavepacket electrons)
+        *ec_im* value = vary wavepacket split imag coefficients (for multi-wavepacket electrons)
 
 Examples
 """"""""

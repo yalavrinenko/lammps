@@ -143,10 +143,6 @@ namespace LAMMPS_NS {
 
   void FixMCAwpmd::update_ghosts() {
     std::unordered_map<int, int> tag_to_index;
-//    auto ghost_map = std::async(std::launch::async, [&tag_to_index, this]() {
-//      for (auto i = atom->nlocal; i < atom->nghost; ++i)
-//        tag_to_index[atom->tag[i]] = i;
-//    });
 
     for (auto i = atom->nlocal; i < atom->nghost; ++i)
       tag_to_index[atom->tag[i]] = i;

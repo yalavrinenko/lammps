@@ -138,6 +138,8 @@ namespace LAMMPS_NS{
 
     void adjust(){
       max_shift *= engine.adjust();
+      if (type == stepper_type::electron_c && std::abs(max_shift) > 1.0)
+        max_shift /= max_shift;
     }
   };
 

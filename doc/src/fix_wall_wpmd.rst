@@ -10,7 +10,7 @@ Syntax
    fix ID group-ID wall/wpmd epsilon keyword values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* epsilon = wall potential strength in relative unit :math:`E_0`. (See description)
+* epsilon = wall potential strength in relative unit :math:`k_0`. (See description)
 * zero or more keyword/value pairs may be appended to args
 
   .. parsed-literal::
@@ -34,7 +34,7 @@ Description
 Restricts the simulation domain with a 3D harmonic potential with center at (0, 0, 0).
 
 .. math::
-    E = E_x + E_y + E_z = \epsilon \Big[ \Big( |x| - \frac{L}{2} \Big)^2
+    E = E_x + E_y + E_z = \epsilon k_0 \Big[ \Big( |x| - \frac{L}{2} \Big)^2
         + \Big( |y| - \frac{L}{2} \Big)^2
         + \Big( |z| - \frac{L}{2} \Big)^2 \Big] \\
     E_x = 0,\ \textrm{for}\ -L/2 <= x <= L/2 \\
@@ -49,6 +49,11 @@ The "wall" position is always centered at (0, 0, 0) and its size is determined b
 edge.
 
 The option *axes* allows to set the axes that are restricted by harmonic potential.
+
+The strength of the wall potential is defined by scaling the wall force constant :math:`k = \epsilon k_0` with the dimensionless parameter :math:`\epsilon`,
+where :math:`k_0` is the force constant :math:`k_0=h \omega_0^2/(2m_e)` of a 'Hydrogen' harmonic oscillator. The 'Hydrogen' harmonic oscillator 
+is defined as the one having the same Gaussian ground state wave function as the minimum Gaussian state in the Coulomb potential. The 'Hydrogen' harmonic oscillator
+defined this way has the 1D eigen energy of :math:`h \omega_0 /2 = 14.4 eV`.  
 
 ----------
 

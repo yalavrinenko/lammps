@@ -134,12 +134,14 @@ namespace LAMMPS_NS{
       v += dx;
       if (type == stepper_type::electron_w && v < 0)
         v = std::abs(v);
+      else if (type == stepper_type::electron_c && std::abs(v) > 1.0)
+        v /= std::abs(v);
     }
 
     void adjust(){
       max_shift *= engine.adjust();
-      if (type == stepper_type::electron_c && std::abs(max_shift) > 1.0)
-        max_shift /= max_shift;
+      //if (type == stepper_type::electron_c && std::abs(max_shift) > 1.0)
+      //  max_shift /= max_shift;
     }
   };
 

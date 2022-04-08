@@ -47,7 +47,7 @@ endif()
 add_library(wpmd_dft_unit_nvgpu ${BUILDCONF} ${SOURCE_FILES_GPU} ${XCAPPROX_SRC})
 
 set_target_properties(wpmd_dft_unit_nvgpu PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-target_link_libraries(wpmd_dft_unit_nvgpu ${CUDA_LIBRARIES})
+target_link_libraries(wpmd_dft_unit_nvgpu ${CUDA_LIBRARIES} cudadevrt.lib)
 
 if(WIN32)
   target_compile_definitions(wpmd_dft_unit_nvgpu PRIVATE "-D_USE_MATH_DEFINES")

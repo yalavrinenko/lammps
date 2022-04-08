@@ -100,7 +100,7 @@ namespace LAMMPS_NS {
     unsigned long engine_seed =  std::random_device{}();
     if (comm->nprocs > 1)
       MPI_Bcast(&engine_seed, 1, MPI_UNSIGNED_LONG, 0, world);
-
+    
     for (auto i = ARG_SHIFT; i < argc; ++i) {
       auto random_seed = std::abs((int) std::random_device{}());
       if (!std::strcmp(argv[i], "ix")) {

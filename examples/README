@@ -118,7 +118,7 @@ ttm:      two-temeperature model examples
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command
 wall:     use of reflective walls with different stochastic models
-awpmd:    use of AWPMD and WPMD-DFT model for H-plasma simulation
+awpmd:    use of AWPMD and WPMD-DFT models for H-plasma simulation
 
 Here is how you might run and visualize one of the sample problems:
 

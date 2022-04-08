@@ -148,7 +148,7 @@ namespace LAMMPS_NS {
       tag_to_index[atom->tag[i]] = i;
 
     auto particle_data = std::move(steppers.current().pack(atom->nlocal, atom->tag));
-    auto data_size = particle_data.size();
+    auto data_size = static_cast<int>(particle_data.size());
 
     std::vector<int> recv_size(comm->nprocs);
     MPI_Allgather(&data_size, 1, MPI_INT, &recv_size[0], 1, MPI_INT, world);
@@ -165,7 +165,7 @@ namespace LAMMPS_NS {
     MPI_Allgatherv(particle_data.data(), data_size, MPI_DOUBLE, &recv_buf[0], &recv_size[0], &displace[0], MPI_DOUBLE, world);
 
     //ghost_map.wait();
-    auto unpacked = steppers.current().unpack(&recv_buf[0], total_size, tag_to_index);
+    steppers.current().unpack(&recv_buf[0], total_size, tag_to_index);
   }
 
   void FixMCAwpmd::initial_integrate(int i) {

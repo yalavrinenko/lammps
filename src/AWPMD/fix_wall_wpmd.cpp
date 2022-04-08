@@ -83,13 +83,21 @@ LAMMPS_NS::FixWallWpmd::construct_box(char **pString, double half_box_length,
   auto h2_me = force->hhmrr2e / force->e_mass;
   auto one_h = force->mvh2r;
 
-  double eigenwp = 0.0;
+  double eigenwp = 0.8615;  // eigen state width for H atom
 
-  if (eigenE > 0.) {
-    eigenwp = sqrt(3. / 2 / me / eigenE) / one_h;
+  bool use_epsilon = false;
+
+  if (use_epsilon) {  // eigenE is treated as epsilon (coefficient before eigenE_hydrogen)
+    eigenE *= 3. / 2 * h2_me / (eigenwp * eigenwp);
+    eigenwp = sqrt(3. / 2 / me / eigenE) / one_h;  // should be 1. for epsilon =1
   }
-// else   eigenE = 3. / 2 * h2_me / (eigenwp * eigenwp);
+  else { // old style definition
 
+    if (eigenE > 0.) {
+      eigenwp = sqrt(3. / 2 / me / eigenE) / one_h;
+    }
+    // else   eigenE = 3. / 2 * h2_me / (eigenwp * eigenwp);
+  }
   double floorYtoX = 1., floorZtoX = 1., widthYtoX = 1., widthZtoX = 1.;
 
   Vector_3 gamma(eigenwp, eigenwp * widthYtoX, eigenwp * widthZtoX), force_k;

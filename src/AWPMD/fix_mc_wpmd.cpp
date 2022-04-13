@@ -23,7 +23,7 @@ namespace LAMMPS_NS {
 
   namespace {
     template<typename T, typename ... TArgs>
-    std::unique_ptr<T> make_unique(TArgs&& ... args){
+    std::unique_ptr<T> make_unique(TArgs &&... args) {
       return std::unique_ptr<T>{new T{std::forward<TArgs>(args)...}};
     }
   }
@@ -65,7 +65,8 @@ namespace LAMMPS_NS {
   }
 
   void FixMCAwpmd::final_integrate() {
-    auto energy_new = temp->compute_scalar() * 0.5 * temp->dof * force->boltz + pe->compute_scalar(); //input->variable->compute_equal(v_id);
+    auto energy_new = temp->compute_scalar() * 0.5 * temp->dof * force->boltz +
+                      pe->compute_scalar(); //input->variable->compute_equal(v_id);
     this->output.like_vars.accept_flag = steppers.current().engine.test(energy_new - energy_old, 1.);
 
     if (output.like_vars.accept_flag == 1) {
@@ -97,10 +98,10 @@ namespace LAMMPS_NS {
 
     auto electron_filter = [this](int index) { return this->atom->mask[index] && atom->spin[index] != 0; };
     auto ion_filter = [this](int index) { return this->atom->mask[index] && atom->spin[index] == 0; };
-    unsigned long engine_seed =  std::random_device{}();
+    unsigned long engine_seed = std::random_device{}();
     if (comm->nprocs > 1)
       MPI_Bcast(&engine_seed, 1, MPI_UNSIGNED_LONG, 0, world);
-    
+
     for (auto i = ARG_SHIFT; i < argc; ++i) {
       auto random_seed = std::abs((int) std::random_device{}());
       if (!std::strcmp(argv[i], "ix")) {
@@ -119,13 +120,13 @@ namespace LAMMPS_NS {
         steppers.add(lmp, stepper_type::electron_pw, random_seed, engine_seed).assign_subsystem(
             make_unique<MCScalarSystem>(atom->ervel, electron_filter));
       } else if (!std::strcmp(argv[i], "ec_re")) {
-        auto c_re_proj = [](double **src, unsigned i, unsigned j) -> double&{
+        auto c_re_proj = [](double **src, unsigned i, unsigned j) -> double & {
           return src[i][0];
         };
         steppers.add(lmp, stepper_type::electron_c, random_seed, engine_seed).assign_subsystem(
             make_unique<MCVectorSystem<1, decltype(c_re_proj)>>(atom->cs, electron_filter, c_re_proj));
       } else if (!std::strcmp(argv[i], "ec_im")) {
-        auto c_im_proj = [](double **src, unsigned i, unsigned j) -> double&{
+        auto c_im_proj = [](double **src, unsigned i, unsigned j) -> double & {
           return src[i][1];
         };
         steppers.add(lmp, stepper_type::electron_c, random_seed, engine_seed).assign_subsystem(
@@ -144,10 +145,10 @@ namespace LAMMPS_NS {
   void FixMCAwpmd::update_ghosts() {
     std::unordered_map<int, int> tag_to_index;
 
-    for (auto i = atom->nlocal; i < atom->nghost; ++i)
+    for (auto i = atom->nlocal; i < atom->nlocal + atom->nghost; ++i)
       tag_to_index[atom->tag[i]] = i;
 
-    auto particle_data = std::move(steppers.current().pack(atom->nlocal, atom->tag));
+    auto particle_data = steppers.current().pack(atom->nlocal, atom->tag);
     auto data_size = static_cast<int>(particle_data.size());
 
     std::vector<int> recv_size(comm->nprocs);
@@ -162,7 +163,8 @@ namespace LAMMPS_NS {
     }
 
     vector<double> recv_buf(total_size);
-    MPI_Allgatherv(particle_data.data(), data_size, MPI_DOUBLE, &recv_buf[0], &recv_size[0], &displace[0], MPI_DOUBLE, world);
+    MPI_Allgatherv(particle_data.data(), data_size, MPI_DOUBLE, &recv_buf[0], &recv_size[0], &displace[0], MPI_DOUBLE,
+                   world);
 
     //ghost_map.wait();
     steppers.current().unpack(&recv_buf[0], total_size, tag_to_index);

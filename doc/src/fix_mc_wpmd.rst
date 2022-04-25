@@ -40,7 +40,7 @@ Description
 """""""""""
 
 This fix performs Monte Carlo (MC) moves within the simulation cell or region
-for :doc:`wavepacket <atom_style>` atom style. Electrons in this atom style may be represented by a sinle or multiple wavepackets. 
+for :doc:`wavepacket <atom_style>` atom style (see :doc:`pair_style wpmd/cut <pair_wpmd>`). Electrons in this atom style may be represented by a sinle or multiple wavepackets. 
 For models with one wavepacket per electron the wavepacket center and width are identical with elcetron radius and radius momentum correspondingly.
 The fix changes particles' coordinates,
 velocities and wavepackets' width and conjugated momenta at each step forming a trial particle configuration. The new configuration
@@ -73,12 +73,12 @@ The fix does not write any information to restarts files.
 This fix computes a vector of length 6, which can be accessed by various :doc:`output commands <Howto_output>`.
 The vector values are the following global cumulative quantities:
 
-    * 1. Accept flag. The step was accepted if this flag is 1 and rejected otherwise.
-    * 2. The energy of the last accepted configuration.
-    * 3. The energy of the current configuration.
-    * 4. The number of accepted steps.
-    * 5. The number of rejected steps.
-    * 6. The id of the current operation performed over a system in the current step. The integer number int ranges from 0 to k, where k is the number of possible operations.
+    1. Accept flag. The step was accepted if this flag is 1 and rejected otherwise.
+    2. The energy of the last accepted configuration.
+    3. The energy of the current configuration.
+    4. The number of accepted steps.
+    5. The number of rejected steps.
+    6. The id of the current operation performed over a system in the current step. The integer number int ranges from 0 to k, where k is the number of possible operations.
 
 Restrictions
 """"""""""""

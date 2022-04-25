@@ -83,13 +83,15 @@ LAMMPS_NS::FixWallWpmd::construct_box(char **pString, double half_box_length,
   auto h2_me = force->hhmrr2e / force->e_mass;
   auto one_h = force->mvh2r;
 
-  double eigenwp = 0.8615;  // eigen state width for H atom
+  double eigenwp = 0.8616;  // eigen state width for H atom
 
   bool use_epsilon = false;
 
-  if (use_epsilon) {  // eigenE is treated as epsilon (coefficient before eigenE_hydrogen)
-    eigenE *= 3. / 2 * h2_me / (eigenwp * eigenwp);
-    eigenwp = sqrt(3. / 2 / me / eigenE) / one_h;  // should be 1. for epsilon =1
+  double epsilon = 1.;
+  if (use_epsilon) {  // eigenE is treated as epsilon (coefficient before eigenE_hydrogen force)
+    epsilon = eigenE;
+    eigenE  = 3. / 2 * h2_me / (eigenwp * eigenwp);
+    //eigenwp = sqrt(3. / 2 / me / eigenE) / one_h;  // should be 1. for epsilon =1
   }
   else { // old style definition
 
@@ -103,7 +105,7 @@ LAMMPS_NS::FixWallWpmd::construct_box(char **pString, double half_box_length,
   Vector_3 gamma(eigenwp, eigenwp * widthYtoX, eigenwp * widthZtoX), force_k;
 
   for (int i = 0; i < 3; ++i) {
-    force_k[i] = 9. / 8 * h2_me / (gamma[i] * gamma[i] * gamma[i] * gamma[i]) * has_force_[i];
+    force_k[i] = 9. / 8 * epsilon * h2_me / (gamma[i] * gamma[i] * gamma[i] * gamma[i]) * has_force_[i];
   }
 
   Vector_3 bound(floor, floor * floorYtoX, floor * floorZtoX);

@@ -51,7 +51,7 @@ edge.
 The option *axes* allows to set the axes that are restricted by harmonic potential.
 
 The strength of the wall potential is defined by scaling the wall force constant :math:`k = \epsilon k_0` with the dimensionless parameter :math:`\epsilon`,
-where :math:`k_0` is the force constant :math:`k_0=(\frac{8}{27\pi})^2(\frac{e^2}{4\pi\epsilon_0})^4(\frac{m_e}{\hbar^2})^3 = 3.457 eV/A^2`. 
+where :math:`k_0` is the force constant :math:`k_0=(\frac{16}{9\pi})^2(\frac{e^2}{4\pi\epsilon_0})^4(\frac{m_e}{\hbar^2})^3 = 31.11 eV/A^2`. 
 The force constant :math:`k_0` corresponds to the 'Hydrogen' harmonic oscillator. The 'Hydrogen' harmonic oscillator 
 is defined as the one having the same Gaussian ground state wave function as the minimum Gaussian state in the Coulomb potential. The 'Hydrogen' harmonic oscillator
 defined this way has the 3D eigen energy of :math:`\frac{3}{2}(k0\hbar^2/m_e)^(1/2) = 15.4 eV`.  

@@ -274,3 +274,9 @@ TSWLatexianTemp*
 
 # Makeindex log files
 *.lpz
+
+# RST files
+fix_*.rst
+pair_*.rst
+compute_*.rst
+set.rst

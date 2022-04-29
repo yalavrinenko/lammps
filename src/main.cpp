@@ -39,9 +39,18 @@ using namespace LAMMPS_NS;
    main program to drive LAMMPS
 ------------------------------------------------------------------------- */
 
+#include <chrono>
+#include <thread>
+
+
+
 int main(int argc, char **argv)
 {
   MPI_Init(&argc, &argv);
+
+  //printf("sleeping for 40 secs...\n");
+  //std::chrono::milliseconds timespan(40*1000); // or whatever
+  //std::this_thread::sleep_for(timespan);
 
   MPI_Comm lammps_comm = MPI_COMM_WORLD;
 

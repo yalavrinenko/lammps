@@ -10,13 +10,13 @@ Syntax
    fix ID group-ID wall/wpmd epsilon keyword values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* epsilon = wall potential strength in relative unit :math:`k_0`. (See description)
+* epsilon = wall potential strength in relative units :math:`k_0` (see description)
 * zero or more keyword/value pairs may be appended to args
 
-  .. parsed-literal::
-         box = length of the box edge L (distance units)
-         width_force = take in account width part of force for pressure evaluation
-         axes = all or part of *x*, *y* and *z*
+.. parsed-literal::
+		box = length of the box edge L (distance units)
+		width_force = include 'force' on the wavepacket widths for pressure evaluation
+		axes = all or part of *x*, *y* and *z*
 
 Examples
 """"""""
@@ -31,30 +31,36 @@ Examples
 Description
 """""""""""
 
-Restricts the simulation domain with a 3D harmonic potential with center at (0, 0, 0).
+Restricts the simulation domain with a 3D harmonic wall potential:
 
 .. math::
-    E = E_x + E_y + E_z = \epsilon k_0 \Big[ \Big( |x| - \frac{L}{2} \Big)^2
+
+    & E = E_x + E_y + E_z = \epsilon k_0 \Big[ \Big( |x| - \frac{L}{2} \Big)^2
         + \Big( |y| - \frac{L}{2} \Big)^2
         + \Big( |z| - \frac{L}{2} \Big)^2 \Big] \\
-    E_x = 0,\ \textrm{for}\ -L/2 <= x <= L/2 \\
-    E_y = 0,\ \textrm{for}\ -L/2 <= y <= L/2 \\
-    E_z = 0,\ \textrm{for}\ -L/2 <= z <= L/2 \\
+    & E_x = 0,\ \textrm{for}\ -L/2 <= x <= L/2 \\
+    & E_y = 0,\ \textrm{for}\ -L/2 <= y <= L/2 \\
+    & E_z = 0,\ \textrm{for}\ -L/2 <= z <= L/2 \\
+
+The fix is mainly designed for :doc:`wavepacket <atom_style>` simulations (see :doc:`pair_style wpmd/cut <pair_wpmd>`) although it can be applied to other atom styles (with care). 
 
 The potential interacts with particles and wavepackets by generating a force on the particle in
 a direction perpendicular to the wall. The potential acts on wavepackets in quantum manner 
 affecting both the center and width of the wavepacket. This fix can be used to prevent wavepacket spreading.
 
-The "wall" position is always centered at (0, 0, 0) and its size is determined by *box* keyword setting a length L of the box
-edge.
+The "wall" position is always centered at (0, 0, 0) and its size is determined by *box* keyword setting a length :math:`L` of the box edge.
 
 The option *axes* allows to set the axes that are restricted by harmonic potential.
 
-The strength of the wall potential is defined by scaling the wall force constant :math:`k = \epsilon k_0` with the dimensionless parameter :math:`\epsilon`,
-where :math:`k_0` is the force constant :math:`k_0=(\frac{16}{9\pi})^2(\frac{e^2}{4\pi\epsilon_0})^4(\frac{m_e}{\hbar^2})^3 = 31.11 eV/A^2`. 
-The force constant :math:`k_0` corresponds to the 'Hydrogen' harmonic oscillator. The 'Hydrogen' harmonic oscillator 
+The strength of the wall potential is defined by the the dimensionless parameter *epsilon* which is multiplied by the constant :math:`k_0`:
+
+.. math::
+
+  k_0 = \left(\frac{16}{9\pi}\right)^2 \left(\frac{e^2}{4\pi\epsilon_0}\right)^4 \left(\frac{m_e}{\hbar^2}\right)^{-3} = 31.11\:\mathrm{eV/A}^2.
+
+The constant :math:`k_0` corresponds to the 'Hydrogen' harmonic oscillator. The 'Hydrogen' harmonic oscillator 
 is defined as the one having the same Gaussian ground state wave function as the minimum Gaussian state in the Coulomb potential. The 'Hydrogen' harmonic oscillator
-defined this way has the 3D eigen energy of :math:`\frac{3}{2}(k0\hbar^2/m_e)^(1/2) = 15.4 eV`.  
+defined this way has the 3D eigen energy of :math:`\frac{3}{2}(k_0\hbar^2/m_e)^{1/2} = 15.4\:\mathrm{eV}`.  
 
 ----------
 
@@ -72,13 +78,15 @@ of :doc:`thermodynamic output <thermo_style>`.
 This fix computes a global scalar energy and a global vector with 2 values
 , which can be accessed by various :doc:`output commands <Howto_output>`.
 The index in vector is:
-* 1 energy
-* 2 system pressure, evaluated as
+
+  1. Energy
+  2. System pressure
+The pressure is evaluated as
 
 .. math::
-    P = 1.0 / d \sum_{i=0}^{d} |{F_i}|/L^2,
+    P = \frac{1}{d} \sum_{i=0}^{d} \frac{|{F_i}|}{L^2},
 
-where i is the coordinate axis index, F_i is the force of the wall, d is the number of enabled walls.
+where :math:`i` is the coordinate axis index, :math:`F_i` is the force of the wall, :math:`d` is the number of enabled walls.
 
 Note that the scalar energy is the sum of interactions with all enabled walls.
 If you want the energy on a per-wall basis, you need to use multiple fix wall commands.

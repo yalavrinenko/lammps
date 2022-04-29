@@ -18,7 +18,7 @@
 #define __global__
 #endif
 
-#define __devspec__ __host__ __device__
+#define __devspec__ /*__host__*/ __device__
 #define __isnan _isnan 
 
 enum class ApproxType{

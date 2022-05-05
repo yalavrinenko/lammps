@@ -119,14 +119,14 @@ equations is solved dynamically or by Monte Carlo sampling.
 The Hamiltonian of the many electron system interacting
 with ions treated as classical particles reads:
 \begin{eqnarray}\label{Hoperator}
-&&\hat{H}=\hat{K}^{e}+\hat{V}^{ei}+\hat{V}^{ee}+\hat H_\mathrm{ext}\nonumber \\
+&&\hat{H}=\hat{K}^{e}+\hat{U}^{ei}+\hat{U}^{ee}+\hat H_\mathrm{ext}\nonumber \\
 &&= - \sum_k\frac{\hbar^2\Delta_k}{2m}
 - \sum_{k,i}\frac{eq_i}{|\hat{\mathbf{x}}_k-\mathbf{R}_i|}
 + \sum_{k<m}\frac{e^2}{|\hat{\mathbf{x}}_k-\hat{\mathbf{x}}_m|}
 + \hat H_\mathrm{ext},
 \end{eqnarray}
-where $\hat{K}^{e}$ is the electron kinetic energy, $\hat{V}^{ei}$ is the
-electron-ion Coulomb interaction, $\hat{V}^{ee}$ is the electron-electron
+where $\hat{K}^{e}$ is the electron kinetic energy, $\hat{U}^{ei}$ is the
+electron-ion Coulomb interaction, $\hat{U}^{ee}$ is the electron-electron
 Coulomb repulsion, and $\hat H_\mathrm{ext}$ is the external field potential,
 $\mathbf{R}_i$ and $q_i$ are the ion coordinates and charges.
 
@@ -138,24 +138,31 @@ in a number of simple WPs $\varphi_{k\alpha}(\mathbf{x})$:
 = n_k^{-1/2}\sum_{\alpha=1}^{M_k} c_{k\alpha} \varphi_{k\alpha}(\mathbf{x}),
 \end{equation}
 with $\varphi_{k\alpha}(\mathbf{x})$ being normalized Gaussian wave packets:
+%\begin{equation}
+%\quad
+%\varphi_{k\alpha}(\mathbf{x})
+%= \left( \frac{3}{2\pi s_{k\alpha}^2} \right)^{3/4}
+%%\!\!\exp\left\{
+%\mathrm{e}^{- \left(\frac{3}{4s_{k\alpha}^2}-\frac{ip_{s_{k\alpha}}}{2\hbar s_{k\alpha}}\right)
+%	\left(\mathbf{x}-\mathbf{r}_{k\alpha}\right)^2
+%	+ \frac{i}{\hbar}\mathbf{p}_{k\alpha}(\mathbf{x}-\mathbf{r}_{k\alpha})}.
+%%\right\}
+%\end{equation}
 \begin{equation}
-\quad
-\varphi_{k\alpha}(\mathbf{x})
-= \left( \frac{3}{2\pi s_{k\alpha}^2} \right)^{3/4}
-%\!\!\exp\left\{
-\mathrm{e}^{- \left(\frac{3}{4s_{k\alpha}^2}-\frac{ip_{s_{k\alpha}}}{2\hbar s_{k\alpha}}\right)
-	\left(\mathbf{x}-\mathbf{r}_{k\alpha}\right)^2
-	+ \frac{i}{\hbar}\mathbf{p}_{k\alpha}(\mathbf{x}-\mathbf{r}_{k\alpha})}.
-%\right\}
+\varphi_{k\alpha}(\mathbf{x}) = \left( \frac{3}{2\pi s_{k\alpha}^2} \right)^{3/4}
+\exp \left\{
+- \left(\frac{3}{4s_{k\alpha}^2} - \frac{\mathrm{i}{p_{sk\alpha}}}{2\hbar s_{k\alpha}} \right)
+(\mathbf{x}-\mathbf{r}_{k\alpha})^2 + \frac{\mathrm{i}}{\hbar}{\mathbf{p}_{k\alpha}} \cdot (\mathbf{x}-\mathbf{r}_{k\alpha})
+\right\}.
 \end{equation}
 Here $n_k=\sum_{\alpha,\beta} c^*_{k\alpha}
 c^{}_{k\beta}\int\varphi^*_{k\alpha}\varphi^{}_{k\beta}d^3x$ is the normalizing factor
 for $\phi_k$. Time dependent complex coefficients $c_{k\alpha}(t)$
 together with the standard WP parameters $\mathbf{r}_{k\alpha}(t)$,
 $\mathbf{p}_{k\alpha}(t)$, $s_{k\alpha}(t)$, $p_{s_{k\alpha}}(t)$ constitute
-the set of dynamic variables for $k$-th electron (10 real parameters for each
-WP). Thus the variational freedom is extended from 8 real parameters per
-electron in the standard WPMD. It is controlled by the number of WPs per
+the set of dynamic variables for $k$-th electron (10 real wave function parameters for each
+WP). As can be seen,  the variational freedom is extended from 8 real parameters per
+electron in the standard WPMD to 10 parameters. The total number of generalized dynamic variables (including both coordinates and conjugate momenta) seen by LAMMPS via atom style wavepacket is controlled by the number of WPs per
 electron $M_k$, which may be set different for different electrons. When
 $M_k=1$, the factor $c$ becomes redundant and the scheme reduces to the
 standard WPMD~\cite{Klakow-JCP94}. Classical interpretation of WP parameters
@@ -177,14 +184,14 @@ are proportional to the corresponding WP overlaps $o_{k\alpha
 &&\langle\varphi_{k\alpha}(\mathbf{x})|
 -\sum_{i}\frac{eq_i}{|\hat{\mathbf{x}}-\mathbf{R}_i|}|
 \varphi_{l\beta}(\mathbf{x})\rangle
-= o_{k\alpha l\beta}V^{ei}_{k\alpha l\beta}, \nonumber\\
+= o_{k\alpha l\beta}U^{ei}_{k\alpha l\beta}, \nonumber\\
 &&\hspace*{-40pt} \langle\varphi_{k\alpha}(\mathbf{x}_1)\varphi_{l\beta}(\mathbf{x}_2)|
 \frac{e^2}{|\hat{\mathbf{x}}_1-\hat{\mathbf{x}}_2|}|
 \varphi_{m\gamma}(\mathbf{x}_1)\varphi_{n\delta}(\mathbf{x}_2)\rangle
-= o_{k\alpha m\gamma}o_{l\beta n\gamma}V^{ee}_{k\alpha l\beta m\gamma n\delta}.
+= o_{k\alpha m\gamma}o_{l\beta n\gamma}U^{ee}_{k\alpha l\beta m\gamma n\delta}.
 \end{eqnarray}
 The WP overlaps $o_{k\alpha l\beta}$ and residual matrix elements
-$K^{e}_{k\alpha l\beta}$, $V^{ei}_{k\alpha l\beta}$, $V^{ee}_{k\alpha l\beta
+$K^{e}_{k\alpha l\beta}$, $U^{ei}_{k\alpha l\beta}$, $U^{ee}_{k\alpha l\beta
 	m\gamma n\delta}$ are easily obtained analytically for the Gaussian WPs as well
 as their derivatives with respect to the WP parameters.
 
@@ -201,29 +208,83 @@ Hartree and UHF cases in the Split WPMD model reads:
 \hspace*{-50pt}
 H &=& \!\!\sum_{\mbox{\tiny same spin ($k$, $l$)}}\!\!
 (n_kn_l)^{-\frac{1}{2}}y_{kl}\sum_{\alpha,\beta}(c^*_{k\alpha}o^{}_{k\alpha l\beta}c^{}_{l\beta})
-(K^e_{k\alpha l\beta}+V^{ei}_{k\alpha l\beta})  \nonumber\\
+(K^e_{k\alpha l\beta}+U^{ei}_{k\alpha l\beta})  \nonumber\\
 && \hspace*{-8pt}
 {} + \!\!\sum_{\mbox{\tiny \begin{tabular}{c}same spin ($k$, $m$),\\same spin ($l$, $n$)\end{tabular} }}\!\!
 (n_kn_ln_mn_n)^{-\frac{1}{2}}y_{mk}y_{nl}\sum_{\alpha,\beta,\gamma,\delta}
 (c^*_{k\alpha}o^{}_{k\alpha m\gamma}c^{}_{m\gamma})(c^*_{l\beta}o^{}_{l\beta n\delta}c^{}_{n\delta})
-V^{ee}_{k\alpha l\beta m\gamma n\delta} \nonumber\\
+U^{ee}_{k\alpha l\beta m\gamma n\delta} \nonumber\\
 && \hspace*{-8pt}
 {} - k_{exch}\!\!\sum_{\mbox{\tiny \begin{tabular}{c}same spin\\($k$, $l$, $m$, $n$)\end{tabular}}}\!\!
 (n_kn_ln_mn_n)^{-\frac{1}{2}}y_{ml}y_{nk}\sum_{\alpha,\beta,\gamma,\delta}
 (c^*_{k\alpha}o_{k\alpha m\gamma}c_{m\gamma})(c^*_{l\beta}o_{l\beta n\delta}c_{n\delta})
-V^{ee}_{k\alpha l\beta m\gamma n\delta}.
+U^{ee}_{k\alpha l\beta m\gamma n\delta}.
 \end{eqnarray}
-Here for the UHF case $k_{exch}=1$ and $y_{ij}$ are elements of the inverse
+
+Here for the UHF case (AWPMD) $k_{exch}=1$ and $y_{ij}$ are elements of the inverse
 overlap matrix $\mathbf{Y} = \mathbf{O}^{-1}$
 ($O_{km}=\sum_{\alpha,\beta}c^*_{k\alpha}o^{}_{k\alpha m\beta}c^{}_{m\beta}$ for same
-spin orbital indices $k$ and $m$). The Hartree case is recovered by setting
+spin orbital indices $k$ and $m$). This setting corresponds to the pair\_awpmd\/cut setting with keyword 'uhf'.
+
+
+The Hartree case is recovered by setting
 $k_{exch}=0$ and $y_{ij}=\delta_{ij}$, thus greatly simplifying the sums
-in~(\ref{TotalE}). All terms in~(\ref{TotalE}) and the norm matrix elements
+in~(\ref{TotalE}). This setting corresponds to the pair\_awpmd/cut setting with keyword 'hartree'. Note that when the number of wavepackets per electron is 1, the 'hartree' settinng should produce the same energy as pair\_wpmd\/cut, however the computation speed would be significantly lower.  
+
+All terms in~(\ref{TotalE}) and the norm matrix elements
 $\mathbf{N}$ can be derived analytically as functions of the dynamic variables.
 For the Hartree case $\mathbf{N}$ reduces to the block diagonal form with
 blocks corresponding to WPs of each electron. Note that for the Split WPMD the
 norm matrix needed for time stepping is not simplectic even for the Hartree
 trial state.
+
+Wavepacket width restriction is an important part of wave packet simulation. It may be either controlled by the internal pair style settings or by applying a constraint potential walls to the whole system, see wpmd/wall fix. 
+
+The *free*, *pbc*, and *fix* keywords specify a width constraint on
+the electron wave packets from the pair style itself.  
+
+If the *free* keyword is specified, then there is no
+constraint. This setting is default and is useful for the ground state or low temperature computations. Also *free* setting should be used in conjunction with the constraint potential walls provided by wpmd/wall fix.  
+
+If the *fix* keyword is used and *Flen* is specified as -1, then wavepackets
+have a constant widths that are read from the data file or kept at their initial values after construction with create\_atoms.
+
+The simplest dynamic restriction are periodical boundary conditions for the wavepacket widths.
+In this mode the widths can grow only up to some maximum value *Plen*, any larger $s$ values are treated as $2Plen -s$ and the width momentum is reversed.
+If the *pbc* keyword is used and *Plen* is specified as
+-1, then the maximum width is half the shortest box length.  If *Plen*
+is a positive value, then the value is the maximum width. Note that the periodic boundary conditions do not solve the broadening problem completely and the simulation results usually depend on *Plen*. 
+
+A more elaborate solution proposed in~\cite{Zwick06} is to introduce an
+additional harmonic term $\Delta H = (9\hbar^2s_k^2)/(8ms_0^4)$
+to the Hamiltonian which prevents WP from spreading. The free parameter $s_0$ stands
+for the mean value of width $s$ if there were no Coulomb interaction.
+In~\cite{Zwick06} it was taken to be $s_0 = 0.64\lambda_\mathrm{th}$,
+where $\lambda_\mathrm{th} = \hbar \left/ \sqrt{m k_B T} \right.$ is the
+thermal electron wavelength. The *harm* keyword allow oscillations in the width of the
+electron wave packets.  If the value after *harm* keyword is -1, then $s_0$ mentioned above is used as a harmonic parameter, otherwise the specified value in angstroms is used.
+
+The *ermscale* keyword specifies a unitless scaling factor
+between the electron masses and the width variable mass. The electron mass enters the Hamiltonian as e
+
+If the *flex\_press* keyword is used, then a contribution from the
+electrons is added to the total virial and pressure of the system.
+
+This potential is designed to be used with atom\_style wavepacket <atom\_style> definitions, in order to handle the
+description of systems with interacting nuclei and explicit electrons.
+
+The following coefficients must be defined for each pair of atoms
+types via the pair\_coeff <pair\_coeff>` command as in the examples
+above, or in the data file or restart files read by the
+read\_data <read\_data>` or :doc:`read\_restart <read\_restart>`
+commands, or by mixing as described below:
+
+* cutoff (distance units)
+
+For *awpmd/cut*, the cutoff coefficient is optional.  If it is not
+used (as in some of the examples above), the default global value
+specified in the pair\_style command is used.
+
 
 Currently only Monte Carlo ensemble averaging is supported for awpmd/cut pair style. The Monte-Carlo sampling is given by \href{fix_mc_wpmd.html}{fix mc/wpmd}. The awpmd/cut pair style also supports wall boundary constraints (see \href{fix_wall_wpmd.html}{fix wall/wpmd}).
 

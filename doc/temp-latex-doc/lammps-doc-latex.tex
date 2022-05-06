@@ -264,11 +264,8 @@ where $\lambda_\mathrm{th} = \hbar \left/ \sqrt{m k_B T} \right.$ is the
 thermal electron wavelength. The *harm* keyword allow oscillations in the width of the
 electron wave packets.  If the value after *harm* keyword is -1, then $s_0$ mentioned above is used as a harmonic parameter, otherwise the specified value in angstroms is used.
 
-The *ermscale* keyword specifies a unitless scaling factor
-between the electron masses and the width variable mass. The electron mass enters the Hamiltonian as e
-
 If the *flex\_press* keyword is used, then a contribution from the
-electrons is added to the total virial and pressure of the system.
+electron widths is added to the total virial and pressure of the system.
 
 This potential is designed to be used with atom\_style wavepacket <atom\_style> definitions, in order to handle the
 description of systems with interacting nuclei and explicit electrons.

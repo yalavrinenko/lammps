@@ -23,7 +23,7 @@ Examples
 Description
 """""""""""
 
-This pair style represents the basic implementation of the Wave Packet Molecular Dynamics (WPMD) :ref:`(Klakow, 1994) <Klakow1994>` for studying nonideal (strongly coupled) systems of charged particles such as the nonideal plasma and warm dense matter. This method is an extension of the classical molecular dynamics (MD) of electrons and ions, where the ions (nuclei) are treated as classical point-like particles and the electrons are represented as normalized Gaussian wavepackets with dynamical width (size). It allows for studying equilibrium states and non-equilibrium processes beyond the Born-Oppenheimer approach due to explicit dynamics of electrons. At the moment the method is verified for hydrogen and helium plasmas although it is expected to be applicable for heavier atoms as well.
+This pair style represents the basic implementation of the Wave Packet Molecular Dynamics (WPMD) :ref:`(Klakow, 1994) <Klakow1994>` for studying nonideal (strongly coupled) systems of charged particles such as the nonideal plasma and warm dense matter. This method is an extension of the classical molecular dynamics (MD) of electrons and ions, where the ions (nuclei) are treated as classical point-like particles and the electrons are represented as normalized Gaussian wavepackets with dynamical width (size). It allows for studying equilibrium states and non-equilibrium processes beyond the Born-Oppenheimer approach due to the explicit dynamics of electrons. At the moment the method is verified for hydrogen and helium plasmas although it is expected to be applicable for heavier atoms as well.
 
 In this method, the single-electron wave function is parametrized by a set of eight time-dependent scalars: the wavepacket position :math:`\mathbf{r}` (3d vector), the wavepacket width :math:`s` (scalar) and their conjugate momenta :math:`\mathbf{p}` (3d vector), :math:`p_s` (scalar):
 
@@ -36,7 +36,7 @@ In this method, the single-electron wave function is parametrized by a set of ei
   \cdot (\mathbf{x}-\mathbf{r})
   \right\}.
 
-The electron Force Field (eFF) (see :doc:`pair_style eff/cut <pair_eff>` was the first pair style of such kind implemented in LAMMPS  being in fact an extension of the original WPMD algorithm where the spin-dependent Pauli potential is added (see below). The definition of the wavepacket width (size) :math:`s` in eFF differs from this pair style by the factor of :math:`\sqrt{3}`.
+The electron Force Field (eFF) (see :doc:`pair_style eff/cut <pair_eff>` was the first pair style of such kind implemented in LAMMPS  being in fact an extension of the original WPMD algorithm where the spin-dependent Pauli potential is added (see below). The definition of the wavepacket width (size) :math:`s` in eFF differs from this pair style by a factor of :math:`\sqrt{3}`.
 
 Within the Hartree approximation the many-electron wave function is given as
 
@@ -66,7 +66,7 @@ where :math:`K_\mathrm{i}` and :math:`K_\mathrm{e} + K'_\mathrm{e}` are the kine
   & U_\mathrm{ei} = - \sum_{k,l}^{N_\mathrm{e},\,N_\mathrm{i}}\! \frac{Z e^2}{|\mathbf{r}_k-\mathbf{R}_l|}\, \mathrm{erf} \!\Bigg(\frac{\sqrt{3}|\mathbf{r}_k - \mathbf{R}_l|}{\sqrt{2}s_k}\Bigg), \\
   & U_\mathrm{ee} = \sum_{k<l}^{N_\mathrm{e},\,N_\mathrm{e}}\! \frac{e^2}{|\mathbf{r}_k - \mathbf{r}_l|}\, \mathrm{erf} \!\Bigg(\frac{\sqrt{3}|\mathbf{r}_k - \mathbf{r}_l|}{\sqrt{2}(s^2_k+s^2_l)^{1/2}}\Bigg), \\
 
-:math:`N_\mathrm{i}` is the number of ions, :math:`m_\mathrm{i}` and :math:`Ze` are the ions mass and charge, :math:`\mathbf{R}_k` and :math:`{p_\mathrm{i}}_k` are the position and momentum of ions, :math:`m_\mathrm{e}` and :math:`e` are the electron mass and charge, :math:`U_\mathrm{ext}` is an external potential, e.g.\ the wall boundary. Note that although :math:`K'_\mathrm{e}` is the kinetic energy, in the log and dump files, it is assigned to the potential energy in order to keep the definition of kinetic energy of electron :math:`K_\mathrm{e}` similar to the classical system.
+:math:`N_\mathrm{i}` is the number of ions, :math:`m_\mathrm{i}` and :math:`Ze` are the mass and charge of the ions, :math:`\mathbf{R}_k` and :math:`{p_\mathrm{i}}_k` are the position and momentum of ions, :math:`m_\mathrm{e}` and :math:`e` are the electron mass and charge, :math:`U_\mathrm{ext}` is an external potential, e.g.\ the wall boundary. Note that although :math:`K'_\mathrm{e}` is the kinetic energy, in the log and dump files, it is assigned to the potential energy in order to keep the definition of kinetic energy of electron :math:`K_\mathrm{e}` similar to the classical system.
 
 For MD simulations the equations of motion follow from the time-dependent Schrodinger equation. In the case of Hartree approximation, they correspond to the Hamiltonian equations where the width of each electron represents an additional degree of freedom. The Monte-Carlo algorithm is also similar to those of the classical system but involves also the variation of the wavepacket widths.
 
@@ -114,7 +114,7 @@ This pair is work only with *real* and *electron* units due to energy conversion
 
 This pair required :doc:`wavepacket <atom_style>` or :doc:`electron <atom_style>` atom style.
 
-The system evolution in time should be perform by fix with :doc:`*/wpmd <fix_nh_wpmd>` suffix.
+The time evolution can be calculated by one of :doc:`fix nvt/wpmd <fix_nh_wpmd>`, :doc:`fix nph/wpmd <fix_nh_wpmd>`, :doc:`fix npt/wpmd <fix_nh_wpmd>` or :doc:`fix nve/wpmd <fix_nve_wpmd>`. The Monte-Carlo sampling can be performed with :doc:`fix mc/wpmd <fix_mc_wpmd>`.
 
 Related commands
 """"""""""""""""

@@ -45,14 +45,14 @@ Restricts the simulation domain with a 3D harmonic wall potential:
 The fix is designed for :doc:`wavepacket <atom_style>` simulations (see :doc:`pair_style wpmd/cut <pair_wpmd>`) although it can be applied to other atom styles (with care). 
 
 The potential interacts with particles and wavepackets by generating a force on the particle in
-a direction perpendicular to the wall. The potential acts on wavepackets in quantum manner 
+a direction perpendicular to the wall. The potential acts on wavepackets in a quantum manner 
 affecting both the center and width of the wavepacket. This fix can be used to prevent wavepacket spreading.
 
-The option *axes* allows to set the axes for which the restriction is applied.
+The option *axes* allows setting the axes for which the restriction is applied.
 
-For each of the these axes, the wall is positioned at the distances :math:`-L/2` and :math:`L/2` from the box center where :math:`L` is given by the *box* keyword.
+For each of these axes, the wall is positioned at the distances :math:`-L/2` and :math:`L/2` from the box center where :math:`L` is given by the *box* keyword.
 
-The strength of the wall potential is defined by the the dimensionless parameter *epsilon*.
+The strength of the wall potential is defined by the dimensionless parameter *epsilon*.
 
 The constant :math:`k_0` in the expression for the wall potential equals to
 
@@ -60,10 +60,9 @@ The constant :math:`k_0` in the expression for the wall potential equals to
 
   k_0 = \left(\frac{16}{9\pi}\right)^2 \left(\frac{e^2}{4\pi\epsilon_0}\right)^4 \left(\frac{m_e}{\hbar^2}\right)^{-3} = 31.11\:\mathrm{eV/A}^2.
 
-The constant :math:`k_0` corresponds to the 'Hydrogen' harmonic oscillator. The 'Hydrogen' harmonic oscillator is defined as the one having the same Gaussian ground state wave function as the minimum Gaussian state in the Coulomb potential. The 'Hydrogen' harmonic oscillator defined this way has the 3D eigen energy of :math:`\frac{3}{2}(k_0\hbar^2/m_e)^{1/2} = 15.4\:\mathrm{eV}`.  
+The constant :math:`k_0` corresponds to the 'Hydrogen' harmonic oscillator. The 'Hydrogen' harmonic oscillator is defined as the one having the same Gaussian ground state wave function as the minimum Gaussian state in the Coulomb potential. The 'Hydrogen' harmonic oscillator defined this way has the 3D eigenenergy of :math:`\frac{3}{2}(k_0\hbar^2/m_e)^{1/2} = 15.4\:\mathrm{eV}`.  
 
 ----------
-
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -75,9 +74,8 @@ This fix adds the energy of interaction between atoms and all the
 specified walls to the global potential energy of the system as part
 of :doc:`thermodynamic output <thermo_style>`.
 
-This fix computes a global scalar energy and a global vector with 2 values
-, which can be accessed by various :doc:`output commands <Howto_output>`.
-The index in vector is:
+This fix computes a global scalar energy and a global vector with 2 values, which can be accessed by various :doc:`output commands <Howto_output>`.
+The index in the vector is:
 
   1. Energy
   2. System pressure
@@ -101,8 +99,6 @@ This fix is part of the AWPMD package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info. The fix oriented to work with atom style :doc:`wavepacket <atom_style>`,
 for other atom styles use :doc:`fix wall <fix_wall>`.
-
-
 
 Related commands
 """"""""""""""""

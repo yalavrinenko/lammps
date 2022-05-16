@@ -118,17 +118,17 @@ The total many-electron wave function may be constructed by using different quan
 
 .. math::
 
-	H &= \!\!\!\!\sum_{\mbox{\tiny same spin ($k$, $l$)}}\!\!
-  (n_kn_l)^{-\frac{1}{2}}y_{kl}\sum_{\alpha,\beta}(c^*_{k\alpha}o^{}_{k\alpha l\beta}c^{}_{l\beta})
-	(K^e_{k\alpha l\beta}+U^\mathrm{ei}_{k\alpha l\beta})  \\
-	& {} + \!\!\!\!\sum_{\mbox{\tiny \begin{tabular}{c}same spin ($k$, $m$),\\same spin ($l$, $n$)\end{tabular} }}\!\!
-	(n_kn_ln_mn_n)^{-\frac{1}{2}}y_{mk}y_{nl}\sum_{\alpha,\beta,\gamma,\delta}
-	(c^*_{k\alpha}o^{}_{k\alpha m\gamma}c^{}_{m\gamma})(c^*_{l\beta}o^{}_{l\beta n\delta}c^{}_{n\delta})
-	U^\mathrm{ee}_{k\alpha l\beta m\gamma n\delta} \\
-	& {} - k_\mathrm{exch}\!\!\sum_{\mbox{\tiny \begin{tabular}{c}same spin\\($k$, $l$, $m$, $n$)\end{tabular}}}\!\!
-	(n_kn_ln_mn_n)^{-\frac{1}{2}}y_{ml}y_{nk}\sum_{\alpha,\beta,\gamma,\delta}
-	(c^*_{k\alpha}o_{k\alpha m\gamma}c_{m\gamma})(c^*_{l\beta}o_{l\beta n\delta}c_{n\delta})
-	U^\mathrm{ee}_{k\alpha l\beta m\gamma n\delta}.
+      H &= \!\!\!\!\sum_{\small {\rm same~spin}~(k, l)}\!\!
+(n_kn_l)^{-\frac{1}{2}}y_{kl}\sum_{\alpha,\beta}(c^*_{k\alpha}o^{}_{k\alpha l\beta}c^{}_{l\beta})
+      (K^e_{k\alpha l\beta}+U^\mathrm{ei}_{k\alpha l\beta})  \\
+      & {} + \!\!\!\!\sum_{\small {\rm same~spin}~(k, m)}\sum_{\small {\rm same~spin}~(l, n) }\!\!
+      (n_kn_ln_mn_n)^{-\frac{1}{2}}y_{mk}y_{nl}\sum_{\alpha,\beta,\gamma,\delta}
+      (c^*_{k\alpha}o^{}_{k\alpha m\gamma}c^{}_{m\gamma})(c^*_{l\beta}o^{}_{l\beta n\delta}c^{}_{n\delta})
+      U^\mathrm{ee}_{k\alpha l\beta m\gamma n\delta} \\
+      & {} - k_\mathrm{exch}\!\!\sum_{\small{\rm same~spin}~(k, l, m, n)}\!\!
+      (n_kn_ln_mn_n)^{-\frac{1}{2}}y_{ml}y_{nk}\sum_{\alpha,\beta,\gamma,\delta}
+      (c^*_{k\alpha}o_{k\alpha m\gamma}c_{m\gamma})(c^*_{l\beta}o_{l\beta n\delta}c_{n\delta})
+      U^\mathrm{ee}_{k\alpha l\beta m\gamma n\delta}.
 
 For the UHF case (AWPMD) :math:`k_\mathrm{exch}=1` and :math:`y_{ij}` are elements of the inverse overlap matrix :math:`\mathbf{Y} = \mathbf{O}^{-1}` (:math:`O_{km}=\sum_{\alpha,\beta}c^*_{k\alpha}o^{}_{k\alpha m\beta}c^{}_{m\beta}` for same spin orbital indices :math:`k` and :math:`m`). In this pair style it corresponds to the keyword *uhf*.
 
@@ -136,7 +136,7 @@ The Hartree case is recovered by setting :math:`k_\mathrm{exch}=0` and :math:`y_
 
 Wave packet width restriction is an important part of wave packet simulation. It may be either controlled by the internal pair style settings or by applying a constraint potential walls to the whole system (see :doc:`fix wall/wpmd <fix_wall_wpmd>`).
 
-The *free*, *pbc*, and *fix* keywords specify the internal constraint on the electron wave width.  
+The *free*, *pbc*, *fix* and *harm* keywords specify the internal constraints on the electron wave width.  
 
 If the *free* keyword is specified, then there is no width constraint. This setting is default and is useful for the ground state or low temperature computations. Also *free* setting should be used in conjunction with the constraint potential walls provided by :doc:`fix wall/wpmd <fix_wall_wpmd>` (recommended).  
 
@@ -145,10 +145,6 @@ If the *fix* keyword is used and *Flen* is specified as -1, then wave packets ha
 The simplest dynamic restriction are periodical boundary conditions for the WP widths. In this mode the widths can grow only up to some maximum value *Plen*, any larger :math:`s` values are treated as 2Plen-s and the width momentum is reversed. If the *pbc* keyword is used and *Plen* is specified as -1, then the maximum width is half the shortest box length.  If *Plen* is a positive value, then the value is the maximum width. Note that the periodic boundary conditions do not solve the broadening problem completely and the simulation results usually depend on *Plen*. 
 
 A more elaborate solution proposed in :ref:`(Zwicknagel, 2006) <Zwicknagel2006>` is to introduce an additional harmonic term :math:`\Delta H = (9\hbar^2s_k^2)/(8ms_0^4)` to the Hamiltonian which prevents WP from spreading. It corresponds to the *harm* keyword. The free parameter :math:`s_0` stands for the mean value of width :math:`s` if there were no Coulomb interaction. In :ref:`(Zwicknagel, 2006) <Zwicknagel2006>` it was taken to be :math:`s_0 = 0.64\lambda_\mathrm{th}`, where :math:`\lambda_\mathrm{th} = \hbar \left/ \sqrt{m k_B T} \right.` is the thermal electron wavelength. If the value after *harm* keyword is -1, then :math:`s_0` mentioned above is used as a harmonic parameter, otherwise the specified value in angstroms is used.
-
-The *ermscale* keyword specifies a unitless scaling factor
-between the electron masses and the width variable mass.  More
-details needed.
 
 If the *flex_press* keyword is used, then a contribution from the electron widths is added to the total virial and pressure of the system.
 

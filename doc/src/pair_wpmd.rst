@@ -23,9 +23,9 @@ Examples
 Description
 """""""""""
 
-This pair style represents the basic implementation of the Wave Packet Molecular Dynamics (WPMD) :ref:`(Klakow, 1994) <Klakow1994>` for studying nonideal (strongly coupled) systems of charged particles such as the nonideal plasma and warm dense matter. This method is an extension of the classical molecular dynamics (MD) of electrons and ions, where the ions (nuclei) are treated as classical point-like particles and the electrons are represented as normalized Gaussian wave packets with dynamical width (size). It allows for studying equilibrium states and non-equilibrium processes beyond the Born-Oppenheimer approach due to explicit dynamics of electrons. At the moment the method is verified for hydrogen and helium plasmas although it is expected to be applicable for heavier atoms as well.
+This pair style represents the basic implementation of the Wave Packet Molecular Dynamics (WPMD) :ref:`(Klakow, 1994) <Klakow1994>` for studying nonideal (strongly coupled) systems of charged particles such as the nonideal plasma and warm dense matter. This method is an extension of the classical molecular dynamics (MD) of electrons and ions, where the ions (nuclei) are treated as classical point-like particles and the electrons are represented as normalized Gaussian wavepackets with dynamical width (size). It allows for studying equilibrium states and non-equilibrium processes beyond the Born-Oppenheimer approach due to explicit dynamics of electrons. At the moment the method is verified for hydrogen and helium plasmas although it is expected to be applicable for heavier atoms as well.
 
-In this method, the single-electron wave function is parametrized by a set of eight time-dependent scalars: the wave packet position :math:`\mathbf{r}` (3d vector), the wave packet width :math:`s` (scalar) and their conjugate momenta :math:`\mathbf{p}` (3d vector), :math:`p_s` (scalar):
+In this method, the single-electron wave function is parametrized by a set of eight time-dependent scalars: the wavepacket position :math:`\mathbf{r}` (3d vector), the wavepacket width :math:`s` (scalar) and their conjugate momenta :math:`\mathbf{p}` (3d vector), :math:`p_s` (scalar):
 
 .. math::
 
@@ -36,7 +36,7 @@ In this method, the single-electron wave function is parametrized by a set of ei
   \cdot (\mathbf{x}-\mathbf{r})
   \right\}.
 
-The electron Force Field (eFF) (see :doc:`pair_style eff/cut <pair_eff>` was the first pair style of such kind implemented in LAMMPS  being in fact an extension of the original WPMD algorithm where the spin-dependent Pauli potential is added (see below). The definition of the wave packet width (size) :math:`s` in eFF differs from this pair style by the factor of :math:`\sqrt{3}`.
+The electron Force Field (eFF) (see :doc:`pair_style eff/cut <pair_eff>` was the first pair style of such kind implemented in LAMMPS  being in fact an extension of the original WPMD algorithm where the spin-dependent Pauli potential is added (see below). The definition of the wavepacket width (size) :math:`s` in eFF differs from this pair style by the factor of :math:`\sqrt{3}`.
 
 Within the Hartree approximation the many-electron wave function is given as
 
@@ -68,9 +68,9 @@ where :math:`K_\mathrm{i}` and :math:`K_\mathrm{e} + K'_\mathrm{e}` are the kine
 
 :math:`N_\mathrm{i}` is the number of ions, :math:`m_\mathrm{i}` and :math:`Ze` are the ions mass and charge, :math:`\mathbf{R}_k` and :math:`{p_\mathrm{i}}_k` are the position and momentum of ions, :math:`m_\mathrm{e}` and :math:`e` are the electron mass and charge, :math:`U_\mathrm{ext}` is an external potential, e.g.\ the wall boundary. Note that although :math:`K'_\mathrm{e}` is the kinetic energy, in the log and dump files, it is assigned to the potential energy in order to keep the definition of kinetic energy of electron :math:`K_\mathrm{e}` similar to the classical system.
 
-For MD simulations the equations of motion follow from the time-dependent Schrodinger equation. In the case of Hartree approximation, they correspond to the Hamiltonian equations where the width of each electron represents an additional degree of freedom. The Monte-Carlo algorithm is also similar to those of the classical system but involves also the variation of the wave packet widths.
+For MD simulations the equations of motion follow from the time-dependent Schrodinger equation. In the case of Hartree approximation, they correspond to the Hamiltonian equations where the width of each electron represents an additional degree of freedom. The Monte-Carlo algorithm is also similar to those of the classical system but involves also the variation of the wavepacket widths.
 
-The time-dependent dynamics of wave packets is implemented using :doc:`fix nve/wpmd <fix_nve_wpmd>` for the energy conservative system and  \href{fix_nh_wpmd.html}{fix nvt/wpmd, npt/wpmd, nph/wpmd} for the canonical, isothermal-isobaric, and isenthalpic ensembles. The Monte-Carlo sampling is given by :doc:`fix mc/wpmd <fix_mc_wpmd>`. It can be used for all WPMD modifications listed below.
+The time-dependent dynamics of wavepackets is implemented using :doc:`fix nve/wpmd <fix_nve_wpmd>` for the energy conservative system and  \href{fix_nh_wpmd.html}{fix nvt/wpmd, npt/wpmd, nph/wpmd} for the canonical, isothermal-isobaric, and isenthalpic ensembles. The Monte-Carlo sampling is given by :doc:`fix mc/wpmd <fix_mc_wpmd>`. It can be used for all WPMD modifications listed below.
 
 The pair style has only one parameter: Rc is the cutoff radius for the Coulomb interaction.
 
@@ -80,11 +80,11 @@ There are a few modifications of the original WPMD algorithm to account for the 
 
 * Electron Force Field (eFF), see :doc:`pair_style eff/cut <pair_eff>`. The antisymmetry is implemented via the spin-dependent semi-empirical Pauli potential. The method is almost as fast as the original WPMD.
 
-* Antisymmetrized Wave Packet Molecular Dynamics (AWPMD), see :doc:`pair_style awpmd/cut <pair_awpmd>`. In AWPMD, the many-body wave function for electrons with the same spin projection is antisymmetrized as defined by the unrestricted Hartree-Fock approximation. This pair style also supports the representation of a single electron by multiple Gaussian wave packets which improves the accuracy of electron-ion bound states (atoms and molecules). Due to computations of the norm-matrix and the modified equations of motion, this method is slower than the original WPMD or eFF.
+* Antisymmetrized Wave Packet Molecular Dynamics (AWPMD), see :doc:`pair_style awpmd/cut <pair_awpmd>`. In AWPMD, the many-body wave function for electrons with the same spin projection is antisymmetrized as defined by the unrestricted Hartree-Fock approximation. This pair style also supports the representation of a single electron by multiple Gaussian wavepackets which improves the accuracy of electron-ion bound states (atoms and molecules). Due to computations of the norm-matrix and the modified equations of motion, this method is slower than the original WPMD or eFF.
 
-* The joint method of the Wave Packet Molecular Dynamics and the Density Functional Theory (WPMD-DFT), see :doc:`pair_style wpmd/dft/cut <pair_wpmd_dft>`. In this method, the exchange-correlation effects are included by an additional energy term computed as a functional of the local electron density following the idea of DFT within the LSDA approximation. The electron density is obtained from the wave packet positions and widths. This method is slower than eFF but faster than AWPMD. It has a GPU-accelerated version.
+* The joint method of the Wave Packet Molecular Dynamics and the Density Functional Theory (WPMD-DFT), see :doc:`pair_style wpmd/dft/cut <pair_wpmd_dft>`. In this method, the exchange-correlation effects are included by an additional energy term computed as a functional of the local electron density following the idea of DFT within the LSDA approximation. The electron density is obtained from the wavepacket positions and widths. This method is slower than eFF but faster than AWPMD. It has a GPU-accelerated version.
 
-The original WPMD method has a known problem of unlimited broadening of the wave packets for weakly bound electrons. Therefore the periodic boundaries are appropriate only for very high electron density. This problem can be solved either by manual limiting of the wave packet width (eFF) or by using a 3-dimensional confining potential (wall potential) for the whole system which naturally constrains both the wave packet positions and widths (see :doc:`fix wall/wpmd <fix_wall_wpmd>`).
+The original WPMD method has a known problem of unlimited broadening of the wavepackets for weakly bound electrons. Therefore the periodic boundaries are appropriate only for very high electron density. This problem can be solved either by manual limiting of the wavepacket width (eFF) or by using a 3-dimensional confining potential (wall potential) for the whole system which naturally constrains both the wavepacket positions and widths (see :doc:`fix wall/wpmd <fix_wall_wpmd>`).
 
 
 Mixing, shift, table, tail correction, restart, rRESPA info

@@ -120,7 +120,7 @@ html: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 
 htmltest: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
-	@cp $(RSTDIR)/fix_wall_wpmd.rst $(BUILDDIR)/temp-latex-doc
+	@cp $(RSTDIR)/fix_mc_wpmd.rst $(RSTDIR)/fix_nh_wpmd.rst $(RSTDIR)/fix_nve_wpmd.rst $(RSTDIR)/fix_wall_wpmd.rst $(RSTDIR)/pair_awpmd.rst $(RSTDIR)/pair_wpmd.rst $(RSTDIR)/pair_wpmd_dft.rst $(BUILDDIR)/temp-latex-doc
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
 		sphinx-build $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(BUILDDIR)/temp-latex-doc html ;\

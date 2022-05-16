@@ -42,7 +42,7 @@ Examples
 Description
 """""""""""
 
-This pair style represents Split AWPMD, the most general version of the Wave Packet Molecular Dynamics with antisymmetrization and wave packet splitting. Compare to the original method of Wave Packet Molecular Dynamics (WPMD) (see :doc:`pair_style wpmd/cut <pair_wpmd>`) it is more precise and accounts for the exchange interaction of electrons although it is about 100 times slower.
+This pair style represents Split AWPMD, the most general version of the Wave Packet Molecular Dynamics with antisymmetrization and wavepacket splitting. Compare to the original method of Wave Packet Molecular Dynamics (WPMD) (see :doc:`pair_style wpmd/cut <pair_wpmd>`) it is more precise and accounts for the exchange interaction of electrons although it is about 100 times slower.
 
 In the splitting technique :ref:`(Morozov, 2012) <Morozov2012>` an electron is represented by multiple Gaussians, with mixing coefficients playing the role of additional dynamic variables. It significantly improves the accuracy of the wave function representation and allows one to reproduce many quantum effects such as penetration of a potential barrier. The ions are treated as classical particles.
 
@@ -57,7 +57,7 @@ variables :math:`\mathbf{q}(t)`:
 	
 Here :math:`\mathbf{N}` is the norm-matrix, relating the generalized velocities and forces.
 
-In the WPMD/MC method the discretized version of the above equations is solved dynamically or by Monte-Carlo sampling. The Hamiltonian of the many electron system interacting with ions reads:
+In the WPMD/MC method the discretized version of the above equations is solved dynamically or by Monte-Carlo sampling. The Hamiltonian of the many-electron system interacting with ions reads:
 
 .. math::
 
@@ -75,7 +75,7 @@ For Split WPMD we expand the single electron wave function :math:`\phi_k(\mathbf
 
 	\phi_k(\mathbf{x}) = n_k^{-1/2}\sum_{\alpha=1}^{M_k} c_{k\alpha} \varphi_{k\alpha}(\mathbf{x}),
 
-with :math:`\varphi_{k\alpha}(\mathbf{x})` being normalized Gaussian wave packets (WPs):
+with :math:`\varphi_{k\alpha}(\mathbf{x})` being normalized Gaussian wavepackets (WPs):
 
 .. math::
 
@@ -114,35 +114,36 @@ Significant advantage of the Gaussian expansion is that the interaction matrix e
 
 The WP overlaps :math:`o_{k\alpha l\beta}` and residual matrix elements :math:`K^\mathrm{e}_{k\alpha l\beta}`, :math:`U^\mathrm{ei}_{k\alpha l\beta}`, :math:`U^\mathrm{ee}_{k\alpha l\beta	m\gamma n\delta}` are easily obtained analytically for the Gaussian WPs as well as their derivatives with respect to the WP parameters (see :ref:`(Valuev, 2015) <Valuev2015>`).
 
-The total many-electron wave function may be constructed by using different quantum approximations accounting for electron spins. The most used for WPMD are the Hartree approximation (trial state is the product of single electron wave functions) :ref:`(Klakow, 1994) <Klakow1994awpmd>` and the antisymmetrized approximation :ref:`(Jakob, 2007) <Jakob2007>`. The latter is equivalent to the unrestricted Hartree-Fock (UHF) approach when trial state is a single determinant of spin orbitals. The spin orbitals are constructed by explicitly associating spin up or spin down state with each of the spatial single electron wave functions :math:`\phi_k`. The total energy for both Hartree and UHF cases in the Split WPMD model reads:
+The total many-electron wave function may be constructed by using different quantum approximations accounting for electron spins. The most used for WPMD are the Hartree approximation (trial state is the product of single electron wave functions) :ref:`(Klakow, 1994) <Klakow1994awpmd>` and the antisymmetrized approximation :ref:`(Jakob, 2007) <Jakob2007>`. The latter is equivalent to the unrestricted Hartree-Fock (UHF) approach when trial state is a single determinant of spin orbitals. The spin orbitals are constructed by explicitly associating spin up (:math:`\sigma=1`) or spin down (:math:`\sigma=0`) state with each of the spatial single electron wave functions :math:`\phi_k`. The total energy for both Hartree and UHF cases in the Split WPMD model reads:
 
 .. math::
 
-      H &= \!\!\!\!\sum_{\small {\rm same~spin}~(k, l)}\!\!
-(n_kn_l)^{-\frac{1}{2}}y_{kl}\sum_{\alpha,\beta}(c^*_{k\alpha}o^{}_{k\alpha l\beta}c^{}_{l\beta})
-      (K^e_{k\alpha l\beta}+U^\mathrm{ei}_{k\alpha l\beta})  \\
-      & {} + \!\!\!\!\sum_{\small {\rm same~spin}~(k, m)}\sum_{\small {\rm same~spin}~(l, n) }\!\!
-      (n_kn_ln_mn_n)^{-\frac{1}{2}}y_{mk}y_{nl}\sum_{\alpha,\beta,\gamma,\delta}
-      (c^*_{k\alpha}o^{}_{k\alpha m\gamma}c^{}_{m\gamma})(c^*_{l\beta}o^{}_{l\beta n\delta}c^{}_{n\delta})
-      U^\mathrm{ee}_{k\alpha l\beta m\gamma n\delta} \\
-      & {} - k_\mathrm{exch}\!\!\sum_{\small{\rm same~spin}~(k, l, m, n)}\!\!
-      (n_kn_ln_mn_n)^{-\frac{1}{2}}y_{ml}y_{nk}\sum_{\alpha,\beta,\gamma,\delta}
-      (c^*_{k\alpha}o_{k\alpha m\gamma}c_{m\gamma})(c^*_{l\beta}o_{l\beta n\delta}c_{n\delta})
-      U^\mathrm{ee}_{k\alpha l\beta m\gamma n\delta}.
+	H &= \sum_{k, l \atop \sigma_k = \sigma_l}
+  (n_kn_l)^{-\frac{1}{2}}y_{kl}\sum_{\alpha,\beta}(c^*_{k\alpha}o^{}_{k\alpha l\beta}c^{}_{l\beta})
+	(K^e_{k\alpha l\beta}+U^\mathrm{ei}_{k\alpha l\beta})  \\
+	& + \hspace{-0.5em}\sum_{k, l, m, n \atop \sigma_k = \sigma_m,\, \sigma_l=\sigma_n}\hspace{-1em}
+	(n_kn_ln_mn_n)^{-\frac{1}{2}}y_{mk}y_{nl}\sum_{\alpha,\beta,\gamma,\delta}
+	(c^*_{k\alpha}o^{}_{k\alpha m\gamma}c^{}_{m\gamma})(c^*_{l\beta}o^{}_{l\beta n\delta}c^{}_{n\delta})
+	U^\mathrm{ee}_{k\alpha l\beta m\gamma n\delta} \\
+	& - k_\mathrm{exch}
+	\hspace{-0.6em}\sum_{k, l, m, n \atop \sigma_k = \sigma_l = \sigma_m =\sigma_n}\hspace{-1em}
+	(n_kn_ln_mn_n)^{-\frac{1}{2}}y_{ml}y_{nk}\sum_{\alpha,\beta,\gamma,\delta}
+	(c^*_{k\alpha}o_{k\alpha m\gamma}c_{m\gamma})(c^*_{l\beta}o_{l\beta n\delta}c_{n\delta})
+	U^\mathrm{ee}_{k\alpha l\beta m\gamma n\delta},
 
-For the UHF case (AWPMD) :math:`k_\mathrm{exch}=1` and :math:`y_{ij}` are elements of the inverse overlap matrix :math:`\mathbf{Y} = \mathbf{O}^{-1}` (:math:`O_{km}=\sum_{\alpha,\beta}c^*_{k\alpha}o^{}_{k\alpha m\beta}c^{}_{m\beta}` for same spin orbital indices :math:`k` and :math:`m`). In this pair style it corresponds to the keyword *uhf*.
+where :math:`\sigma_k=\sigma_l` denotes that the summation is performed over the particles :math:`k` and :math:`l` with the same spin projection (up or down). For the UHF case (AWPMD) :math:`k_\mathrm{exch}=1` and :math:`y_{ij}` are elements of the inverse overlap matrix :math:`\mathbf{Y} = \mathbf{O}^{-1}` (:math:`O_{km}=\sum_{\alpha,\beta}c^*_{k\alpha}o^{}_{k\alpha m\beta}c^{}_{m\beta}` for same spin orbital indices :math:`k` and :math:`m`). In this pair style it corresponds to the keyword *uhf*.
 
 The Hartree case is recovered by setting :math:`k_\mathrm{exch}=0` and :math:`y_{ij}=\delta_{ij}`, thus greatly simplifying the summation. It corresponds to the keyword *hartree*. Note that when the number of WPs per electron is 1, the *hartree* setting should produce the same energy as :doc:`pair_style wpmd/cut <pair_wpmd>`, however the computation speed would be significantly lower. 
 
-Wave packet width restriction is an important part of wave packet simulation. It may be either controlled by the internal pair style settings or by applying a constraint potential walls to the whole system (see :doc:`fix wall/wpmd <fix_wall_wpmd>`).
+The wavepacket width restriction is an important part of WPMD simulations. It may be either controlled by the internal pair style settings or by applying a constraint potential walls to the whole system (see :doc:`fix wall/wpmd <fix_wall_wpmd>`).
 
 The *free*, *pbc*, *fix* and *harm* keywords specify the internal constraints on the electron wave width.  
 
 If the *free* keyword is specified, then there is no width constraint. This setting is default and is useful for the ground state or low temperature computations. Also *free* setting should be used in conjunction with the constraint potential walls provided by :doc:`fix wall/wpmd <fix_wall_wpmd>` (recommended).  
 
-If the *fix* keyword is used and *Flen* is specified as -1, then wave packets have a constant widths that are read from the data file or kept at their initial values after construction with :doc:`create atoms <create_atoms>`.
+If the *fix* keyword is used and *Flen* is specified as -1, then wavepackets have a constant widths that are read from the data file or kept at their initial values after construction with :doc:`create atoms <create_atoms>`.
 
-The simplest dynamic restriction are periodical boundary conditions for the WP widths. In this mode the widths can grow only up to some maximum value *Plen*, any larger :math:`s` values are treated as 2Plen-s and the width momentum is reversed. If the *pbc* keyword is used and *Plen* is specified as -1, then the maximum width is half the shortest box length.  If *Plen* is a positive value, then the value is the maximum width. Note that the periodic boundary conditions do not solve the broadening problem completely and the simulation results usually depend on *Plen*. 
+The simplest dynamic restriction are periodical boundary conditions for the WP widths. In this mode the widths can grow only up to some maximum value *Plen*, any larger :math:`s` values are treated as :math:`2P_\mathrm{len}-s` and the width momentum is reversed. If the *pbc* keyword is used and *Plen* is specified as -1, then the maximum width is half the shortest box length.  If *Plen* is a positive value, then the value is the maximum width. Note that the periodic boundary conditions do not solve the broadening problem completely and the simulation results usually depend on *Plen*. 
 
 A more elaborate solution proposed in :ref:`(Zwicknagel, 2006) <Zwicknagel2006>` is to introduce an additional harmonic term :math:`\Delta H = (9\hbar^2s_k^2)/(8ms_0^4)` to the Hamiltonian which prevents WP from spreading. It corresponds to the *harm* keyword. The free parameter :math:`s_0` stands for the mean value of width :math:`s` if there were no Coulomb interaction. In :ref:`(Zwicknagel, 2006) <Zwicknagel2006>` it was taken to be :math:`s_0 = 0.64\lambda_\mathrm{th}`, where :math:`\lambda_\mathrm{th} = \hbar \left/ \sqrt{m k_B T} \right.` is the thermal electron wavelength. If the value after *harm* keyword is -1, then :math:`s_0` mentioned above is used as a harmonic parameter, otherwise the specified value in angstroms is used.
 
@@ -199,7 +200,7 @@ Default
 """""""
 
 These are the defaults for the pair_style keywords: *hartree* for the
-initial wave function, *free* for the wave packet width.
+initial wave function, *free* for the wavepacket width.
 
 ----------
 

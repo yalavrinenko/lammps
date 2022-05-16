@@ -17,3 +17,4 @@
 *.el
 /utils/sphinx-config/_static/mathjax
 /utils/sphinx-config/_static/polyfill.js
+/html1

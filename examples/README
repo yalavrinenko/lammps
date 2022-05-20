@@ -60,6 +60,7 @@ sub-directories:
 accelerate: use of all the various accelerator packages
 airebo:   polyethylene with AIREBO potential
 atm:      Axilrod-Teller-Muto potential
+awpmd:    wave packet molecular dynamics model (WPMD) for H-plasma simulation
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 cmap:     CMAP 5-body contributions to CHARMM force field
@@ -118,7 +119,6 @@ ttm:      two-temeperature model examples
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command
 wall:     use of reflective walls with different stochastic models
-awpmd:    use of AWPMD and WPMD-DFT models for H-plasma simulation
 
 Here is how you might run and visualize one of the sample problems:
 

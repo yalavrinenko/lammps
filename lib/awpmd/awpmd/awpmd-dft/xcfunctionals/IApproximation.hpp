@@ -18,8 +18,7 @@
 #define __global__
 #endif
 
-#define __devspec__ /*__host__*/ __device__
-#define __isnan _isnan 
+#define __devspec__ __host__ __device__
 
 enum class ApproxType{
     T_LDA = 1,

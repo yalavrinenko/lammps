@@ -1,3 +1,5 @@
+log awpmd.H2.split.log
+
 variable MAX_L equal 5
 variable outpath string "H2.split.awpmd.dat"
 
@@ -37,6 +39,7 @@ set type 3 cs 0.5 0.5
 velocity all create 20 877785 dist gaussian
 #END INIT SECTION
 
+comm_modify vel yes
 
 #PAIR_STYLE
 pair_style  awpmd/cut 100 uhf
@@ -72,7 +75,7 @@ set atom 2 x -${X}
 set type 2 x ${X}
 set type 3 x -${X}
 
-fix mc all mc/wpmd 20 ex ew ewp ec
+fix mc all mc/wpmd 20 ex ew ewp ec_re ec_im
 
 run 10000
 

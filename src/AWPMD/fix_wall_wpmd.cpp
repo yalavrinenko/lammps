@@ -107,6 +107,17 @@ LAMMPS_NS::FixWallWpmd::construct_box(char **pString, double half_box_length,
   for (int i = 0; i < 3; ++i) {
     force_k[i] = 9. / 8 * epsilon * h2_me / (gamma[i] * gamma[i] * gamma[i] * gamma[i]) * has_force_[i];
   }
+  //15871.390114753669 15871.390114753669 15871.390114753669 - 1 old
+  //358.72279723222715 358.72279723222715 358.72279723222715 - 1 new
+
+  //63485.560459014654 63485.560459014654 63485.560459014654 - 2 old
+  //717.4455944644543 717.4455944644543 717.4455944644543 - 2 new
+
+  //142842.51103278302 142842.51103278302 142842.51103278302 - 3 old
+  //1076.1683916966815 1076.1683916966815 1076.1683916966815 - 3 new
+
+//  fmt::print("{} {} {}\n", force_k[0], force_k[1], force_k[2]);
+//  std::terminate();
 
   Vector_3 bound(floor, floor * floorYtoX, floor * floorZtoX);
   auto const PROJ_ORDER_CONST = 10;

@@ -20,4 +20,4 @@ several properties of atoms, molecules and plasmas via WPMD, AWPMD, and WPMD-DFT
     stages in the simulation:
    1. Equilibration from random configuration via NVT-thermostate.
    2. Time averaging in MD algorithm over equilibrium trajectory
-
+9. `harmonic_trap.lammps` -- single wavepacket in harmonic trap

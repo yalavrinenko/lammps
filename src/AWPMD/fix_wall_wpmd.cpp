@@ -79,17 +79,11 @@ LAMMPS_NS::FixWallWpmd::construct_box(char **pString, double half_box_length, in
 
   auto floor = half_box_length;
 
-  auto me = force->e_mass;
   auto h2_me = force->hhmrr2e / force->e_mass;
-  auto one_h = 1.0 / std::sqrt(h2_me * force->e_mass);
 
   double eigenwp = 0.8616;    // eigen state width for H atom
 
-  bool use_epsilon = true;
-  double epsilon = (!use_epsilon) ? 1. : eigenE;
-
-  if (eigenE > 0.) { eigenwp = sqrt(3. / 2 / me / eigenE) / one_h; }
-  // else   eigenE = 3. / 2 * h2_me / (eigenwp * eigenwp);
+  double epsilon = eigenE;
 
   double floorYtoX = 1., floorZtoX = 1., widthYtoX = 1., widthZtoX = 1.;
 

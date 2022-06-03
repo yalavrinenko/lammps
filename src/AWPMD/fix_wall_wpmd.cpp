@@ -12,9 +12,9 @@
 #include <force.h>
 #include <wpmd_split.h>
 
-LAMMPS_NS::FixWallWpmd::FixWallWpmd(LAMMPS_NS::LAMMPS *lammps, int i,
-                                    char **pString)
-    : Fix(lammps, i, pString) {
+LAMMPS_NS::FixWallWpmd::FixWallWpmd(LAMMPS_NS::LAMMPS *lammps, int i, char **pString) :
+    Fix(lammps, i, pString)
+{
   double delx = domain->boxhi[0] - domain->boxlo[0];
   double dely = domain->boxhi[1] - domain->boxlo[1];
   double delz = domain->boxhi[2] - domain->boxlo[2];
@@ -29,19 +29,21 @@ LAMMPS_NS::FixWallWpmd::FixWallWpmd(LAMMPS_NS::LAMMPS *lammps, int i,
   this->size_vector = 2;
 }
 
-LAMMPS_NS::FixWallWpmd::~FixWallWpmd() {
+LAMMPS_NS::FixWallWpmd::~FixWallWpmd()
+{
   m_pair->awpmd()->use_box = false;
   m_pair->awpmd()->set_pbc(nullptr, 0);
 }
 
-int LAMMPS_NS::FixWallWpmd::setmask() {
+int LAMMPS_NS::FixWallWpmd::setmask()
+{
   return LAMMPS_NS::FixConst::POST_FORCE;
 }
 
 std::unique_ptr<BoxHamiltonian>
-LAMMPS_NS::FixWallWpmd::construct_box(char **pString, double half_box_length,
-                                      int pcount) {
-  auto numeric = [this](char const* str){
+LAMMPS_NS::FixWallWpmd::construct_box(char **pString, double half_box_length, int pcount)
+{
+  auto numeric = [this](char const *str) {
     return utils::numeric(FLERR, str, false, lmp);
   };
 
@@ -55,19 +57,17 @@ LAMMPS_NS::FixWallWpmd::construct_box(char **pString, double half_box_length,
       wall_squares = {Lx * Lx, Lx * Lx, Lx * Lx};
       i += 1;
     }
-    if (std::strcmp(pString[i], "width_force") == 0)
-      use_width_force_ = true;
+    if (std::strcmp(pString[i], "width_force") == 0) use_width_force_ = true;
     if (std::strcmp(pString[i], "axes") == 0) {
 
       has_force_ = {false, false, false};
 
-      auto is_keyword = [](char const* str){
-        return std::strcmp(str, "x") == 0
-            || std::strcmp(str, "y") == 0
-            || std::strcmp(str, "z") == 0;
+      auto is_keyword = [](char const *str) {
+        return std::strcmp(str, "x") == 0 || std::strcmp(str, "y") == 0 ||
+            std::strcmp(str, "z") == 0;
       };
       auto j = 1;
-      while (is_keyword(pString[i + j])){
+      while (is_keyword(pString[i + j])) {
         has_force_[pString[i + j][0] - 'x'] = true;
         ++j;
       }
@@ -81,52 +81,33 @@ LAMMPS_NS::FixWallWpmd::construct_box(char **pString, double half_box_length,
 
   auto me = force->e_mass;
   auto h2_me = force->hhmrr2e / force->e_mass;
-  auto one_h = force->mvh2r;
+  auto one_h = 1.0 / std::sqrt(h2_me * force->e_mass);
 
-  double eigenwp = 0.8616;  // eigen state width for H atom
+  double eigenwp = 0.8616;    // eigen state width for H atom
 
   bool use_epsilon = false;
+  double epsilon = (!use_epsilon) ? 1. : eigenE;
 
-  double epsilon = 1.;
-  if (use_epsilon) {  // eigenE is treated as epsilon (coefficient before eigenE_hydrogen force)
-    epsilon = eigenE;
-    eigenE  = 3. / 2 * h2_me / (eigenwp * eigenwp);
-    //eigenwp = sqrt(3. / 2 / me / eigenE) / one_h;  // should be 1. for epsilon =1
-  }
-  else { // old style definition
+  if (eigenE > 0.) { eigenwp = sqrt(3. / 2 / me / eigenE) / one_h; }
+  // else   eigenE = 3. / 2 * h2_me / (eigenwp * eigenwp);
 
-    if (eigenE > 0.) {
-      eigenwp = sqrt(3. / 2 / me / eigenE) / one_h;
-    }
-    // else   eigenE = 3. / 2 * h2_me / (eigenwp * eigenwp);
-  }
   double floorYtoX = 1., floorZtoX = 1., widthYtoX = 1., widthZtoX = 1.;
 
   Vector_3 gamma(eigenwp, eigenwp * widthYtoX, eigenwp * widthZtoX), force_k;
 
   for (int i = 0; i < 3; ++i) {
-    force_k[i] = 9. / 8 * epsilon * h2_me / (gamma[i] * gamma[i] * gamma[i] * gamma[i]) * has_force_[i];
+    force_k[i] =
+        9. / 8 * epsilon * h2_me / (gamma[i] * gamma[i] * gamma[i] * gamma[i]) * has_force_[i];
   }
-  //15871.390114753669 15871.390114753669 15871.390114753669 - 1 old
-  //358.72279723222715 358.72279723222715 358.72279723222715 - 1 new
-
-  //63485.560459014654 63485.560459014654 63485.560459014654 - 2 old
-  //717.4455944644543 717.4455944644543 717.4455944644543 - 2 new
-
-  //142842.51103278302 142842.51103278302 142842.51103278302 - 3 old
-  //1076.1683916966815 1076.1683916966815 1076.1683916966815 - 3 new
-
-//  fmt::print("{} {} {}\n", force_k[0], force_k[1], force_k[2]);
-//  std::terminate();
 
   Vector_3 bound(floor, floor * floorYtoX, floor * floorZtoX);
   auto const PROJ_ORDER_CONST = 10;
 
-  return std::unique_ptr<BoxHamiltonian>(
-      new BoxHamiltonian(bound, force_k, PROJ_ORDER_CONST));
+  return std::unique_ptr<BoxHamiltonian>(new BoxHamiltonian(bound, force_k, PROJ_ORDER_CONST));
 }
 
-void LAMMPS_NS::FixWallWpmd::post_force(int flag) {
+void LAMMPS_NS::FixWallWpmd::post_force(int flag)
+{
   wall_energy = 0;
   if (m_pair && !m_pair->electrons_packets().empty()) {
     evaluate_wall_energy(m_pair->electrons_packets());
@@ -152,9 +133,13 @@ void LAMMPS_NS::FixWallWpmd::post_force(int flag) {
   m_pair->eng_coul += wall_energy;
 }
 
-double LAMMPS_NS::FixWallWpmd::compute_scalar() { return wall_energy; }
+double LAMMPS_NS::FixWallWpmd::compute_scalar()
+{
+  return wall_energy;
+}
 
-double LAMMPS_NS::FixWallWpmd::compute_vector(int i) {
+double LAMMPS_NS::FixWallWpmd::compute_vector(int i)
+{
   switch (i) {
     case 0:
       return wall_energy;
@@ -165,31 +150,28 @@ double LAMMPS_NS::FixWallWpmd::compute_vector(int i) {
   }
 }
 
-double LAMMPS_NS::FixWallWpmd::interaction_border_ion(int, double *x,
-                                                      double *f) {
+double LAMMPS_NS::FixWallWpmd::interaction_border_ion(int, double *x, double *f)
+{
   double dE;
   Vector_3 df = box->get_force(*(Vector_3 *) x, &dE);
-  if (f) // ion forces needed
-    for (auto k = 0; k < 3; ++k)
-      f[k] += df[k];
+  if (f)    // ion forces needed
+    for (auto k = 0; k < 3; ++k) f[k] += df[k];
   return dE;
 }
 
-double LAMMPS_NS::FixWallWpmd::interaction_border_electron(
-    WavePacket const &packet, double *rforce, double *erforce,
-    double *ervforce) {
+double LAMMPS_NS::FixWallWpmd::interaction_border_electron(WavePacket const &packet, double *rforce,
+                                                           double *erforce, double *ervforce)
+{
   double dE;
   if (force && erforce && ervforce) {
     cdouble integral;
     cdouble a1_re, a1_im, a2_re, a2_im;
     cVector_3 b1_re, b1_im, b2_re, b2_im;
-    box->get_derivatives(packet.a, packet.b, packet.a, packet.b, &integral,
-                         &a1_re, &a1_im, &b1_re, &b1_im, &a2_re, &a2_im, &b2_re,
-                         &b2_im);
+    box->get_derivatives(packet.a, packet.b, packet.a, packet.b, &integral, &a1_re, &a1_im, &b1_re,
+                         &b1_im, &a2_re, &a2_im, &b2_re, &b2_im);
 
-    std::array<double, 8> tmp{2.0 * real(a1_re), 2.0 * real(a1_im),
-                              2.0 * real(b1_re[0]), 2.0 * real(b1_im[0]),
-                              2.0 * real(b1_re[1]), 2.0 * real(b1_im[1]),
+    std::array<double, 8> tmp{2.0 * real(a1_re),    2.0 * real(a1_im),    2.0 * real(b1_re[0]),
+                              2.0 * real(b1_im[0]), 2.0 * real(b1_re[1]), 2.0 * real(b1_im[1]),
                               2.0 * real(b1_re[2]), 2.0 * real(b1_im[2])};
     auto dx = tmp.begin();
     auto dp = dx + 3;
@@ -197,8 +179,7 @@ double LAMMPS_NS::FixWallWpmd::interaction_border_electron(
     auto pw = dw + 1;
 
     packet.int2phys_der<eq_second>(dx, dx, dp, dw, pw, 1. / force->mvh2r);
-    for (auto k = 0u; k < 3; ++k)
-      rforce[k] += -dx[k] * has_force_[k];
+    for (auto k = 0u; k < 3; ++k) rforce[k] += -dx[k] * has_force_[k];
     (*erforce) += *dw;
     (*ervforce) += *pw;
     dE = integral.real();
@@ -208,8 +189,8 @@ double LAMMPS_NS::FixWallWpmd::interaction_border_electron(
   return dE;
 }
 
-void LAMMPS_NS::FixWallWpmd::evaluate_wall_energy(
-    std::vector<WavePacket> const &wavepackets) {
+void LAMMPS_NS::FixWallWpmd::evaluate_wall_energy(std::vector<WavePacket> const &wavepackets)
+{
   auto inum = m_pair->list->inum;
   auto ilist = m_pair->list->ilist;
 
@@ -236,20 +217,27 @@ void LAMMPS_NS::FixWallWpmd::evaluate_wall_energy(
 
   std::array<double, 4> force_components{0, 0, 0, 0};
 
-  MPI_Allreduce(wall_pressure_components.data(), force_components.data(), 4,
-                MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(wall_pressure_components.data(), force_components.data(), 4, MPI_DOUBLE, MPI_SUM,
+                world);
 
   wall_pressure_ = (force_components[0] / (2.0 * wall_squares[0]) +
                     force_components[1] / (2.0 * wall_squares[1]) +
-                    force_components[2] / (2.0 * wall_squares[2])) / walls_count_;
+                    force_components[2] / (2.0 * wall_squares[2])) /
+      walls_count_;
 
   if (use_width_force_)
-    wall_pressure_ += force_components[3] /
-                      (2.0 * (wall_squares[0] + wall_squares[1] + wall_squares[2]));
+    wall_pressure_ +=
+        force_components[3] / (2.0 * (wall_squares[0] + wall_squares[1] + wall_squares[2]));
 
   wall_pressure_ = wall_pressure_ * force->nktv2p;
 }
 
-double LAMMPS_NS::FixWallWpmd::wall_pressure() const { return wall_pressure_; }
+double LAMMPS_NS::FixWallWpmd::wall_pressure() const
+{
+  return wall_pressure_;
+}
 
-void LAMMPS_NS::FixWallWpmd::setup(int i) { post_force(i); }
+void LAMMPS_NS::FixWallWpmd::setup(int i)
+{
+  post_force(i);
+}

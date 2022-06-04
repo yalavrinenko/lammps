@@ -58,7 +58,7 @@ The constant :math:`k_0` in the expression for the wall potential equals to
 
 .. math::
 
-  k_0 = \left(\frac{16}{9\pi}\right)^2 \left(\frac{e^2}{4\pi\epsilon_0}\right)^4 \left(\frac{m_e}{\hbar^2}\right)^{-3} = 31.11\:\mathrm{eV/A}^2.
+  k_0 = \left(\frac{16}{9\pi}\right)^2 \left(\frac{e^2}{4\pi\epsilon_0}\right)^4 \left(\frac{m_e}{\hbar^2}\right)^{-3} = 31.1174\:\mathrm{eV/A}^2.
 
 The constant :math:`k_0` corresponds to the 'Hydrogen' harmonic oscillator. The 'Hydrogen' harmonic oscillator is defined as the one having the same Gaussian ground state wave function as the minimum Gaussian state in the Coulomb potential. The 'Hydrogen' harmonic oscillator defined this way has the 3D eigenenergy of :math:`\frac{3}{2}(k_0\hbar^2/m_e)^{1/2} = 15.4\:\mathrm{eV}`.  
 

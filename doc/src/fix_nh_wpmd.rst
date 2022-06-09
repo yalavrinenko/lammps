@@ -59,7 +59,7 @@ Description
 
 These commands perform time integration on Nose-Hoover style
 non-Hamiltonian equations of motion for nuclei and electrons in the
-group for the :doc:`wavepacket molecular dynamic <pair_wpmd>` model.  The fixes
+group for the :doc:`Wave Packet Molecular Dynamics <pair_wpmd>` model.  The fixes
 are designed to generate positions and velocities sampled from the
 canonical (nvt), isothermal-isobaric (npt), and isenthalpic (nph)
 ensembles.  This is achieved by adding some dynamic variables which
@@ -78,7 +78,7 @@ Tstart/Tstop and Pstart/Pstop.
 
 The operation of these fixes is exactly like that described by the
 :doc:`fix nvt, npt, and nph <fix_nh>` commands, except that the radius
-and radial velocity of electrons are also updated.  Likewise the
+and radial velocity (width mometum) of electrons (wavepackets) are also updated.  Likewise the
 temperature and pressure calculated by the fix, using the computes it
 creates (as discussed in the :doc:`fix nvt, npt, and nph <fix_nh>`
 doc page), are performed with computes that include the WPMD contribution
@@ -86,11 +86,13 @@ to the temperature or kinetic energy from the electron radial velocity.
 
 .. note::
 
-   currently, there is no available option for the user to set or
+   Currently, there is no available option for the user to set or
    create temperature distributions that include the radial electronic
-   degrees of freedom with the :doc:`velocity <velocity>` command, so the
+   degrees of freedom with the :doc:`velocity <velocity>` command, so that
    the user must allow for these degrees of freedom to equilibrate
    (i.e. establish equi-partitioning of energy) through time integration.
+
+----------
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -104,13 +106,16 @@ Restrictions
 This fix is part of the AWPMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
-Other restriction discussed on the page for the :doc:`fix nvt, npt, and nph <fix_nh>` commands also apply.
+Other restrictions discussed on the page for the :doc:`fix nvt, npt, and nph <fix_nh>` commands also apply.
 
 Related commands
 """"""""""""""""
 
 :doc:`fix nvt <fix_nh>`, :doc:`fix nph <fix_nh>`, :doc:`fix npt <fix_nh>`,
-:doc:`fix_modify <fix_modify>`, :doc:`run_style <run_style>`
+
+:doc:`fix_modify <fix_modify>`
+
+:doc:`run_style <run_style>`
 
 Default
 """""""

@@ -23,13 +23,10 @@ Examples
 Description
 """""""""""
 
-Perform constant NVE integration to update position and velocity for
-nuclei and electrons in the group for the :doc:`Wave Packet Molecular Dynamics <pair_awpmd>` model.  V is volume; E is energy.
-This creates a system trajectory consistent with the microcanonical
-ensemble.
+This fix performs the constant NVE integration (constant volume and total energy) to update the positions and velocities of nuclei and electrons in the group for the :doc:`Wave Packet Molecular Dynamics <pair_awpmd>` model. This creates a system trajectory consistent with the microcanonical ensemble.
 
 The operation of this fix is exactly like that described by the :doc:`fix nve <fix_nve>` command, except that the electron radius and radial momentum (width and width momentum of
-the electron wave packets) are also updated.
+the wavepackets) are also updated.
 
 ----------
 

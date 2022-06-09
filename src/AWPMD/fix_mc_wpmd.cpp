@@ -135,7 +135,7 @@ namespace LAMMPS_NS {
         steppers.add(lmp, stepper_type::ion_p, random_seed, engine_seed).assign_subsystem(
             make_unique<MCVectorSystem<3>>(atom->v, ion_filter));
       } else {
-        error->all(FLERR, (std::string{"Invalid stepper name"} + argv[i]).c_str());
+        error->all(FLERR, (std::string{"Invalid stepper name "} + argv[i]).c_str());
       }
       steppers.get(i - ARG_SHIFT).max_shift = 0.1;
       steppers.get(i - ARG_SHIFT).engine.setT(target_temperature);

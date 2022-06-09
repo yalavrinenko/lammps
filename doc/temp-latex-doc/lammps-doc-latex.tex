@@ -16,76 +16,308 @@
 
 \subsection*{Description}
 
-This pair style represents the basic implementation of the Wave Packet Molecular Dynamics (WPMD)~\cite{Klakow:JCP94} for studying nonideal (strongly coupled) systems of charged particles such as the nonideal plasma and warm dense matter. This method is an extension of the classical molecular dynamics (MD) of electrons and ions, the ions (nuclei) are treated as classical point-like particles and the electrons are  represented as normalized Gaussian wave packets with dynamical width (size). It allows to study both equilibrium states and non-equilibrium processes beyond the Born-Oppenheimer approach due to explicit dynamics of electrons. At the moment the method is verified for hydrogen and helium plasmas although it is expected to be applicable for heavier atoms as well.
+This pair style represents the basic implementation of the Wave Packet Molecular Dynamics (WPMD)~\cite{Klakow:JCP94} for studying nonideal (strongly coupled) systems of charged particles such as the nonideal plasma and warm dense matter. This method is an extension of the classical molecular dynamics (MD) of electrons and ions, where the ions (nuclei) are treated as classical point-like particles and the electrons are represented as normalized Gaussian wave packets with dynamical width (size). It allows for studying equilibrium states and non-equilibrium processes beyond the Born-Oppenheimer approach due to explicit dynamics of electrons. At the moment the method is verified for hydrogen and helium plasmas although it is expected to be applicable for heavier atoms as well.
 
-In this method, the single-electron wave function is parametrized by a set of eight scalars: the wave packet position $\mathbf{r}$ (3d vector), the wave packet width $s$ (scalar) and their conjugate momenta $\mathbf{p}$ (3d vector), $p_s$ (scalar):
+In this method, the single-electron wave function is parametrized by a set of eight time-dependent scalars: the wave packet position $\mathbf{r}$ (3d vector), the wave packet width $s$ (scalar) and their conjugate momenta $\mathbf{p}$ (3d vector), $p_s$ (scalar):
 \begin{equation}
-\varphi(\mathbf{x}) = \left( \frac{3}{2\pi s^2} \right)^{3/4}
-\exp \left\{
+  \varphi(\mathbf{x}) = \left( \frac{3}{2\pi s^2} \right)^{3/4}
+  \exp \left\{
   - \left(\frac{3}{4s^2} - \frac{\mathrm{i}{p_s}}{2\hbar s} \right)
   (\mathbf{x}-\mathbf{r})^2 + \frac{\mathrm{i}}{\hbar}{\mathbf{p}} \cdot (\mathbf{x}-\mathbf{r})
-\right\}.
+  \right\}.
 \end{equation}
 
-The electron Force Field (eFF) (see \href{pair_eff.html}{pair\_style eff/cut}) was the first pair style of such kind implemented in LAMMPS  being in fact an extension of the original WPMD algorithm where the spin-dependent Pauli potential is added (see below). The definition of the wave packet width (size) $s$ in eFF differs from this pair style by a factor of $3^{1/2}$.
+The electron Force Field (eFF) (see \href{pair_eff.html}{pair\_style eff/cut}) was the first pair style of such kind implemented in LAMMPS  being in fact an extension of the original WPMD algorithm where the spin-dependent Pauli potential is added (see below). The definition of the wave packet width (size) $s$ in eFF differs from this pair style by the factor of $\sqrt{3}$.
 
 Within the Hartree approximation the many-electron wave function is given as
 \begin{equation}
-\Psi(\{\mathbf{x}_k\}) = \prod_{k=1}^{N_\mathrm{e}}\varphi(\mathbf{x}_k),
+  \Psi(\{\mathbf{x}_k\}) = \prod_{k=1}^{N_\mathrm{e}}\varphi(\mathbf{x}_k),
 \end{equation}
 where $N_\mathrm{e}$ is the number of electrons.
 
-The Hamiltonian has the form
+This model can be used to perform either Mote-Carlo sampling or MD simulations. In both cases the total energy of the system is given by the Hamiltonian
 \begin{equation}
-H_\mathrm{wpmd}
+  H_\mathrm{wpmd}
   = \left\langle \Psi \right| \hat{H}_\mathrm{wpmd} \left| \Psi \right\rangle
   = K_\mathrm{i} + K_\mathrm{e} + K'_\mathrm{e} + U_\mathrm{ii} + U_\mathrm{ei} + U_\mathrm{ee} + U_\mathrm{ext},
 \end{equation}
 where $K_\mathrm{i}$ and $K_\mathrm{e} + K'_\mathrm{e}$ are the kinetic energies electrons and ions, $U_\mathrm{ii}$, $U_\mathrm{ei}$, $U_\mathrm{ee}$ are the potential energies of ion-ion, electron-ion and electron-electron interactions respectively:
 \begin{eqnarray}
-&& K_\mathrm{i} = \sum\limits_{k=1}^{N_\mathrm{i}} \frac{\mathbf{p_\mathrm{i}}_k^2}{2m_\mathrm{i}},
-   \nonumber\\
-&& K_\mathrm{e} = \sum_{k=1}^{N_\mathrm{e}} \frac{\mathbf{p}_k^2}{2m_\mathrm{e}},
-   \nonumber\\
-&& K'_\mathrm{e} = \sum_{k=1}^{N_\mathrm{e}} \left( \frac{9\hbar^2}{8m_\mathrm{e}s^2_k} 
-+ \frac{{p_s}_k^2}{2m_\mathrm{e}} \right),
-   \nonumber\\
-&& U_\mathrm{ii} = \sum\limits_{k<l}^{N_\mathrm{i},\,N_\mathrm{i}}\!
-   \frac{Z^2 e^2}{\left| \mathbf{R}_k - \mathbf{R}_l \right|},
-   \nonumber\\
-&& U_\mathrm{ei} = 
-   - \sum_{k,l}^{N_\mathrm{e},\,N_\mathrm{i}}\!
-   \frac{Z e^2}{|\mathbf{r}_k-\mathbf{R}_l|}\,
-   \mathrm{erf} \!\Bigg(\frac{\sqrt{3}|\mathbf{r}_k - \mathbf{R}_l|}{\sqrt{2}s_k}\Bigg),
-   \nonumber\\
-&& U_\mathrm{ee} = \sum_{k<l}^{N_\mathrm{e},\,N_\mathrm{e}}\!
-   \frac{e^2}{|\mathbf{r}_k - \mathbf{r}_l|}\,
-   \mathrm{erf} \!\Bigg(\frac{\sqrt{3}|\mathbf{r}_k - \mathbf{r}_l|}{\sqrt{2}(s^2_k+s^2_l)^{1/2}}\Bigg),
-\label{eq:Hwpmd}
+  && K_\mathrm{i} = \sum\limits_{k=1}^{N_\mathrm{i}} \frac{\mathbf{p_\mathrm{i}}_k^2}{2m_\mathrm{i}},
+  \nonumber\\
+  && K_\mathrm{e} = \sum_{k=1}^{N_\mathrm{e}} \frac{\mathbf{p}_k^2}{2m_\mathrm{e}},
+  \nonumber\\
+  && K'_\mathrm{e} = \sum_{k=1}^{N_\mathrm{e}} \left( \frac{9\hbar^2}{8m_\mathrm{e}s^2_k} 
+  + \frac{{p_s}_k^2}{2m_\mathrm{e}} \right),
+  \nonumber\\
+  && U_\mathrm{ii} = \sum\limits_{k<l}^{N_\mathrm{i},\,N_\mathrm{i}}\!
+  \frac{Z^2 e^2}{\left| \mathbf{R}_k - \mathbf{R}_l \right|},
+  \nonumber\\
+  && U_\mathrm{ei} = 
+  - \sum_{k,l}^{N_\mathrm{e},\,N_\mathrm{i}}\!
+  \frac{Z e^2}{|\mathbf{r}_k-\mathbf{R}_l|}\,
+  \mathrm{erf} \!\Bigg(\frac{\sqrt{3}|\mathbf{r}_k - \mathbf{R}_l|}{\sqrt{2}s_k}\Bigg),
+  \nonumber\\
+  && U_\mathrm{ee} = \sum_{k<l}^{N_\mathrm{e},\,N_\mathrm{e}}\!
+  \frac{e^2}{|\mathbf{r}_k - \mathbf{r}_l|}\,
+  \mathrm{erf} \!\Bigg(\frac{\sqrt{3}|\mathbf{r}_k - \mathbf{r}_l|}{\sqrt{2}(s^2_k+s^2_l)^{1/2}}\Bigg),
+  \label{eq:Hwpmd}
 \end{eqnarray}
-$N_\mathrm{i}$ is the number of ions, $m_\mathrm{i}$ and $Ze$ are the ions mass and charge, $\mathbf{R}_k$ and ${p_\mathrm{i}}_k$ are the ions position and momentum, $m_\mathrm{e}$ and $e$ are the electron mass and charge, $U_\mathrm{ext}$ is an external potential like the wall boundary. Note that although $K'_\mathrm{e}$ is the kinetic energy, in the log and dump files it is assigned to the potential energy in order to keep the definition of kinetic energy of electron $K_\mathrm{e}$ similar to the classical MD.
+$N_\mathrm{i}$ is the number of ions, $m_\mathrm{i}$ and $Ze$ are the ions mass and charge, $\mathbf{R}_k$ and ${p_\mathrm{i}}_k$ are the position and momentum of ions, $m_\mathrm{e}$ and $e$ are the electron mass and charge, $U_\mathrm{ext}$ is an external potential, e.g.\ the wall boundary. Note that although $K'_\mathrm{e}$ is the kinetic energy, in the log and dump files, it is assigned to the potential energy in order to keep the definition of kinetic energy of electron $K_\mathrm{e}$ similar to the classical system.
 
-The equations of motion follow from the time-dependent Schrodinger equation. In the case of Hartree approximation they correspond to the  Hamiltonian equations where the width of each electron represents an additional degree of freedom. 
+For MD simulations the equations of motion follow from the time-dependent Schrodinger equation. In the case of Hartree approximation, they correspond to the Hamiltonian equations where the width of each electron represents an additional degree of freedom. The Monte-Carlo algorithm is also similar to those of the classical system but involves also the variation of the wave packet widths.
 
-The pair style has only one parameter: Rc is the cutoff radius.
+The time-dependent dynamics of wave packets is implemented using \href{fix_nve_wpmd.html}{fix nve/wpmd} for the energy conservative system and  \href{fix_nh_wpmd.html}{fix nvt/wpmd, npt/wpmd, nph/wpmd} for the canonical, isothermal-isobaric, and isenthalpic ensembles. The Monte-Carlo sampling is given by \href{fix_mc_wpmd.html}{fix mc/wpmd}. It can be used for all WPMD modifications given below.
 
-The pair style is designed to be used with \href{atom_style.html}{atom\_style wavepacket} definitions, in order to handle the description of systems with interacting ions and explicit electrons.
+The pair style has only one parameter: Rc is the cutoff radius for the Coulomb interaction.
 
-There are a few modifications of the original WPMD algorithm to account for the antisymmetry in the many-electron wave function which is related to the exchange-correlation effects, electron degeneracy, and Pauli blocking. In all these methods the spin projections (up or down) are constantly attributed to electrons to be used in interaction model. Below is the list of such modifications included in LAMMPS:
+The pair style is designed to be used with \href{atom_style.html}{atom\_style wavepacket} definitions to handle the description of systems with interacting ions and explicit electrons.
+
+There are a few modifications of the original WPMD algorithm to account for the antisymmetry in the many-electron wave function which is related to the exchange-correlation effects, electron degeneracy, and Pauli blocking. In all these methods the spin projections (up or down) are constantly attributed to all electrons. Below is the list of such modifications included in LAMMPS:
 
 \begin{itemize}
-
-\item electron Force Field (eFF), see \href{pair_eff.html}{pair\_style eff/cut}. The antisymmetry is implemented via the spin-dependent semi-empirical Pauli potential. The method is almost as fast as the original WPMD.
-
-\item Antisymmetrized Wave Packet Molecular Dynamics (AWPMD), see \href{pair_awpmd.html}{pair\_style awpmd/cut}. In AWPMD, the many-body wave function for electrons with the same spin projection is antisymmetrized using the unrestricted Hartree-Fock approximation. This pair style also supports representation of a single electron wave function by multiple Gaussian wave packets which improves the accuracy of bound state energies. Due to computations of the norm-matrix and the modified equations of motion, this method is slower than the original WPMD or eFF.
-
-\item The joint method of the Wave Packet Molecular Dynamics and the Density Functional Theory (WPMD-DFT), see \href{pair_wpmd.html}{pair\_style wpmd/dft/cut}. In this method the exchange-correlation effects are included by and additional energy computed as a functional of the local electron density following the idea of DFT within the LSDA approximation. The electron density is obtained from the wave packet positions and widths. This method is slower than eFF but faster than AWPMD. It has a GPU-accelerated version.
-
+  
+  \item Electron Force Field (eFF), see \href{pair_eff.html}{pair\_style eff/cut}. The antisymmetry is implemented via the spin-dependent semi-empirical Pauli potential. The method is almost as fast as the original WPMD.
+  
+  \item Antisymmetrized Wave Packet Molecular Dynamics (AWPMD), see \href{pair_awpmd.html}{pair\_style awpmd/cut}. In AWPMD, the many-body wave function for electrons with the same spin projection is antisymmetrized as defined by the unrestricted Hartree-Fock approximation. This pair style also supports the representation of a single electron by multiple Gaussian wave packets which improves the accuracy of electron-ion bound states (atoms and molecules). Due to computations of the norm-matrix and the modified equations of motion, this method is slower than the original WPMD or eFF.
+  
+  \item The joint method of the Wave Packet Molecular Dynamics and the Density Functional Theory (WPMD-DFT), see \href{pair_wpmd.html}{pair\_style wpmd/dft/cut}. In this method, the exchange-correlation effects are included by an additional energy term computed as a functional of the local electron density following the idea of DFT within the LSDA approximation. The electron density is obtained from the wave packet positions and widths. This method is slower than eFF but faster than AWPMD. It has a GPU-accelerated version.
+  
 \end{itemize}
 
 The original WPMD method has a known problem of unlimited broadening of the wave packets for weakly bound electrons. Therefore the periodic boundaries are appropriate only for very high electron density. This problem can be solved either by manual limiting of the wave packet width (eFF) or by using a 3-dimensional confining potential (wall potential) for the whole system which naturally constrains both the wave packet positions and widths (see \href{fix_wall_wpmd.html}{fix wall/wpmd}).
 
-The time-dependent dynamics of wave packets is implemented using \href{fix_nve_wpmd.html}{fix nve/wpmd} for the energy conservative system and  \href{fix_nh_wpmd.html}{fix nvt/wpmd, npt/wpmd, nph/wpmd} for the canonical, isothermal-isobaric, and isenthalpic ensembles. The Monte-Carlo sampling is given by \href{fix_mc_wpmd.html}{fix mc/wpmd}. It can be used for all mentioned WPMD modifications.
+
+%===============================================================================
+\section*{pair\_style awpmd/cut command}
+%===============================================================================
+\subsection*{Description}
+
+This pair style represents Split AWPMD, the most general version of the Wave Packet Molecular Dynamics with antisymmetrization and wave packet splitting. Compare to the original method of Wave Packet Molecular Dynamics (WPMD) (see \textsl{pair\_style wpmd/cut}) it is more precise and accounts for the exchange interaction of electrons although it is about 100 times slower.
+
+In the splitting technique~\cite{Morozov:CPP12} an electron is represented by multiple
+Gaussians, with mixing coefficients playing the role of additional dynamic
+variables. It significantly improves the
+accuracy of the wave function representation and
+allows one to
+reproduce many quantum effects such as penetration of a potential barrier.
+The ions are treated as classical particles. 
+
+In the general formulation of wave packet molecular dynamics the many electron trial wave function
+$\Psi$ is parameterized by a set of variables ${\bf q}$. Then
+it is substituted into the time dependent Schr\"odinger equation and the
+variational principle is used to obtain equations of motion for the dynamic
+variables ${\bf q}(t)$:
+\begin{equation}\label{EqMotion}
+\mathbf{N}\dot{{\bf q}}=\frac{\partial H}{\partial {\bf q}},\qquad
+N_{ab}=\frac{\partial}{\partial q^*_a}
+\frac{\partial}{\partial q_b}\ln\langle\Psi({\bf q}^*)|\Psi({\bf q})\rangle.
+\end{equation}
+Here $\mathbf{N}$ is the norm-matrix, relating the generalized velocities and
+forces.
+
+In the WPMD/MC method the discretized version of the above
+equations is solved dynamically or by Monte-Carlo sampling.
+The Hamiltonian of the many electron system interacting
+with ions reads:
+\begin{eqnarray}\label{Hoperator}
+&&\hat{H}=\hat{K}^\mathrm{e}+\hat{U}^\mathrm{ei}+\hat{U}^\mathrm{ee}+\hat H_\mathrm{ext}\nonumber \\
+&&= - \sum_k\frac{\hbar^2\Delta_k}{2m}
+- \sum_{k,i}\frac{eq_i}{|\hat{\mathbf{x}}_k-\mathbf{R}_i|}
++ \sum_{k<m}\frac{e^2}{|\hat{\mathbf{x}}_k-\hat{\mathbf{x}}_m|}
++ \hat H_\mathrm{ext},
+\end{eqnarray}
+where $\hat{K}^\mathrm{e}$ is the electron kinetic energy, $\hat{U}^\mathrm{ei}$ is the
+electron-ion Coulomb interaction, $\hat{U}^\mathrm{ee}$ is the electron-electron
+Coulomb repulsion, and $\hat H_\mathrm{ext}$ is the external field potential,
+$\mathbf{R}_i$ and $q_i$ are the ion coordinates and charges.
+
+For Split WPMD we expand the single electron wave function $\phi_k(\mathbf{x})$
+in a number of simple WPs $\varphi_{k\alpha}(\mathbf{x})$:
+\begin{equation}\label{WPdef}
+\hspace*{-30pt}
+\phi_k(\mathbf{x})
+= n_k^{-1/2}\sum_{\alpha=1}^{M_k} c_{k\alpha} \varphi_{k\alpha}(\mathbf{x}),
+\end{equation}
+with $\varphi_{k\alpha}(\mathbf{x})$ being normalized Gaussian wave packets (WPs):
+%\begin{equation}
+%\quad
+%\varphi_{k\alpha}(\mathbf{x})
+%= \left( \frac{3}{2\pi s_{k\alpha}^2} \right)^{3/4}
+%%\!\!\exp\left\{
+%\mathrm{e}^{- \left(\frac{3}{4s_{k\alpha}^2}-\frac{ip_{s_{k\alpha}}}{2\hbar s_{k\alpha}}\right)
+%	\left(\mathbf{x}-\mathbf{r}_{k\alpha}\right)^2
+%	+ \frac{i}{\hbar}\mathbf{p}_{k\alpha}(\mathbf{x}-\mathbf{r}_{k\alpha})}.
+%%\right\}
+%\end{equation}
+\begin{equation}
+\varphi_{k\alpha}(\mathbf{x}) = \left( \frac{3}{2\pi s_{k\alpha}^2} \right)^{3/4}
+\exp \left\{
+- \left(\frac{3}{4s_{k\alpha}^2} - \frac{\mathrm{i}{p_{sk\alpha}}}{2\hbar s_{k\alpha}} \right)
+(\mathbf{x}-\mathbf{r}_{k\alpha})^2 + \frac{\mathrm{i}}{\hbar}{\mathbf{p}_{k\alpha}} \cdot (\mathbf{x}-\mathbf{r}_{k\alpha})
+\right\},
+\end{equation}
+and
+\begin{equation}
+n_k=\sum_{\alpha,\beta} c^*_{k\alpha}
+c^{}_{k\beta}\int\varphi^*_{k\alpha}\varphi^{}_{k\beta}d^3x
+\end{equation}
+is the normalizing factor for $\phi_k$.
+
+The time-dependent complex coefficients $c_{k\alpha}(t)$
+together with the standard WP parameters $\mathbf{r}_{k\alpha}(t)$,
+$\mathbf{p}_{k\alpha}(t)$, $s_{k\alpha}(t)$, $p_{s_{k\alpha}}(t)$ constitute
+the set of dynamic variables for $k$-th electron. As seen,  the variational freedom is extended from 8 real parameters per electron in the original WPMD to 10 parameters in AWPMD. These parameters are seen by LAMMPS via atom style \textsl{wavepacket}.
+
+The total number of generalized dynamic variables (including both coordinates and conjugate momenta)  is controlled by the number of WPs per
+electron $M_k$, which may be set different for different electrons. When
+$M_k=1$, the factor $c$ becomes redundant and the scheme reduces to the
+original WPMD. Classical interpretation of WP parameters
+(e.g.\ $\mathbf{r}$ being the mean electron position) 
+within the Split WPMD model is valid only for 
+non-overlapping single electron WPs and should be considered with care.
+
+Significant advantage of the Gaussian expansion is that the interaction matrix
+elements
+%of single-electron ($\hat{K}^e$ and $\hat{V}^\mathrm{ei}$) and two electron
+%($\hat{V}^\mathrm{ee}$) hamiltonian contributions
+are proportional to the corresponding WP overlaps $o_{k\alpha
+	l\beta}=\int\varphi^*_{k\alpha}\varphi^{}_{l\beta}d^3x$:
+\begin{eqnarray}\label{EnergyElements}
+&&\langle\varphi_{k\alpha}(\mathbf{x})|
+-\frac{\hbar^2\Delta}{2m}|
+\varphi_{l\beta}(\mathbf{x})\rangle
+= o_{k\alpha l\beta}K^\mathrm{e}_{k\alpha l\beta},\qquad\nonumber\\
+&&\langle\varphi_{k\alpha}(\mathbf{x})|
+-\sum_{i}\frac{eq_i}{|\hat{\mathbf{x}}-\mathbf{R}_i|}|
+\varphi_{l\beta}(\mathbf{x})\rangle
+= o_{k\alpha l\beta}U^\mathrm{ei}_{k\alpha l\beta}, \nonumber\\
+&&\hspace*{-40pt} \langle\varphi_{k\alpha}(\mathbf{x}_1)\varphi_{l\beta}(\mathbf{x}_2)|
+\frac{e^2}{|\hat{\mathbf{x}}_1-\hat{\mathbf{x}}_2|}|
+\varphi_{m\gamma}(\mathbf{x}_1)\varphi_{n\delta}(\mathbf{x}_2)\rangle
+= o_{k\alpha m\gamma}o_{l\beta n\gamma}U^\mathrm{ee}_{k\alpha l\beta m\gamma n\delta}.
+\end{eqnarray}
+The WP overlaps $o_{k\alpha l\beta}$ and residual matrix elements
+$K^\mathrm{e}_{k\alpha l\beta}$, $U^\mathrm{ei}_{k\alpha l\beta}$, $U^\mathrm{ee}_{k\alpha l\beta
+	m\gamma n\delta}$ are easily obtained analytically for the Gaussian WPs as well
+as their derivatives with respect to the WP parameters (see~\cite{Valuev:JPCS15}).
+
+The total many-electron wave function may be constructed by using different
+quantum approximations accounting for electron spins. The most used for WPMD
+are the Hartree approximation (trial state is the product of single electron
+wave functions)~\cite{Klakow:JCP94} and the antisymmetrized approximation~\cite{Jakob:PRE07}. The
+latter is equivalent to the unrestricted Hartree-Fock (UHF) approach when trial
+state is a single determinant of spin orbitals. The spin orbitals are
+constructed by explicitly associating spin up or spin down state with each of
+the spatial single electron wave functions $\phi_k$. The total energy for both
+Hartree and UHF cases in the Split WPMD model reads:
+\begin{eqnarray}\label{TotalE}
+\hspace*{-50pt}
+H &=& \!\!\sum_{\mbox{\tiny same spin ($k$, $l$)}}\!\!
+(n_kn_l)^{-\frac{1}{2}}y_{kl}\sum_{\alpha,\beta}(c^*_{k\alpha}o^{}_{k\alpha l\beta}c^{}_{l\beta})
+(K^e_{k\alpha l\beta}+U^\mathrm{ei}_{k\alpha l\beta})  \nonumber\\
+&& \hspace*{-8pt}
+{} + \!\!\sum_{\mbox{\tiny \begin{tabular}{c}same spin ($k$, $m$),\\same spin ($l$, $n$)\end{tabular} }}\!\!
+(n_kn_ln_mn_n)^{-\frac{1}{2}}y_{mk}y_{nl}\sum_{\alpha,\beta,\gamma,\delta}
+(c^*_{k\alpha}o^{}_{k\alpha m\gamma}c^{}_{m\gamma})(c^*_{l\beta}o^{}_{l\beta n\delta}c^{}_{n\delta})
+U^\mathrm{ee}_{k\alpha l\beta m\gamma n\delta} \nonumber\\
+&& \hspace*{-8pt}
+{} - k_\mathrm{exch}\!\!\sum_{\mbox{\tiny \begin{tabular}{c}same spin\\($k$, $l$, $m$, $n$)\end{tabular}}}\!\!
+(n_kn_ln_mn_n)^{-\frac{1}{2}}y_{ml}y_{nk}\sum_{\alpha,\beta,\gamma,\delta}
+(c^*_{k\alpha}o_{k\alpha m\gamma}c_{m\gamma})(c^*_{l\beta}o_{l\beta n\delta}c_{n\delta})
+U^\mathrm{ee}_{k\alpha l\beta m\gamma n\delta}.
+\end{eqnarray}
+
+Here for the UHF case (AWPMD) $k_\mathrm{exch}=1$ and $y_{ij}$ are elements of the inverse
+overlap matrix $\mathbf{Y} = \mathbf{O}^{-1}$
+($O_{km}=\sum_{\alpha,\beta}c^*_{k\alpha}o^{}_{k\alpha m\beta}c^{}_{m\beta}$ for same
+spin orbital indices $k$ and $m$). This setting corresponds to the pair\_awpmd/cut with keyword *uhf*.
+
+
+The Hartree case is recovered by setting
+$k_\mathrm{exch}=0$ and $y_{ij}=\delta_{ij}$, thus greatly simplifying the sums
+in~(\ref{TotalE}). It corresponds to the pair\_awpmd/cut with keyword *hartree*. Note that when the number of WPs per electron is 1, the *hartree* setting should produce the same energy as pair\_wpmd/cut, however the computation speed would be significantly lower.  
+
+Wave packet width restriction is an important part of wave packet simulation. It may be either controlled by the internal pair style settings or by applying a constraint potential walls to the whole system (see \textsl{fix wpmd/wall}).
+
+The *free*, *pbc*, and *fix* keywords specify the internal constraint on
+the electron wave width.  
+
+If the *free* keyword is specified, then there is no width
+constraint. This setting is default and is useful for the ground state or low temperature computations. Also *free* setting should be used in conjunction with the constraint potential walls provided by wpmd/wall fix (recommended).  
+
+If the *fix* keyword is used and *Flen* is specified as -1, then wave packets
+have a constant widths that are read from the data file or kept at their initial values after construction with create\_atoms.
+
+The simplest dynamic restriction are periodical boundary conditions for the WP widths.
+In this mode the widths can grow only up to some maximum value *Plen*, any larger $s$ values are treated as $2Plen -s$ and the width momentum is reversed.
+If the *pbc* keyword is used and *Plen* is specified as
+-1, then the maximum width is half the shortest box length.  If *Plen*
+is a positive value, then the value is the maximum width. Note that the periodic boundary conditions do not solve the broadening problem completely and the simulation results usually depend on *Plen*. 
+
+A more elaborate solution proposed in~\cite{Zwicknagel:JPA06} is to introduce an
+additional harmonic term $\Delta H = (9\hbar^2s_k^2)/(8ms_0^4)$
+to the Hamiltonian which prevents WP from spreading. It corresponds to the *harm* keyword.
+The free parameter $s_0$ stands
+for the mean value of width $s$ if there were no Coulomb interaction.
+In~\cite{Zwicknagel:JPA06} it was taken to be $s_0 = 0.64\lambda_\mathrm{th}$,
+where $\lambda_\mathrm{th} = \hbar \left/ \sqrt{m k_B T} \right.$ is the
+thermal electron wavelength. If the value after *harm* keyword is -1, then $s_0$ mentioned above is used as a harmonic parameter, otherwise the specified value in angstroms is used.
+
+If the *flex\_press* keyword is used, then a contribution from the
+electron widths is added to the total virial and pressure of the system.
+
+This potential is designed to be used with \textsl{atom\_style wavepacket} definitions, in order to handle the
+description of systems with interacting nuclei and explicit electrons.
+
+The following coefficients must be defined for each pair of atoms
+types via the pair\_coeff <pair\_coeff>` command as in the examples
+above, or in the data file or restart files read by the
+read\_data <read\_data>` or :doc:`read\_restart <read\_restart>`
+commands, or by mixing as described below:
+
+* cutoff (distance units)
+
+For *awpmd/cut*, the cutoff coefficient is optional.  If it is not
+used (as in some of the examples above), the default global value
+specified in the pair\_style command is used.
+
+
+Currently only Monte Carlo ensemble averaging is supported for awpmd/cut pair style. The Monte-Carlo sampling is given by \href{fix_mc_wpmd.html}{fix mc/wpmd}. The awpmd/cut pair style also supports wall boundary constraints (see \href{fix_wall_wpmd.html}{fix wall/wpmd}).
+
+
+\subsection*{Wall potential strength}
+Single Gaussian minimal state in the Coulomb potential:
+\begin{equation}
+s_0 = \frac{9}{4}\sqrt{\frac{\pi}{6}}a_B = \frac{9}{4}\sqrt{\frac{\pi}{6}}\frac{C_h}{C_e} = 0.8616 \rm{\AA},
+\end{equation} 
+where $a_B$ is the Bohr radius, and physical constants $C_h$ and $C_e$ are:
+\begin{equation}
+C_h = \frac{\hbar^2}{m_e} = 7.619968\quad \rm{eV\AA}^2
+\end{equation} 
+\begin{equation}
+C_e = \frac{e^2}{4\pi\epsilon_0} = 14.39965\quad \rm{eV\AA}
+\end{equation} 
+The 1D quantum harmonic oscillator ground state has wave function:
+\begin{equation}
+\psi_{\rm{1D}}(x) = \left(\frac{m\omega}{\pi\hbar} \right)^\frac{1}{4}\exp(-\frac{m\omega}{2\hbar}x^2),
+\end{equation} 
+from which the angular frequency is related to the width $s$ of our wave packet as follows:
+\begin{equation}
+\omega =\frac{3\hbar}{2m_es^2}.
+\end{equation} 
+The force constant of the oscillator is
+\begin{equation}
+k= m_e \omega^2  =\frac{9}{4}\frac{C_h}{s^4}.
+\end{equation} 
+For the minimal state width $s_0$:
+\begin{equation}
+k_0=\frac{9}{4}\frac{C_h}{s_0^4} = \left(\frac{8}{9\pi}\right)^2\left(\frac{C_e^4}{C_h^3}\right)= 31.11\quad{\rm eV}/{\rm \AA^2}.
+\end{equation} 
+%$\pi=3.141592653589793238462643383279502884$
+
+
+
 
 
 %-------------------------------------

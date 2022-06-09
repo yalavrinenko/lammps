@@ -1,3 +1,5 @@
+log awpmd.H2.log
+
 variable MAX_L equal 5
 variable outpath string "H2.awpmd.dat"
 
@@ -37,6 +39,7 @@ group electrons type 2 3
 velocity all create 20 877785 dist gaussian
 #END INIT SECTION
 
+comm_modify vel yes
 
 #PAIR_STYLE
 pair_style  awpmd/cut 100 uhf

@@ -57,15 +57,15 @@ velocity eup create ${temperature} 872464 dist gaussian
 velocity edown create ${temperature} 121346 dist gaussian
 #END INIT SECTION
 
+comm_modify vel yes
+
 #PAIR_STYLE
 pair_style  awpmd/cut ${LCut} uhf
 pair_coeff  * *
 #END_PAIR_STYLE
 
-comm_modify vel yes
-
 #FIX_SECTION
-fix w1 all wall/wpmd 10.0 box ${LH} #Harmonic trap
+fix w1 all wall/wpmd 10.0 box ${LH}
 
 compute kinetik all ke
 

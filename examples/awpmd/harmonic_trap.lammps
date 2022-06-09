@@ -1,0 +1,46 @@
+units real
+newton on
+boundary m m m
+processors  1 * *
+atom_style wavepacket
+
+
+atom_modify map yes
+
+
+#START INIT SECTION
+region  box block -1 1 -1 1 -1 1
+create_box  1 box
+create_atoms 1 single 0 0 0
+
+mass 1 0.000544616997098749
+set type 1 charge -1
+set type 1 spin/wpmd 1
+set type 1 eradius 1.8660254037844386
+
+#END INIT SECTION
+#PAIR_STYLE
+pair_style  wpmd/cut 10
+pair_coeff  * *
+#END_PAIR_STYLE
+
+fix 1 all wall/wpmd 1 box 0.0001
+
+compute energies all pair wpmd/cut
+variable eng_total equal etotal
+variable etotal_ev equal v_eng_total/627.509474*27.211386
+
+compute cp all property/atom eradius
+
+variable er equal c_cp[1]
+
+thermo  1
+thermo_modify norm yes
+thermo_style custom step v_etotal_ev pe temp v_er
+
+fix mc all mc/wpmd 5 ex ew ewp
+
+run 100000
+
+unfix mc
+

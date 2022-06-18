@@ -117,7 +117,7 @@ class storage_prototype{
 
   ///\en Storage class should provide function for querying vector dimension.
   size_t dim() const;
-  
+
   ///\en Storage class should provide [] operator for randomly accessing its elements for read and write (size_t index).
   value_type& operator[](size_t i) const ;
 
@@ -125,7 +125,7 @@ class storage_prototype{
   ///    Integer index is used for compatibility with old Vector_3 code.
   value_type& operator[](int i) const ;
 
-  
+
 };
 
 
@@ -133,7 +133,7 @@ class storage_prototype{
 template <class T, size_t N>
 struct array_stor_t{
   typedef T value_type;
-  
+
   ///\en The data is contiguous array in memory.
   T data[N];
 
@@ -143,7 +143,7 @@ struct array_stor_t{
   void resize(size_t new_dim, const T & value){}
 
   inline size_t dim() const { return N; }
-  
+
   inline T& operator[](int i) const {return (T&)data[i];}
 
   inline T& operator[](size_t i) const {return (T&)data[i];}
@@ -158,18 +158,18 @@ struct array_stor_t{
 
 ///\en General N-dimensional vector of type T and some useful operations.
 ///    Storage class for a vector should follow \ref storage_prototype.
-///    Note that for binary operators on vectors with variable dimension storages 
+///    Note that for binary operators on vectors with variable dimension storages
 ///    the result dimension is inherited from the argument with the minimal dimension.
 ///\ru N-������ ������ ���� T � ���������� ��������� ����������
-template <class T, size_t N, class storage_t= array_stor_t<T,N> > 
+template <class T, size_t N, class storage_t= array_stor_t<T,N> >
 class Vector_Nt{
   storage_t v;
-  
-public:  
-  
+
+public:
+
   typedef T value_type;
 
-  size_t dim() const { return v.dim(); } 
+  size_t dim() const { return v.dim(); }
 
   Vector_Nt(const storage_t &stor): v(stor){}
 
@@ -224,13 +224,13 @@ public:
   ///\en Copies vector to iterator
   ///\ru �������� ���������� ������� � ��������
   template <class A>
-  void copy_to(A *beg) const{  
+  void copy_to(A *beg) const{
     for(size_t i=0;i<v.dim();i++,++beg)
       *beg=v[i];
   }
 
   ///\en obtains element value
-  ///\ru ��������� �������� 
+  ///\ru ��������� ��������
   inline T& operator[](int i) const {return (T&)v[i];}
 
   inline T& operator[](size_t i) const {return (T&)v[i];}
@@ -269,7 +269,7 @@ public:
       result.v[i]=v[i]-vect.v[i];
     return result;
   }
- 
+
   ///\en Scalar product
   ///\ru ��������� ������������ ��������
   template <size_t M, class storage2_t>
@@ -371,7 +371,7 @@ public:
     T result=0;
     for (size_t i=0; i<v.dim(); i++)
       result+=v[i]*v[i];
-    return result; 
+    return result;
   }
 
   ///\en Norm
@@ -439,17 +439,17 @@ public:
   }
 
   ///\en nearest image distance within rectangular cell (FOR DISTANCE MEASUREMENTS)
-  ///    assumes that each coordinate absolute value is in the range [0,cell[i]) 
+  ///    assumes that each coordinate absolute value is in the range [0,cell[i])
   ///    returned vector is in the range [-cell[i]/2,cell[i]/2)
   ///    flags indicate the periodicity in specific directions: 0x1 for X, 0x2 for Y, 0x4 for Z
   ///    Note that \a cell dimension is not checked.
   ///\ru ��������� ����� � ������������� ������
   ///    �������, ��� ��� ������������ ��������� �� ������ - ��������������� � �������, �������������
-  ///    ���� ��������� � ����������, �������� �������� rcell, ������ ������ ��������� �������� 
+  ///    ���� ��������� � ����������, �������� �������� rcell, ������ ������ ��������� ��������
   ///    ������� ����� �� �����. ���� *this ��������� ����������� ������, ������������ ����� *this.\n
-  ///    �����, ���� *this ��������� � ���� 3*3 ������ � ������� � ������ ���������, �� ������� ����� 
+  ///    �����, ���� *this ��������� � ���� 3*3 ������ � ������� � ������ ���������, �� ������� �����
   ///    *this � ����������� ������.\n
-  ///    �����, ���������� �������������� ��������.  
+  ///    �����, ���������� �������������� ��������.
   template <size_t M, class storage2_t>
   Vector_Nt rcell1(const Vector_Nt<T, M, storage2_t> &cell,int flags=0xffff) const{
     Vector_Nt ret(*this);
@@ -470,7 +470,7 @@ public:
   ///    flags indicate the periodicity in specific directions: 0x1 for X, 0x2 for Y, 0x4 for Z
   ///    Note that \a cell dimension is not checked.
   ///\ru ����� �� ��, ��� � rcell1, �� ��� ����������� �� ��������� *this � � ������ �������� �����.
-  ///    � ������ ��������� ��������� �� ����� ������, � �� ����. ����� �������� ��������� ��-�� ������� 
+  ///    � ������ ��������� ��������� �� ����� ������, � �� ����. ����� �������� ��������� ��-�� �������
   ///    �������� ������� �� ������ � ��������� ������
   template <size_t M, class storage2_t>
   Vector_Nt rcell(const Vector_Nt<T, M, storage2_t> &cell, int flags=0xffff) const {
@@ -500,9 +500,9 @@ public:
     }
     return ret;
   }
-  
+
   ///\en returns maximal vector component and its index
-  ///\ru ���������� ������������ ���������� ������� � �� ������ � ind 
+  ///\ru ���������� ������������ ���������� ������� � �� ������ � ind
   T maxcoord(int *ind=NULL) const {
     if(!v.dim())
       return 0.;
@@ -519,7 +519,7 @@ public:
   }
 
   ///\en returns minimal vector component and its index
-  ///\ru ���������� ����������� ���������� ������� � �� ������ � ind 
+  ///\ru ���������� ����������� ���������� ������� � �� ������ � ind
   T mincoord(int *ind=NULL) const {
     if(!v.dim())
       return 0.;
@@ -611,11 +611,11 @@ typedef Vector_Nt<int,2> iVector_2;
 typedef Vector_Nt<int,3> iVector_3;
 typedef Vector_Nt<vec_type, 2> Vector_2;
 typedef Vector_Nt<vec_type, 3> Vector_3;
-typedef Vector_3 *Vector_3P; 
+typedef Vector_3 *Vector_3P;
 typedef Vector_2 *Vector_2P;
 
 
-template <size_t N> 
+template <size_t N>
 class  Vector_N: public Vector_Nt<vec_type, N>::type{
 };
 
@@ -641,11 +641,11 @@ vec_type dist_max(Vector_3 *va1,Vector_3 *va2,int n);
 ///\ru ������� ������� ���������� ����� ��������� va1[i], va2[i], i=1..n
 vec_type dist_av(Vector_3 *va1,Vector_3 *va2,int n);
 
-///\en finds the average difference norm between two vector sets of the same length
-///    optionally gives the indices for maximal and minimal difference
-///    va2 can be NULL, then the norm of va1 is used
-///\ru ������� ������� ���������� ����� va1[i] � va2[i], � �����, �� �������, �������, �� ������� ����������� min � max ����������
-vec_type diff_av(Vector_3 *va1,Vector_3 *va2,int n, int *minind=0, int *maxind=0);
+//e finds the average difference norm between two vector sets of the same length
+/*e optionally gives the indexes for maximal and minimal difference
+ va2 can be nullptr, then the norm of va1 is used */
+
+vec_type diff_av(Vector_3 *va1,Vector_3 *va2,int n, int *minind=nullptr, int *maxind=nullptr);
 
 ///\en finds suitable perpendicular to a vector
 ///\ru ������� ������������� � ������� vAB
@@ -663,18 +663,13 @@ Vector_3 GetIScopei(const Vector_3 *varr,int *indarr,int n,Vector_3* box_min,Vec
 
 // neue Funktionen
 
-///\en clears vector array with optional integer index
-///\ru ������� ������� ��������, � ���������� �������������� 
-///    � ������ Vector_3 vec[] �������� n ���������. ���� ind==NULL, �� 
-///    ������� ������ n ���������. ���� ind!=NULL, �� ��� i=0..n-1
-///    ������� vec[ind[i]]
-///    ��. \ref indexed_calculations.
-void clear_vecarri(int n,Vector_3 *vec, int *ind=0);
+//e clears vector array with optional integer index
+void clear_vecarri(int n,Vector_3 *vec, int *ind=nullptr);
 
 ///\en reflects the vector ini+dir*t+0.5*force*t^2 to be inside a box limited by 0 and box sizes
 ///    changes dir according to the final state
 ///    fills crossed dir with bit flags corresponding directions along which the walls were crossed
-Vector_3 Reflect(Vector_3& ini, double t,Vector_3 &dir, double *box, int flag=0x7, const Vector_3 &force=Vector_3()); 
+Vector_3 Reflect(Vector_3& ini, double t,Vector_3 &dir, double *box, int flag=0x7, const Vector_3 &force=Vector_3());
 
 ///\en returns random unit vector uniformely distributed in space (?? check this)
 Vector_3 randdir();
@@ -710,7 +705,7 @@ Vector_3 get_extent(vec_inp_it beg,vec_inp_it end, Vector_3* box_min=NULL,Vector
 }
 
 
-///\en Performs a step of the Stabilized Gramm-Schidt orthonormalization algorithm. 
+///\en Performs a step of the Stabilized Gramm-Schidt orthonormalization algorithm.
 ///    Given a set of orthogonal unit vectors defined by [orth_beg, orth_end)
 ///    orthonormalizes inp_vec with respect to this set (removes all projections to the set).
 ///    The result is recorded to out_vec, which is normalized.
@@ -720,7 +715,7 @@ template<class inp_it, class vector_tt>
 typename vector_tt::value_type gramm_schmidt_project(inp_it orth_set_beg, inp_it orth_set_end, const vector_tt &inp_vec, vector_tt &out_vec, typename vector_tt::value_type new_norm = 1.){
   out_vec = inp_vec;
   for(;orth_set_beg!=orth_set_end; ++orth_set_beg){
-    out_vec -= ( (vector_tt)(*orth_set_beg) *out_vec)*( (vector_tt)(*orth_set_beg) ); 
+    out_vec -= ( (vector_tt)(*orth_set_beg) *out_vec)*( (vector_tt)(*orth_set_beg) );
   }
   if(new_norm>0.)
     return out_vec.normalize(new_norm);

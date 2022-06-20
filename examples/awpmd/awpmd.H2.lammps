@@ -1,6 +1,8 @@
 log awpmd.H2.log
 
-variable MAX_L equal 5
+variable MIN_R equal 0.4
+variable MAX_R equal 2.5
+variable N_POINTS equal 20
 variable outpath string "H2.awpmd.dat"
 
 units real
@@ -50,18 +52,17 @@ compute energies all pair awpmd/cut
 variable eng_total equal etotal
 variable etotal_ev equal v_eng_total/627.509474*27.211386
 
-variable N equal 500
-variable dr equal ${MAX_L}/${N}
+variable dr equal (${MAX_R}-${MIN_R})/${N_POINTS}
 
 thermo  1
 thermo_modify norm yes
-thermo_style custom step v_MAX_L v_etotal_ev pe temp
+thermo_style custom step v_MAX_R v_etotal_ev pe temp
 
-fix ave all ave/time 1 100 10000 v_MAX_L v_etotal_ev file ${outpath} off 1
+fix ave all ave/time 1 100 10000 v_MAX_R v_etotal_ev file ${outpath} off 1
 
 label main_loop
 
-variable X equal ${MAX_L}/2.0
+variable X equal ${MAX_R}/2.0
 
 set atom 1 x ${X}
 set atom 2 x -${X}
@@ -75,7 +76,7 @@ run 10000
 
 unfix mc
 
-variable MAX_L equal ${MAX_L}-${dr}
+variable MAX_R equal ${MAX_R}-${dr}
 
-if "${MAX_L} <= 0" then quit
+if "${MAX_R} < ${MIN_R}" then quit
 jump SELF main_loop

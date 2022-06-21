@@ -79,9 +79,8 @@ ComputeDensityAwpmd::ComputeDensityAwpmd(LAMMPS_NS::LAMMPS *lmp, int argc, char 
       ++argv_index;
       if (is_par_equal(argv_index, "block")){
         ++argv_index;
-        auto domain_index = this->domain->find_region(argv[argv_index]);
-        if (domain_index != -1) {
-          region_ = this->domain->regions[domain_index];
+        region_ = this->domain->get_region_by_id(argv[argv_index]);
+        if (region_) {
           begin = {region_->extent_xlo, region_->extent_ylo, region_->extent_zlo};
           L_ = {region_->extent_xhi - region_->extent_xlo,
                region_->extent_yhi - region_->extent_ylo,

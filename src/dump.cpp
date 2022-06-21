@@ -434,19 +434,6 @@ void Dump::write()
 
   if (filewriter && write_header_flag) write_header(nheader);
 
-  // write timestep header
-  // for multiproc,
-  //   nheader = # of lines in this file via Allreduce on clustercomm
-  //   must come after sort, which can change nme
-
-  bigint nheader = ntotal;
-  if (multiproc) {
-    bnme = nme;
-    MPI_Allreduce(&bnme,&nheader,1,MPI_LMP_BIGINT,MPI_SUM,clustercomm);
-  }
-
-  if (filewriter && write_header_flag) write_header(nheader);
-
   // if buffering, convert doubles into strings
   // insure sbuf is sized for communicating
   // cannot buffer if output is to binary file

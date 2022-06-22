@@ -78,12 +78,12 @@ namespace LAMMPS_NS{
       return 2;
     }
 
-    MCScalarSystem(double* source, filter_func filter):
+    MCScalarSystem(double* &source, filter_func filter):
         src(source), MCSystem(std::move(filter)){
     }
 
   private:
-    double* src;
+    double* &src;
     std::vector<double> storage;
   };
 

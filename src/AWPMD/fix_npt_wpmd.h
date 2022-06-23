@@ -13,7 +13,7 @@ FixStyle(npt/wpmd,FixNPTWpmd)
 namespace LAMMPS_NS{
   class FixNPTWpmd: public FixNHWpmd{
   public:
-    FixNPTWpmd(struct LAMMPS *lammps, int i, char **pString);
+    FixNPTWpmd(LAMMPS *lammps, int i, char **pString);
   };
 }
 

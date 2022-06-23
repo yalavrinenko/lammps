@@ -14,7 +14,7 @@ FixStyle(nph/wpmd,FixNPHWpmd)
 namespace LAMMPS_NS{
   class FixNPHWpmd: public FixNHWpmd{
   public:
-    FixNPHWpmd(struct LAMMPS *lammps, int i, char **pString);
+    FixNPHWpmd(LAMMPS *lammps, int i, char **pString);
   };
 }
 

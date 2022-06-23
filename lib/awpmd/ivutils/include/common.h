@@ -362,7 +362,7 @@ int fskip_comment(FILE *f,const char *comment);
 // 1 if single par
 // 3 if range
 // sets corresponding values
-int scan_range(char *str, realtype *a1, realtype *a2, realtype *step, char *delim=",");
+int scan_range(char *str, realtype *a1, realtype *a2, realtype *step, const char *delim=",");
 
 // scans values from string into the buffer ptr
 // the buffer is an array of the entries of size fieldsize

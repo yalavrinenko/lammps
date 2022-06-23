@@ -75,7 +75,7 @@ LAMMPS_NS::FixWallWpmd::construct_box(char **pString, double half_box_length, in
     }
   }
 
-  walls_count_ = std::count(has_force_.begin(), has_force_.end(), 1);
+  walls_count_ = std::count(has_force_.begin(), has_force_.end(), true);
 
   auto floor = half_box_length;
 

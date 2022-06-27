@@ -13,7 +13,7 @@ message("IVUTILS include dir:" ${IVUTILS_INCLUDE_DIR})
 include_directories(${AWPMD_INCLUDE_DIR})
 include_directories(${IVUTILS_INCLUDE_DIR})
 
-add_library(awpmd SHARED ${AWPMD_SOURCES} ${AWPMD_HEADERS})
+add_library(awpmd STATIC ${AWPMD_SOURCES} ${AWPMD_HEADERS})
 
 if(WIN32)
   if(${CMAKE_GENERATOR} MATCHES "Visual Studio 15 2017")

@@ -83,6 +83,25 @@ LAMMPS_NS::PairAWPMD::awpmd_packets LAMMPS_NS::PairAWPMD::make_packets() const {
   int *tag = atom->tag;
   int *etag = atom->etag;
 
+  // check electrons with auto-assigned tags
+  std::vector<int> newetag;
+  if (wp_per_electron > 1) {
+    std::vector<std::pair<int, int> > tagv;
+    for (int i = 0; i < atom->nlocal + atom->nghost; ++i)
+      if (spin[i] && !etag[i]) // searching for electrons with non-assigned tags
+        tagv.push_back(std::make_pair(tag[i], i));
+
+    if (tagv.size()) {
+      std::sort(tagv.begin(), tagv.end());
+
+      newetag.resize(atom->nlocal + atom->nghost);
+      for (int i = 0; i < atom->nlocal + atom->nghost; ++i)
+        newetag[i] = etag[i];
+      for (size_t i = 0; i < tagv.size(); i++) // assuming wavepackets were created using groups with size of multiple of wp_per_electron 
+        newetag[tagv[i].second] = tag[tagv[i].second] / wp_per_electron;
+      etag = &newetag[0]; // the new vector has all electron tags assigned  
+    }
+  }
   awpmd_ions ions;
   awpmd_electrons electrons{};
 
@@ -90,6 +109,8 @@ LAMMPS_NS::PairAWPMD::awpmd_packets LAMMPS_NS::PairAWPMD::make_packets() const {
     if (spin[index] == 0) {
       ions.emplace_back(index, 0, tag[index]);
     } else if (spin[index] == 1 || spin[index] == -1) {
+      if (!etag[index]) // efficient solution for wp_per_electron =1, no preprocessing required
+        etag[index] = tag[index];
       electrons[etag[index]].emplace_back(index, 0, etag[index]);
     } else {
       error->all(FLERR, fmt::format("Invalid spin value ({}) for particle {} !", spin[index], index));

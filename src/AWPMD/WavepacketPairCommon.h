@@ -71,6 +71,7 @@ protected:
   awpmd_energies energy_components_{};
   AWPMD_split *wpmd; // solver oybject
   std::vector<WavePacket> packets;
+  int wp_per_electron{1};  // default wave packets per electron, used when creating electrons randomly 
 };
 
 }

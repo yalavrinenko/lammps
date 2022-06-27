@@ -897,7 +897,7 @@ void AtomVecWavepacket::create_atom(int itype, double *coord)
   eradius[nlocal] = 0.0;
   ervel[nlocal] = 0.0;
 
-  etag[nlocal] = atom->nlocal; //electron should be different
+  etag[nlocal] = 0; // to be assigned later     //atom->nlocal; //electron should be different
   cs[nlocal][0] = 1.; //Packet should exist by default
   cs[nlocal][1] = 0.;
 

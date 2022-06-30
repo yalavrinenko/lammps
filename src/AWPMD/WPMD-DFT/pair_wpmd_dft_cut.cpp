@@ -25,7 +25,7 @@ void LAMMPS_NS::PairAWPMD_DFTCut::compute(int _i, int _i1) {
   auto electrons_count = atom->nlocal + atom->nghost;
   electrons.clear();
 
-  for (auto i = 0u; i < electrons_count; ++i){
+  for (auto i = 0; i < electrons_count; ++i){
     if (std::abs(atom->spin[i]) == 1){
       electrons.emplace_back(atom->x[i], atom->eradius[i], ElectronSpin(atom->spin[i]), (calc_force_ && i < atom->nlocal) );
     }
@@ -92,7 +92,7 @@ DFTConfig LAMMPS_NS::PairAWPMD_DFTCut::make_dft_config(int nargs, char **pString
   auto electron_count = std::count_if(atom->spin, atom->spin + atom->nlocal + atom->nghost,
                                       [](int spin) { return std::abs(spin) == 1; });
 
-  mesh_config.units.Hartree2Energy =  627.509474;
+  mesh_config.units.Hartree2Energy =  627.509474f;
   mesh_config.units.Distance2Bohr = 1.0f / (0.52917721092 * force->angstrom);
 
   const double SPACE_MESH_SCALE = mesh_config.units.Distance2Bohr;

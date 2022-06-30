@@ -142,7 +142,7 @@ void LAMMPS_NS::PairAWPMD::init_wpmd(awpmd_ions &ions, awpmd_electrons &electron
     auto &insert_index = ion_index.lmp_index;
     ion_index.wpmd_index = (unsigned) wpmd->add_ion(q[insert_index], Vector_3(x[insert_index][0], x[insert_index][1],
                                                                               x[insert_index][2]),
-                                                    (insert_index < nlocal ? atom->tag[insert_index]
+                                                    (insert_index < (unsigned) nlocal ? atom->tag[insert_index]
                                                                            : -atom->tag[insert_index]));
   }
 
@@ -168,9 +168,11 @@ void LAMMPS_NS::PairAWPMD::init_wpmd(awpmd_ions &ions, awpmd_electrons &electron
 
       e_split_index.wpmd_index = (unsigned) wpmd->add_split(xx, rv, atom->eradius[insert_index], pv, cc, m,
                                                             atom->q[insert_index],
-                                                            (insert_index < nlocal ? atom->tag[insert_index]
+                                                            (insert_index < (unsigned) nlocal ? atom->tag[insert_index]
                                                                                    : -atom->tag[insert_index]));
-      electron_ke_ += (insert_index < nlocal) ? wpmd->wp[s][e_split_index.wpmd_index].get_p().norm2() * (wpmd->h2_me / 2.0) : 0.0;
+      electron_ke_ += (insert_index < (unsigned) nlocal)
+          ? wpmd->wp[s][e_split_index.wpmd_index].get_p().norm2() * (wpmd->h2_me / 2.0)
+          : 0.0;
     }
   }
 }

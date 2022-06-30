@@ -11,7 +11,6 @@ set(CUDA_NVCC_FLAGS "${CMAKE_CXX_FLAGS} -rdc=true -c")
 
 set(COMMON_SRC
     ../DataTypes.hpp
-    ../utils/ExternalTypes.hpp
     ../utils/Logger.cpp
     ../xcfunctionals/ApproxList.hpp)
 

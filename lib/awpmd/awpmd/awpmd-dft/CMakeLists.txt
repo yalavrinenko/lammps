@@ -10,11 +10,10 @@ set(CMAKE_CXX_STANDARD 14)
 #    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 #endif()
 
-set(DATA_SRC DataTypes.hpp utils/ExternalTypes.hpp utils/Logger.cpp xcfunctionals/ApproxList.hpp utils/CCP4_DMap.cpp)
+set(DATA_SRC DataTypes.hpp utils/Logger.cpp xcfunctionals/ApproxList.hpp utils/CCP4_DMap.cpp)
 set(XCAPPROX_SRC xcfunctionals/LDA.cpp xcfunctionals/ModLDA.cpp xcfunctionals/LSDA.cpp xcfunctionals/TableApproximation.cpp)
 set(SOURCE_FILES_CPU awpmd-dft.hpp awpmd-dft-cpu.cpp
         ${DATA_SRC}
-        utils/ExternalTypes.hpp
         utils/SpaceMesh.cpp utils/DerivativesFunction.cpp
         numeric/cpu_integrator.hpp)
 

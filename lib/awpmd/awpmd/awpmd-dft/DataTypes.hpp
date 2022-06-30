@@ -5,7 +5,8 @@
 #ifndef AWPMD_DFT_DATATYPES_HPP
 #define AWPMD_DFT_DATATYPES_HPP
 
-#include "utils/ExternalTypes.hpp"
+#include "../../ivutils/include/wavepacket.h"
+
 #include "utils/Logger.hpp"
 #include "utils/SpaceMesh.hpp"
 #include "xcfunctionals/IApproximation.hpp"

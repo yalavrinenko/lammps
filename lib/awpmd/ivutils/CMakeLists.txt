@@ -3,7 +3,7 @@ set(CMAKE_CXX_STANDARD 11)
 include(sources.cmake)
 
 get_filename_component(IVUTILS_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include ABSOLUTE)
-message("IvUtils include dir:" ${IVUTILS_INCLUDE_DIR})
+#message("IvUtils include dir:" ${IVUTILS_INCLUDE_DIR})
 
 if(NOT ${HAVE_ERF})   
   set(ERF_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/erf_namd.c" CACHE FILEPATH "Source for erf implementation")

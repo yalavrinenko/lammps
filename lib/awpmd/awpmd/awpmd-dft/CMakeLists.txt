@@ -20,15 +20,6 @@ set(SOURCE_FILES_CPU awpmd-dft.hpp awpmd-dft-cpu.cpp
 
 add_library(wpmd_dft_unit_cpu ${BUILDCONF} ${SOURCE_FILES_CPU} ${XCAPPROX_SRC})
 
-option(DEBUG_WAVEPACKET "Use dummy wavepacket for debug" OFF)
-if (DEBUG_WAVEPACKET)
-    message(WARNING "USE Dummy Wavepacket class")
-    target_compile_definitions(wpmd_dft_unit_cpu PRIVATE -DSEPARATE_DEBUG)
-else (DEBUG_WAVEPACKET)
-    target_include_directories(wpmd_dft_unit_cpu PRIVATE "../../ivutils/include/")
-endif (DEBUG_WAVEPACKET)
-
-
 if(WIN32)
   if(${CMAKE_GENERATOR} MATCHES "Visual Studio 15 2017")
     set(HAVE_MATH ON)

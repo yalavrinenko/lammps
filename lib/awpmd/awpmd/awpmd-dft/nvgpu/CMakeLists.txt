@@ -55,12 +55,3 @@ if(WIN32)
  set_target_properties(wpmd_dft_unit_nvgpu PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 endif()
 
-
-option(DEBUG_WAVEPACKET "Use dummy wavepacket for debug" OFF)
-if (DEBUG_WAVEPACKET)
-    message(WARNING "USE Dummy Wavepacket class")
-    target_compile_definitions(wpmd_dft_unit_nvgpu PRIVATE -DSEPARATE_DEBUG)
-else()
-    target_include_directories(wpmd_dft_unit_nvgpu PRIVATE "../../../ivutils/include/")
-endif()
-

@@ -93,10 +93,17 @@ LAMMPS_NS::PairAWPMD::awpmd_packets LAMMPS_NS::PairAWPMD::make_packets() const
 
       newetag.resize(atom->nlocal + atom->nghost);
       for (int i = 0; i < atom->nlocal + atom->nghost; ++i) newetag[i] = etag[i];
+      int group_start = -1, last_tag =0;
       for (
-          size_t i = 0; i < tagv.size();
-          i++)    // assuming wavepackets were created using groups with size of multiple of wp_per_electron
-        newetag[tagv[i].second] = tag[tagv[i].second] / wp_per_electron;
+        size_t i = 0; i < tagv.size();
+        i++) {    // assuming wavepackets were created using groups with size of multiple of wp_per_electron
+        if (group_start > 0 && tagv[i].first != last_tag + 1) // group is a number of electrons with consecutive tags
+          group_start = -1;  // new group started
+        if (group_start < 0)
+          group_start = tagv[i].first;
+        last_tag = tagv[i].first;
+        newetag[tagv[i].second] = 1+ (last_tag - group_start) / wp_per_electron;
+      }
       etag = &newetag[0];    // the new vector has all electron tags assigned
     }
   }

@@ -122,13 +122,13 @@ int AtomVecWavepacket::property_atom(const std::string &name)
 
 void AtomVecWavepacket::pack_property_atom(int index, double *buf, int nvalues, int groupbit)
 {
-  auto *mask = atom->mask;
+  auto *atom_mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int n = 0;
   if (index == 0) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit)
+      if (atom_mask[i] & groupbit)
         buf[n] = spin[i];
       else
         buf[n] = 0.0;
@@ -136,7 +136,7 @@ void AtomVecWavepacket::pack_property_atom(int index, double *buf, int nvalues, 
     }
   } else if (index == 1) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit)
+      if (atom_mask[i] & groupbit)
         buf[n] = eradius[i];
       else
         buf[n] = 0.0;
@@ -144,7 +144,7 @@ void AtomVecWavepacket::pack_property_atom(int index, double *buf, int nvalues, 
     }
   } else if (index == 2) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit)
+      if (atom_mask[i] & groupbit)
         buf[n] = ervel[i];
       else
         buf[n] = 0.0;
@@ -152,7 +152,7 @@ void AtomVecWavepacket::pack_property_atom(int index, double *buf, int nvalues, 
     }
   } else if (index == 3) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit)
+      if (atom_mask[i] & groupbit)
         buf[n] = erforce[i];
       else
         buf[n] = 0.0;

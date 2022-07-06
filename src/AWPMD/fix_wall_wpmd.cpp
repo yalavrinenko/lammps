@@ -29,11 +29,7 @@ LAMMPS_NS::FixWallWpmd::FixWallWpmd(LAMMPS_NS::LAMMPS *lammps, int i, char **pSt
   this->size_vector = 2;
 }
 
-LAMMPS_NS::FixWallWpmd::~FixWallWpmd()
-{
-  m_pair->awpmd()->use_box = false;
-  m_pair->awpmd()->set_pbc(nullptr, 0);
-}
+LAMMPS_NS::FixWallWpmd::~FixWallWpmd() = default;
 
 int LAMMPS_NS::FixWallWpmd::setmask()
 {

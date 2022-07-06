@@ -4,9 +4,7 @@ boundary m m m
 processors  1 * *
 atom_style wavepacket
 
-
 atom_modify map yes
-
 
 #START INIT SECTION
 region  box block -1 1 -1 1 -1 1

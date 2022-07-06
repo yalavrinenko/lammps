@@ -86,9 +86,6 @@ void AtomVecWavepacket::force_clear(int n, size_t nbytes)
 void AtomVecWavepacket::create_atom_post(int ilocal)
 {
   q[ilocal] = 1.0;
-  etag[ilocal] = ilocal; //electron should be different
-  cs[ilocal][0] = 1.; //Packet should exist by default
-  cs[ilocal][1] = 0.;
 }
 
 /* ----------------------------------------------------------------------
@@ -122,6 +119,7 @@ int AtomVecWavepacket::property_atom(const std::string &name)
 
 void AtomVecWavepacket::pack_property_atom(int index, double *buf, int nvalues, int groupbit)
 {
+  auto *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int n = 0;

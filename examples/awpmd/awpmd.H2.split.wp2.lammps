@@ -1,0 +1,188 @@
+# H2 with two wavepackets per electron, explicit electron creation
+
+variable MAX_L equal 2.5
+variable outpath string "H2.split.wp2.awpmd.dat"
+
+variable spin_2 equal 1 # the spin of the second electron, the first is always -1 
+
+units real
+newton on
+boundary m m m
+processors  * 1 1
+atom_style wavepacket
+
+#START INIT SECTION
+region  box block -100 100 -100 100 -100 100
+create_box  5 box
+create_atoms 1 single 2.5 0 0
+create_atoms 1 single -2.5 0 0
+
+
+create_atoms 2 single 2.5 0 0
+create_atoms 3 single -2.5 0 0
+create_atoms 4 single 2.5 0 0
+create_atoms 5 single -2.5 0 0
+
+# add another two
+create_atoms 2 single 2.6 0 0
+create_atoms 3 single -2.6 0 0
+create_atoms 4 single 2.6 0 0
+create_atoms 5 single -2.6 0 0
+
+
+
+#create_atoms 2 random 1 222 box
+#create_atoms 3 random 1 333 box
+
+#create_atoms 4 random 1 222 box
+#create_atoms 5 random 1 333 box
+
+
+
+mass  1 0.0544616997098749
+set type 1 charge 1
+set type 1 spin/wpmd 0
+
+mass 2 0.000544616997098749
+set type 2 charge -1
+set type 2 spin/wpmd 1
+set type 2 eradius 0.8660254037844386
+set type 2 etag 42
+set type 2 cs 0.5 0.0
+
+mass  3 0.000544616997098749
+set type 3 charge -1
+set type 3 spin/wpmd ${spin_2}
+set type 3 eradius 0.8660254037844386
+set type 3 etag 43
+set type 3 cs 0.5 0.0
+
+
+mass 4 0.000544616997098749
+set type 4 charge -1
+set type 4 spin/wpmd 1
+set type 4 eradius 0.18660254037844386
+set type 4 etag 42
+set type 4 cs 0.5 0.0
+
+mass  5 0.000544616997098749
+set type 5 charge -1
+set type 5 spin/wpmd ${spin_2}
+set type 5 eradius 0.18660254037844386
+set type 5 etag 43
+set type 5 cs 0.5 0.0
+
+
+
+
+velocity all create 20 877785 dist gaussian
+#velocity all set 0 0 0 
+#END INIT SECTION
+
+
+#PAIR_STYLE
+comm_modify vel yes
+pair_style  awpmd/cut 100 uhf
+pair_coeff  * *
+#END_PAIR_STYLE
+
+compute energies all pair awpmd/cut
+variable eng_total equal etotal
+variable etotal_ev equal v_eng_total/627.509474*27.211386
+
+set type 2 y 0
+set type 2 z 0
+
+set type 3 y 0
+set type 3 z 0
+
+set type 4 y 0
+set type 4 z 0
+
+set type 5 y 0
+set type 5 z 0
+
+
+
+
+variable N equal 25
+variable dr equal -${MAX_L}/${N}
+
+if "${dr}<0" then &
+  "variable Lc equal ${MAX_L}" &
+else &
+  "variable Lc equal ${dr}"
+
+
+thermo  1
+thermo_modify norm yes
+thermo_style custom step v_Lc v_etotal_ev pe temp
+
+fix ave all ave/time 1 100 20000 v_Lc v_etotal_ev file ${outpath} off 1
+
+shell mkdir "dumps"
+
+compute erad all property/atom eradius
+compute sp  all property/atom spin
+compute ch  all property/atom q
+compute etg  all property/atom etag
+compute cs_re all property/atom cs_re
+compute cs_im all property/atom cs_im
+
+dump 1 all custom 20000 "dumps/sys_conf.*.dat" mass type xs ys zs x y z vx vy vz c_erad c_sp c_ch c_etg c_cs_re c_cs_im
+dump_modify     1 element i eu ed euf edf
+
+
+variable X equal ${Lc}/2.0
+set type 2 x ${X}
+set type 3 x -${X}
+
+set type 4 x 0.05
+set type 5 x -0.05
+
+
+
+label main_loop
+
+variable X equal ${Lc}/2.0
+variable Xc equal ${X}/2.0
+
+
+set atom 1 x ${X}
+set atom 2 x -${X}
+
+
+set type 2 x ${X}
+set type 3 x -${X}
+set type 4 x ${Xc}
+set type 5 x -${Xc}
+
+
+#set type 2 eradius 0.86
+#set type 2 cs 0.5 0
+#set type 3 eradius 0.86
+#set type 3 cs 0.5 0
+#set type 4 eradius 0.86
+#set type 4 cs 0.01 0
+#set type 5 eradius 0.86
+#set type 5 cs 0.01 0
+
+
+
+#if "${dr}<0" then &
+#  "set type 2 x ${X}" &
+#  "set type 3 x -${X}" &
+#else &
+#  "set type 2 cs 0.5 0.0" &
+#  "set type 3 cs 0.5 0.0"
+
+fix mc all mc/wpmd 100 ex ew ewp ec_re ec_im
+
+run 20000
+
+unfix mc
+
+variable Lc equal ${Lc}+${dr}
+
+if "${Lc} > ${MAX_L} || ${Lc}<0" then quit
+jump SELF main_loop

@@ -134,7 +134,6 @@ void LAMMPS_NS::WavepacketPairCommon::init_style() {
                       "q, spin, eradius, erforce");
 
   int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->newton = 0;
 
   if (force->e_mass == 0. || force->hhmrr2e == 0. || force->mvh2r == 0.)
     error->all(FLERR,

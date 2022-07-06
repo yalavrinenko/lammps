@@ -32,7 +32,8 @@ if(DOWNLOAD_QUIP)
   foreach(flag ${LAPACK_LIBRARIES})
     set(temp "${temp} ${flag}")
   endforeach()
-  set(temp "${temp}\n")
+  # Fix cmake crashing when MATH_LINKOPTS not set, required for e.g. recent Cray Programming Environment
+  set(temp "${temp} -L/_DUMMY_PATH_\n")
   set(temp "${temp}PYTHON=python\nPIP=pip\nEXTRA_LINKOPTS=\n")
   set(temp "${temp}HAVE_CP2K=0\nHAVE_VASP=0\nHAVE_TB=0\nHAVE_PRECON=1\nHAVE_LOTF=0\nHAVE_ONIOM=0\n")
   set(temp "${temp}HAVE_LOCAL_E_MIX=0\nHAVE_QC=0\nHAVE_GAP=1\nHAVE_DESCRIPTORS_NONCOMMERCIAL=1\n")
@@ -42,6 +43,7 @@ if(DOWNLOAD_QUIP)
   file(WRITE ${CMAKE_BINARY_DIR}/quip.config "${temp}")
 
   message(STATUS "QUIP download via git requested - we will build our own")
+  set(CMAKE_EP_GIT_REMOTE_UPDATE_STRATEGY CHECKOUT)
   # QUIP has no releases (except for a tag marking the end of Python 2 support). We use the current "public" branch
   # The LAMMPS interface wrapper has a compatibility constant that is being checked at runtime.
   include(ExternalProject)
@@ -50,6 +52,7 @@ if(DOWNLOAD_QUIP)
     GIT_TAG origin/public
     GIT_SHALLOW YES
     GIT_PROGRESS YES
+    GIT_SUBMODULES "src/fox;src/GAP"
     PATCH_COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/quip.config <SOURCE_DIR>/arch/Makefile.lammps
     CONFIGURE_COMMAND env QUIP_ARCH=lammps make config
     BUILD_COMMAND env QUIP_ARCH=lammps make libquip

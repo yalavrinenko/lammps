@@ -1,6 +1,8 @@
 # H2 with two wavepackets per electron, explicit electron creation
 
-variable MAX_L equal 2.5
+variable MIN_R equal 0.4
+variable MAX_R equal 2.0
+variable N_POINTS equal 10
 variable outpath string "H2.split.wp2.awpmd.dat"
 
 variable spin_2 equal 1 # the spin of the second electron, the first is always -1 
@@ -102,16 +104,12 @@ set type 4 z 0
 set type 5 y 0
 set type 5 z 0
 
-
-
-
-variable N equal 25
-variable dr equal -${MAX_L}/${N}
+variable dr equal (${MIN_R}-${MAX_R})/${N_POINTS}
 
 if "${dr}<0" then &
-  "variable Lc equal ${MAX_L}" &
+  "variable Lc equal ${MAX_R}" &
 else &
-  "variable Lc equal ${dr}"
+  "variable Lc equal ${MIN_R}"
 
 
 thermo  1
@@ -184,5 +182,5 @@ unfix mc
 
 variable Lc equal ${Lc}+${dr}
 
-if "${Lc} > ${MAX_L} || ${Lc}<0" then quit
+if "${Lc} > ${MAX_R} || ${Lc}<${MIN_R}" then quit
 jump SELF main_loop

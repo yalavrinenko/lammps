@@ -67,6 +67,7 @@ void AtomVecWavepacket::grow_pointers()
   eradius = atom->eradius;
   ervel = atom->ervel;
   erforce = atom->erforce;
+  cs = atom->cs;
 }
 
 /* ----------------------------------------------------------------------
@@ -86,6 +87,8 @@ void AtomVecWavepacket::force_clear(int n, size_t nbytes)
 void AtomVecWavepacket::create_atom_post(int ilocal)
 {
   q[ilocal] = 1.0;
+  cs[ilocal][0] = 1.0;
+  cs[ilocal][1] = 0.0;
 }
 
 /* ----------------------------------------------------------------------

@@ -45,7 +45,7 @@ LAMMPS_NS::WavepacketPairCommon::awpmd_energies LAMMPS_NS::PairAWPMD::compute_en
 
   if (wpmd->ni) fi.resize(static_cast<unsigned long>(wpmd->ni));
 
-  wpmd->interaction(0x1u | 0x4u | 0x10u, fi.data());
+  wpmd->interaction(0x1u | 0x4u | 0x10u | 0x20u, fi.data());
   wpmd->forces2phys();
 
   auto coul_energy = wpmd->get_energy() - electron_ke_;

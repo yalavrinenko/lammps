@@ -398,7 +398,7 @@ if(BUILD_OMP)
   target_link_libraries(lmp PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
-if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_LATTE OR PKG_ELECTRODE)
+if(PKG_MSCG OR PKG_ATC OR PKG_ML-QUIP OR PKG_LATTE OR PKG_ELECTRODE OR PKG_AWPMD) # OR PKG_AWPMD 
   enable_language(C)
   find_package(LAPACK)
   find_package(BLAS)

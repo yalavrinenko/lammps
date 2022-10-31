@@ -44,6 +44,8 @@ namespace LAMMPS_NS {
 
     temp = modify->compute[modify->find_compute("thermo_temp")];
     pe = modify->compute[modify->find_compute("thermo_pe")];
+    modify->add_compute("thermo_norm all normmatr");
+    norm = modify->compute[modify->find_compute("thermo_norm")];
 
     target_temperature = utils::numeric(FLERR, args[3], true, lmp) * force->boltz;
     output.like_vars.accepted_count = output.like_vars.rejected_count = 0.0;
@@ -65,8 +67,17 @@ namespace LAMMPS_NS {
   }
 
   void FixMCAwpmd::final_integrate() {
-    auto energy_new = temp->compute_scalar() * 0.5 * temp->dof * force->boltz +
-                      pe->compute_scalar(); //input->variable->compute_equal(v_id);
+    double energy_new;
+    if (use_norm) {
+      double nmlog = nmlog =  norm->compute_scalar();
+      energy_new = temp->compute_scalar() * (0.5 * temp->dof - 0.5 * nmlog ) * force->boltz +
+        pe->compute_scalar(); //input->variable->compute_equal(v_id);
+    }
+    else {
+      energy_new = temp->compute_scalar() * 0.5 * temp->dof * force->boltz +
+        pe->compute_scalar(); //input->variable->compute_equal(v_id);
+    }
+
     this->output.like_vars.accept_flag = steppers.current().engine.test(energy_new - energy_old, 1.);
 
     if (output.like_vars.accept_flag == 1) {
@@ -134,6 +145,10 @@ namespace LAMMPS_NS {
       } else if (!std::strcmp(argv[i], "iv")) {
         steppers.add(lmp, stepper_type::ion_p, random_seed, engine_seed).assign_subsystem(
             make_unique<MCVectorSystem<3>>(atom->v, ion_filter));
+      }
+      else if (!std::strcmp(argv[i], "norm")) {
+        use_norm = true;
+        continue;
       } else {
         error->all(FLERR, (std::string{"Invalid stepper name "} + argv[i]).c_str());
       }

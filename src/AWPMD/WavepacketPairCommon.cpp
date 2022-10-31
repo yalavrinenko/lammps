@@ -14,6 +14,7 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "memory.h"
+#include "modify.h"
 #include "error.h"
 #include <utils.h>
 
@@ -144,6 +145,8 @@ void LAMMPS_NS::WavepacketPairCommon::init_style() {
   wpmd->one_h = force->mvh2r;
   wpmd->coul_pref = force->qqrd2e;
   wpmd->mvv2e = force->mvv2e;
+
+  modify->add_compute("awpmd_norm all normmatr");
 }
 
 double LAMMPS_NS::WavepacketPairCommon::init_one(int i, int j) {

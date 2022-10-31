@@ -66,13 +66,14 @@ namespace LAMMPS_NS {
 
     MCStepperSet steppers;
 
-    Compute *temp, *pe;
+    Compute *temp, *pe, *norm;
 
     double energy_old = std::numeric_limits<double>::max();
 
     double target_temperature = 1.0;
 
     bool is_first = true;
+    bool use_norm = false;
   };
 
 }

@@ -17,6 +17,7 @@ FixStyle(mc/wpmd,FixMCAwpmd)
 #include "compute.h"
 #include "variable.h"
 #include "mc_utils.h"
+#include "pair_awpmd_cut.h"
 
 namespace LAMMPS_NS {
 
@@ -66,14 +67,17 @@ namespace LAMMPS_NS {
 
     MCStepperSet steppers;
 
-    Compute *temp, *pe, *norm;
+    Compute *temp, *pe, *norm, *ke;
 
     double energy_old = std::numeric_limits<double>::max();
 
     double target_temperature = 1.0;
 
+    PairAWPMD *awpmd = nullptr;
     bool is_first = true;
     bool use_norm = false;
+    bool use_awpmd_ke = false;  // use awpmd-calculated kinetic energies for electrons instead of \sum p^2/(2m)
+    
   };
 
 }

@@ -242,7 +242,7 @@ void AWPMD_split::resize(int flag) {
     //}
 
 
-    if (flag & (0x8 | 0x4) || norm_needed) { //electron forces or norm matrix needed
+    if (flag & (0x8 | 0x4) || norm_needed || use_box) { //electron forces/box or norm matrix needed
       wf_norm_der[s].resize(nvar[s]);
       ovl_der[s].resize(nvar[s]);
       if (approx == HARTREE) { // L and Norm are needed in block form
@@ -655,7 +655,7 @@ void AWPMD_split::calc_norms(int flag, bool normalize) {
   if (!(calc_state & CALC_NORMS) || flag) { // only default calculation is checked
 
 
-    if (flag & 0x4 || use_box) { // electron forces requested or box is used 
+    if (flag & (0x4 |0x8) || use_box) { // electron forces requested or box is used 
       for (int s1 = 0; s1 < 2; s1++) { // clearing norm derivatives
         for (int i = 0; i < nvar[s1]; i++) {
           wf_norm_der[s1][i] = 0;
@@ -694,7 +694,7 @@ void AWPMD_split::calc_norms(int flag, bool normalize) {
           wf_norm[s1][c1] += part_jj;
           WavePacket &wj = wp[s1][ic1 + j1];
           OverlapDeriv o;
-          if (flag & (0x8 | 0x4)) { //electron forces needed
+          if (flag & (0x8 | 0x4) || use_box) { //electron forces needed or box is used
             wf_norm_der[s1][indn1 + 2 * j1] += 2 * cj_re;  // over cj_re
             wf_norm_der[s1][indn1 + 2 * j1 + 1] += 2 * cj_im; // over cj_im
             o.set1(wj);// conjugate: mu -> -mu, v -> -v !!!
@@ -716,7 +716,7 @@ void AWPMD_split::calc_norms(int flag, bool normalize) {
             wf_norm[s1][c1] += 2 * real(part_jk * I0);
 
 
-            if (flag & (0x8 | 0x4)) { //electron forces needed
+            if (flag & (0x8 | 0x4) || use_box) { //electron forces needed or box
               o.set2(wk, &I0);
 
 
@@ -764,7 +764,7 @@ void AWPMD_split::calc_norms(int flag, bool normalize) {
             }
           } // k1
         }// j1
-        if (flag & (0x8 | 0x4)) { //electron forces needed
+        if (flag & (0x8 | 0x4) || use_box) { //electron forces needed or box
           // normalizing the norm derivative
           for (int j1 = 0; j1 < nspl[s1][c1]; j1++) {
             for (int i = 0; i < 8; i++) // wp parameters

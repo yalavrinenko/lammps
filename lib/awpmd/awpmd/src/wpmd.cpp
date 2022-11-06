@@ -1210,6 +1210,23 @@ double AWPMD::get_energy(bool use_ee_hartree) {
   return res;
 }
 
+
+double AWPMD::get_coulomb_energy(bool use_ee_hartree) {
+  double res = (use_ee_hartree ? Eee_hartree : Eee);
+  for (int s = 0; s < 2; s++)
+    res += Eei[s];
+  if (calc_ii)
+    res += Eii;
+  res += Ebord_ion; // electron border energy is included in Ee
+  return res;
+}
+
+
+double AWPMD::get_kin_energy() {
+  return Ee[0] + Ee[1] + Ew;
+}
+
+
 int AWPMD::step(double dt, int flag /*=0*/, int spin /*=-1*/, const vector<double> *dq_dt_/*=NULL*/) {
   int s0 = spin, s1 = spin;
   if (spin < 0 || spin > 2) {

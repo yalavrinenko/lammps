@@ -34,6 +34,7 @@ namespace LAMMPS_NS {
     }
 
     void settings(int i, char **pString) override;
+    bool need_norm = false;
 
   protected:
     struct awpmd_pair_index {

@@ -4,6 +4,9 @@
 
 #include <style_fix.h>
 #include "fix_mc_wpmd.h"
+#include "pair_awpmd_cut.h"
+#include "wpmd_split.h"
+#include "group.h"
 #include "atom.h"
 #include "force.h"
 #include "error.h"
@@ -41,16 +44,51 @@ namespace LAMMPS_NS {
     time_depend = 1;
 
     nevery = 1;
-
-    temp = modify->compute[modify->find_compute("thermo_temp")];
-    pe = modify->compute[modify->find_compute("thermo_pe")];
-    modify->add_compute("thermo_norm all normmatr");
-    norm = modify->compute[modify->find_compute("thermo_norm")];
-
+    
+    
     target_temperature = utils::numeric(FLERR, args[3], true, lmp) * force->boltz;
     output.like_vars.accepted_count = output.like_vars.rejected_count = 0.0;
 
     init_mc_steppers(narg, args);
+    
+    awpmd = dynamic_cast<PairAWPMD *>(force->pair);
+    if (awpmd) {
+      ke= modify->get_compute_by_id("thermo_awpmd_ke");
+      if (!ke) {
+        modify->add_compute("thermo_awpmd_ke all awpmd_ke");
+        ke = modify->get_compute_by_id("thermo_awpmd_ke");
+        if (!ke)
+          error->all(FLERR, "Can't create compute for kinetic energy in awpmd");
+      }
+      use_awpmd_ke = true; // use awpmd-calculated kinetic energies instead of \sum p^2/(2m)
+      awpmd->need_force = false; // don't need force for MC
+    }
+    if (use_norm) { 
+      if (awpmd)
+        awpmd->need_norm = true;
+      norm = modify->get_compute_by_id("thermo_norm");
+      if (!norm) {
+        modify->add_compute("thermo_norm all normmatr");
+        norm = modify->get_compute_by_id("thermo_norm");
+        if (!norm)
+          error->all(FLERR, "Can't create compute for normmatr, use pair/awpmd for norm");
+      }
+    }
+    if (use_awpmd_ke) { // need a compute for ion kinetic energy
+      temp = modify->get_compute_by_id("thermo_temp_ion");
+      if (!temp) { // trying to define compute
+        if(group->find("ion")<0)
+          error->message(FLERR, "Can't create compute for ion kinetic energy, assumed constant. Add 'ion' group with all ions to fix this.");
+        else {
+          modify->add_compute("thermo_temp_ion ion temp");
+          temp = modify->get_compute_by_id("thermo_temp_ion");
+        } 
+      }
+    }
+    else
+      temp = modify->compute[modify->find_compute("thermo_temp")];
+
+    pe = modify->compute[modify->find_compute("thermo_pe")];
   }
 
   void FixMCAwpmd::init() {
@@ -68,15 +106,30 @@ namespace LAMMPS_NS {
 
   void FixMCAwpmd::final_integrate() {
     double energy_new;
-    if (use_norm) {
-      double nmlog = nmlog =  norm->compute_scalar();
-      energy_new = temp->compute_scalar() * (0.5 * temp->dof - 0.5 * nmlog ) * force->boltz +
-        pe->compute_scalar(); //input->variable->compute_equal(v_id);
+    double nmlog = 0;
+    if (use_norm)
+      nmlog = norm->compute_scalar();
+  
+    double T = target_temperature;
+    double classic_dof = 0.; // number of ion degrees of freedom, to be used when we don't have a compute for ion ke
+    if (temp) { // ion part for awpmd_ke
+      T = temp->compute_scalar();
+      classic_dof = temp->dof;
     }
     else {
-      energy_new = temp->compute_scalar() * 0.5 * temp->dof * force->boltz +
-        pe->compute_scalar(); //input->variable->compute_equal(v_id);
+      if (awpmd)
+        classic_dof = (double)(3 * awpmd->awpmd()->ni - 3);
+      if (classic_dof < 0)
+        classic_dof = 0.;
     }
+    double quantum_ke = 0.;
+    if (use_awpmd_ke)
+      quantum_ke = ke->compute_scalar();
+    
+    
+    energy_new = (T * 0.5 * classic_dof  - target_temperature * 0.5 * nmlog ) * force->boltz +
+      quantum_ke + pe->compute_scalar(); //input->variable->compute_equal(v_id);
+    
 
     this->output.like_vars.accept_flag = steppers.current().engine.test(energy_new - energy_old, 1.);
 

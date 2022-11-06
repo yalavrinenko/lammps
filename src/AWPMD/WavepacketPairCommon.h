@@ -43,6 +43,8 @@ public:
 
   std::vector<WavePacket> const& electrons_packets() const;
 
+  bool need_force = false;
+
 protected:
   struct awpmd_energies{
     double ke{};
@@ -50,9 +52,14 @@ protected:
     double ei{};
     double ii{};
     double ee_w{};
+    double ebord_i{};
+    double etot{}; // total energy calculated by awpmd (includes kinetic energy)
+    double exch_coul{}; // exchange energy, coulomb part
+    double exch_kin{}; // exchange energy, kinetic part
 
+    /// Coulomb part of AWPMD energy (excludes kinetic energy)
     double sum() const {
-      return ke + ee + ei + ii + ee_w;
+      return /*ke + */ ee + ei + ii + ee_w + ebord_i;
     }
   };
 

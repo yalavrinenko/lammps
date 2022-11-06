@@ -4,6 +4,7 @@
 
 #include "fix_wall_wpmd.h"
 #include "WavepacketPairCommon.h"
+#include "pair_awpmd_cut.h"
 #include "domain.h"
 #include "error.h"
 #include "neigh_list.h"
@@ -23,7 +24,15 @@ LAMMPS_NS::FixWallWpmd::FixWallWpmd(LAMMPS_NS::LAMMPS *lammps, int i, char **pSt
   wall_squares = {delz * dely, delx * delz, delx * dely};
 
   m_pair = dynamic_cast<WavepacketPairCommon *>(force->pair);
+  wppair = dynamic_cast<LAMMPS_NS::PairAWPMD *>(force->pair);
   this->box = construct_box(pString, half_box_length, i);
+
+  if (use_awpmd && !wppair) {
+    error->warning(FLERR, "awpmd type wall requires pair_awpmd");
+    use_awpmd = false;
+  }
+  if (use_awpmd) 
+    wppair->awpmd()->set_box(*this->box); 
 
   this->vector_flag = true;
   this->size_vector = 2;
@@ -69,6 +78,8 @@ LAMMPS_NS::FixWallWpmd::construct_box(char **pString, double half_box_length, in
       }
       i += j;
     }
+    if (std::strcmp(pString[i], "awpmd") == 0) 
+      use_awpmd = true;
   }
 
   walls_count_ = std::count(has_force_.begin(), has_force_.end(), true);
@@ -99,28 +110,37 @@ LAMMPS_NS::FixWallWpmd::construct_box(char **pString, double half_box_length, in
 void LAMMPS_NS::FixWallWpmd::post_force(int flag)
 {
   wall_energy = 0;
-  if (m_pair && !m_pair->electrons_packets().empty()) {
-    evaluate_wall_energy(m_pair->electrons_packets());
-  } else {
-    packets.resize(atom->nlocal + atom->nghost);
-
-    auto one_h = force->mvh2r;
-    for (auto i = 0; i < atom->nlocal + atom->nghost; ++i) {
-      if (atom->spin[i] != 0) {
-        double width = atom->eradius[i];
-        Vector_3 r{atom->x[i][0], atom->x[i][1], atom->x[i][2]},
-            p{atom->v[i][0], atom->v[i][1], atom->v[i][2]};
-        p *= one_h * atom->mass[atom->type[i]];
-
-        double pw = atom->ervel[i];
-        pw *= one_h * atom->mass[atom->type[i]];
-
-        packets[i].init(width, r, p, pw);
-      }
-    }
-    evaluate_wall_energy(packets);
+  if (use_awpmd) { // currently not supporting PBC in selected directions
+    wall_energy = wppair->awpmd()->Ebord + wppair->awpmd()->Ebord_ion;
+    Vector_3 p = wppair->awpmd()->calc_box_pressure();
+    wall_pressure_ = (p[0] + p[1] + p[2]) / 3.;
+    wall_pressure_ *= force->nktv2p;
   }
-  m_pair->eng_coul += wall_energy;
+  else {
+    if (m_pair && !m_pair->electrons_packets().empty()) {
+      evaluate_wall_energy(m_pair->electrons_packets());
+    }
+    else {
+      packets.resize(atom->nlocal + atom->nghost);
+
+      auto one_h = force->mvh2r;
+      for (auto i = 0; i < atom->nlocal + atom->nghost; ++i) {
+        if (atom->spin[i] != 0) {
+          double width = atom->eradius[i];
+          Vector_3 r{ atom->x[i][0], atom->x[i][1], atom->x[i][2] },
+            p{ atom->v[i][0], atom->v[i][1], atom->v[i][2] };
+          p *= one_h * atom->mass[atom->type[i]];
+
+          double pw = atom->ervel[i];
+          pw *= one_h * atom->mass[atom->type[i]];
+
+          packets[i].init(width, r, p, pw);
+        }
+      }
+      evaluate_wall_energy(packets);
+    }
+    m_pair->eng_coul += wall_energy;
+  }
 }
 
 double LAMMPS_NS::FixWallWpmd::compute_scalar()

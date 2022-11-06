@@ -36,6 +36,7 @@ void LAMMPS_NS::WavepacketPairCommon::compute(int eflag, int vflag) {
     pvector[1] = energy_components_.ee;
     pvector[2] = energy_components_.ei;
     pvector[3] = energy_components_.ke + energy_components_.ee_w;
+    pvector[4] = energy_components_.exch_coul + energy_components_.exch_kin;  // exchange energy
   }
 
   interaction_energy_ = 0.0;
@@ -48,7 +49,7 @@ void LAMMPS_NS::WavepacketPairCommon::compute(int eflag, int vflag) {
 
 LAMMPS_NS::WavepacketPairCommon::WavepacketPairCommon(LAMMPS_NS::LAMMPS *lmp) : Pair(lmp){
   single_enable = 0;
-  nextra = 4;
+  nextra = 5;
   pvector = new double[nextra];
 
   wpmd = new AWPMD_split();
@@ -146,7 +147,7 @@ void LAMMPS_NS::WavepacketPairCommon::init_style() {
   wpmd->coul_pref = force->qqrd2e;
   wpmd->mvv2e = force->mvv2e;
 
-  modify->add_compute("awpmd_norm all normmatr");
+  //modify->add_compute("awpmd_norm all normmatr");
 }
 
 double LAMMPS_NS::WavepacketPairCommon::init_one(int i, int j) {

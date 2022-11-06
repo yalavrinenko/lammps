@@ -11,6 +11,7 @@ FixStyle(wall/wpmd,FixWallWpmd)
 
 #include "fix.h"
 #include <box_hamiltonian.h>
+#include "pair_awpmd_cut.h"
 #include <memory>
 #include <array>
 class WavePacket;
@@ -57,8 +58,13 @@ namespace LAMMPS_NS {
     std::array<bool, 3> has_force_{true, true, true};
 
     bool use_width_force_{false};
+    ///  Uses box from within awpmd class
+    bool use_awpmd{false};
 
     std::vector<class WavePacket> packets;
+
+    /// Needed for direct comunication in case of pair/awpmd
+    LAMMPS_NS::PairAWPMD *wppair = nullptr;
   };
 }
 

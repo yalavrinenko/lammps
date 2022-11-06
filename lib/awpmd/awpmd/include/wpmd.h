@@ -1292,6 +1292,14 @@ public:
   ///\en If \a use_ee_hartree is true, exchange part of Eee is ignored (less divergent at zero overlap)
   double get_energy(bool use_ee_hartree = false);
 
+  ///\en Gets pure Coulomb part of interaction energy. Inludes all ee, ei, and ii components if corresponding flags (calc_ee, etc.) are set.  
+  ///    If \a use_ee_hartree is true, exchange part of Eee is ignored (less divergent at zero overlap).
+  double get_coulomb_energy(bool use_ee_hartree = false);
+
+  ///\en Gets kinetic part of the electron energy (both width and momenta contributions included).
+  ///    Note: ion kinetic energy is not included and not known by AWPMD.
+  double get_kin_energy();
+
 	///\en Makes timestep \a dt of electronic component: q-> q + (dq_dt)*dt for each variable.
 	///    If flag contains 0x10 uses internal variables, \a spin <0 means go through all spins,
 	///    the vaector \a dq_dt_ should contain generalized force (for all used spins), if NULL, they are taken from previous \ref interaction(). 

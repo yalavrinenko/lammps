@@ -45,46 +45,60 @@ LAMMPS_NS::WavepacketPairCommon::awpmd_energies LAMMPS_NS::PairAWPMD::compute_en
 
   if (wpmd->ni) fi.resize(static_cast<unsigned long>(wpmd->ni));
 
-  wpmd->interaction(0x1u | 0x4u | 0x10u | 0x20u, fi.data());
-  wpmd->forces2phys();
+  wpmd->interaction(need_force? (0x1u | 0x4u | 0x10u | 0x20u) : need_norm ? 0x20u : 0 , fi.data());
+  //auto coul_energy = wpmd->get_energy() - electron_ke_;
 
-  auto coul_energy = wpmd->get_energy() - electron_ke_;
+  if (need_force) {
+    wpmd->forces2phys();
 
-  double **f = atom->f;
-  //tally ion force
-  for (auto const &ion : ions) {
-    auto &i_lmp = ion.lmp_index;
-    auto &i_wpmd = ion.wpmd_index;
-    for (auto k : {0, 1, 2}) f[i_lmp][k] = fi[i_wpmd][k];
-  }
+    double **f = atom->f;
+    //tally ion force
+    for (auto const &ion : ions) {
+      auto &i_lmp = ion.lmp_index;
+      auto &i_wpmd = ion.wpmd_index;
+      for (auto k : { 0, 1, 2 }) f[i_lmp][k] = fi[i_wpmd][k];
+    }
 
-  //tally electron force
-  for (auto const &electron : electrons) {
-    for (auto const &packets : electron.second) {
-      auto i_lmp = packets.lmp_index;
-      auto i_wpmd = packets.wpmd_index;
+    //tally electron force
+    for (auto const &electron : electrons) {
+      for (auto const &packets : electron.second) {
+        auto i_lmp = packets.lmp_index;
+        auto i_wpmd = packets.wpmd_index;
 
-      int s = atom->spin[i_lmp] > 0 ? 0 : 1;
-      Vector_3 fv;
-      Vector_3 vforce;
+        int s = atom->spin[i_lmp] > 0 ? 0 : 1;
+        Vector_3 fv;
+        Vector_3 vforce;
 
-      double erforce;
-      double ervelforce;
+        double erforce;
+        double ervelforce;
 
-      Vector_2 csforce;
-      wpmd->get_wp_force(s, i_wpmd, &fv, &vforce, &erforce, &ervelforce, &csforce, 0);
+        Vector_2 csforce;
+        wpmd->get_wp_force(s, i_wpmd, &fv, &vforce, &erforce, &ervelforce, &csforce, 0);
 
-      for (auto k : {0, 1, 2}) f[i_lmp][k] = fv[k];
-      atom->erforce[i_lmp] = erforce;
-      atom->ervelforce[i_lmp] = ervelforce;
+        for (auto k : { 0, 1, 2 }) f[i_lmp][k] = fv[k];
+        atom->erforce[i_lmp] = erforce;
+        atom->ervelforce[i_lmp] = ervelforce;
+      }
     }
   }
   awpmd_energies output;
-  output.ee = coul_energy;    //ee -energy. Coul only
-  output.ei = 0.0;            //ei - energy. Coul only
-  output.ii = 0.0;            //ii - ii-energy. Coul only
-  output.ke = 0.0;            //ps^2/(2.0 * me)
-  output.ee_w = 0.0;          //1/s^2
+  output.etot = wpmd->get_energy();
+# if 0  // how etot is calculated inside awpmd:
+  double res = (use_ee_hartree ? Eee_hartree : Eee) + Ew;
+  for (int s = 0; s < 2; s++)
+    res += Eei[s] + Ee[s];
+  if (calc_ii)
+    res += Eii;
+  res += Ebord_ion; // electron border energy is included in Ee
+# endif
+  output.ee = wpmd->Eee; // coul_energy;    //ee -energy. Coul only
+  output.ei = wpmd->Eei[0] + wpmd->Eei[1];//  0.0;            //ei - energy. Coul only
+  output.ii = wpmd->Eii; // 0.0;            //ii - ii-energy. Coul only
+  output.ke = wpmd->Ee[0]+ wpmd->Ee[1]; //kinetic energy!!!               // 0.0;            //ps^2/(2.0 * me)
+  output.ee_w = wpmd->Ew; // 0.0;          //1/s^2
+  output.ebord_i = wpmd->Ebord_ion;
+  output.exch_coul = wpmd->Eee_exch + wpmd->Eei_exch + wpmd->Ebord_exch  + wpmd->Eext_exch;
+  output.exch_kin = wpmd->Ee_exch;
   return output;
 }
 

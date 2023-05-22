@@ -59,7 +59,7 @@ protected:
 
     /// Coulomb part of AWPMD energy (excludes kinetic energy)
     double sum() const {
-      return /*ke + */ ee + ei + ii + ee_w + ebord_i;
+      return ke + ee + ei + ii + ee_w;// + ebord_i;
     }
   };
 

@@ -132,9 +132,9 @@ const char *wxfmt(const char *format,...);
 /// The function extra_levels(eout_levels,estop_levels) is used to temporarily set the corresponding levels,
 /// they are unset (the original levels are restored) by calling extra_levels(0,0).
 ///\ru
-/// ������ ������������ ��� ��������� ������, ����������� �� ���������� �������� ����������.
-/// ������ �������� - ��� ����� ����������. �� ���������� ������� �������� exeption � �� ������� ���-�� �������.
-/// ������ ������� - �� ������� ��� ��������. ����� ������ ������� ���� ������ ������������� ��� ��������.
+/// Логгер предназначен для обработки ошибок, возникающих во внутренних функциях библиотеки.
+/// Первый механизм - это вызов исключений. Во внутренней функции кидается exeption и он ловится где-то снаружи.
+/// Второй вариант - ты кидаешь код возврата. Тогда каждая функция выше должна анализировать код возврата.
 class message_logger {
   // global message is a friend
  // template<class exc_t>
@@ -409,8 +409,8 @@ public:
 
 ///\en This is a compound logger. It reveives messages and sends them to all loggers
 /// in the list.
-///\ru ��� ��������� ������. �� ��������� ��������� � ��������
-/// �� ���� ��������, ������� ��������� � ���� � ������.
+///\ru Это составной логгер. Он принимает сообшения и передает
+/// их всем логгерам, которые находятся у него в списке.
 class vector_logger: public refvector<message_logger>, public message_logger{
   virtual void log_text(int level, const char *messtype, const char *messtext){
     for(size_t i=0;i<size();i++){

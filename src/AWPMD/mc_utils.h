@@ -132,8 +132,11 @@ namespace LAMMPS_NS{
     void make_shift(TValue& v){
       auto dx = shift();
       v += dx;
-      if (type == stepper_type::electron_w && v < 0)
-        v = std::abs(v);
+      double lim_width = 0.03;
+      //if (type == stepper_type::electron_w && v < 0)
+        //v = std::abs(v);
+      if (type == stepper_type::electron_w && v < lim_width)
+        v = 2 * lim_width - v;
       else if (type == stepper_type::electron_c && std::abs(v) > 1.0)
         v /= std::abs(v);
     }

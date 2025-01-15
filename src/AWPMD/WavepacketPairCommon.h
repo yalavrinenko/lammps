@@ -53,13 +53,14 @@ protected:
     double ii{};
     double ee_w{};
     double ebord_i{};
+    double ebord_e{};
     double etot{}; // total energy calculated by awpmd (includes kinetic energy)
     double exch_coul{}; // exchange energy, coulomb part
     double exch_kin{}; // exchange energy, kinetic part
 
     /// Coulomb part of AWPMD energy (excludes kinetic energy)
     double sum() const {
-      return /*ke + */ ee + ei + ii + ee_w + ebord_i;
+      return /*ke + */ ee + ei + ii + ee_w + ebord_i + ebord_e;
     }
   };
 

@@ -1223,7 +1223,7 @@ double AWPMD::get_coulomb_energy(bool use_ee_hartree) {
 
 
 double AWPMD::get_kin_energy() {
-  return Ee[0] + Ee[1] + Ew;
+  return Ee[0] + Ee[1] + Ew - Ebord - Eext;  // excluding external ebnergies that are included in Ee
 }
 
 

@@ -152,7 +152,7 @@ $Date: 2014/07/18 14:04:37 $
 */
 
 
-/*r @file pairhash.h @brief ������ � ���-��������� ������ �������
+/*r @file pairhash.h @brief работа с хеш-таблицами парных величин
 */
 
 # include "stdio.h"

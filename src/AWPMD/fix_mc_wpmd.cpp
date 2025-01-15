@@ -127,8 +127,13 @@ namespace LAMMPS_NS {
       quantum_ke = ke->compute_scalar();
     
     
-    energy_new = (T * 0.5 * classic_dof  - target_temperature * 0.5 * nmlog ) * force->boltz +
+    if (awpmd)
+      energy_new = T * 0.5 * classic_dof * force->boltz - target_temperature * 0.5 * nmlog +
+       awpmd->awpmd()->get_energy();
+    else
+      energy_new = T * 0.5 * classic_dof * force->boltz - target_temperature * 0.5 * nmlog   +
       quantum_ke + pe->compute_scalar(); //input->variable->compute_equal(v_id);
+
     
 
     this->output.like_vars.accept_flag = steppers.current().engine.test(energy_new - energy_old, 1.);

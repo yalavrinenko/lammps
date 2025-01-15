@@ -94,9 +94,10 @@ LAMMPS_NS::WavepacketPairCommon::awpmd_energies LAMMPS_NS::PairAWPMD::compute_en
   output.ee = wpmd->Eee; // coul_energy;    //ee -energy. Coul only
   output.ei = wpmd->Eei[0] + wpmd->Eei[1];//  0.0;            //ei - energy. Coul only
   output.ii = wpmd->Eii; // 0.0;            //ii - ii-energy. Coul only
-  output.ke = wpmd->Ee[0]+ wpmd->Ee[1]; //kinetic energy!!!               // 0.0;            //ps^2/(2.0 * me)
+  output.ke = wpmd->Ee[0]+ wpmd->Ee[1]  - wpmd->Ebord - wpmd->Eext; //kinetic energy!!!               // 0.0;            //ps^2/(2.0 * me)
   output.ee_w = wpmd->Ew; // 0.0;          //1/s^2
   output.ebord_i = wpmd->Ebord_ion;
+  output.ebord_e = wpmd->Ebord + wpmd->Eext;
   output.exch_coul = wpmd->Eee_exch + wpmd->Eei_exch + wpmd->Ebord_exch  + wpmd->Eext_exch;
   output.exch_kin = wpmd->Ee_exch;
   return output;

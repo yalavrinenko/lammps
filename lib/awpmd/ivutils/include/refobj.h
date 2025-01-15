@@ -51,8 +51,8 @@ $Date: 2012/09/07 14:26:06 $
 
 //using namespace std;
 
-///\ru ��������� �����, ������ ��� �������� ��������������� ����� ���������� (mng_ptr � �. �.)
-/// �������� ��������� � ���� integer
+///\ru служебный класс, нужный для удобства конструирования умных указателей (mng_ptr и т. д.)
+/// содержит указатель и флаг integer
 ///\en Auxiliary class used as an argument for condtructor and functions set / reset 
 /// of smart pointers (mng_ptr, sh_ptr).
 /// Contains pointer at dynamic object and integer flag.
@@ -107,9 +107,9 @@ struct delete_arr{
 /// with dynamic object while pointer adress is changed:
 /// 0 do not delete, 1 delete, 0x8 delete as array.
 ///\ru
-/// Managed pointer. ����� ��� ��������������� ���������� ������������ �������.
-/// �������� ��������� �� ������������ ������ � ���� integer, ��������� � ���, 
-/// ��� ������ � ������������ �������� ��� ����� ������ ���������:
+/// Managed pointer. Нужен для автоматического управления динамической памятью.
+/// Содержит указатель на динамический объект и флаг integer, говорящий о том, 
+/// что делать с динамическим объектом при смене адреса указателя:
 /// 0 do not delete, 1 delete, 
 /// 2 copy and delete (NOT IMPLEMENTED, requires copy constructor), 0x8 -- delete as array.
 template<class T>
@@ -192,7 +192,7 @@ public:
 /// with dynamic objects if function clear is called:
 /// 0 - not delete, 1 - delete
 ///\ru
-/// Vector ���������� �� ������������ �������, ������� ��� ������ �� �� ��������� (��� man==1)
+/// Vector указателей на динамические объекты, который сам следит за их удалением (при man==1)
 template <class T>
 class refvector: public std::vector<T *>{
 protected:
@@ -234,7 +234,7 @@ public:
 /// with dynamic objects if function clear is called:
 /// 0 - not delete, 1 - delete
 ///\ru
-/// Map ���������� �� ������������ �������, ������� ��� ������ �� �� ��������� (��� man==1)
+/// Map указателей на динамические объекты, который сам следит за их удалением (при man==1)
 template <class key_tt, class T>
 class refmap: public std::map<key_tt, T *>{
 protected:
@@ -276,8 +276,8 @@ public:
 /// which specify the number of other smart pointers with refers at the same dynamic object p.
 /// If *num becomes zero (no one refers to dynamic object), dynamic object should be deleted.
 ///\ru
-/// ����� ���������, ���������� � ���� ��������� �� ������������ ������ (p) � ��������� �� ������� ������ �� ���� (num)
-/// ��� ������� ���������� ������, ����������� �� ������������ ������, ������������ ������ ���������
+/// Умный указатель, содержащий в себе указатель на динамический объект (p) и указатель на счетчик ссылок на него (num)
+/// При нулевом количестве ссылок, указывающих на динамический объект, динамический объект удаляется
 template<class T, class delete_t=delete_ptr<T> >
 class shptr{
   template<class Y, class Z> friend class shptr;

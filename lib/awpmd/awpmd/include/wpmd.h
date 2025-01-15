@@ -1210,33 +1210,43 @@ public:
                                       Vector_3P fe_p=NULL, double *fe_w=NULL, double *fe_pw=NULL, Vector_2P fe_c=NULL);
 
   //e same as interaction, but using Hartee factorization (no antisymmetrization)
-  virtual int interaction_hartree(int flag=0, Vector_3P fi=NULL, Vector_3P fe_x=NULL,
-                                      Vector_3P fe_p=NULL, double *fe_w=NULL, double *fe_pw=NULL, Vector_2P fe_c=NULL);
+  virtual int interaction_hartree(int flag = 0, Vector_3P fi = NULL,
+                                  Vector_3P fe_x = NULL, Vector_3P fe_p = NULL,
+                                  double *fe_w = NULL, double *fe_pw = NULL,
+                                  Vector_2P fe_c = NULL);
 
-  ///\en Calculates ion-ion interactions and updates Eii and ion forces if requested. This function
+  ///\en Calculates ion-ion interactions and updates Eii and ion forces if
+  ///requested. This function
   ///    is called form intaraction() and interaction_hartree if calc_ii is set.
 
-  virtual int interaction_ii(int flag,Vector_3P fi=NULL);
+  virtual int interaction_ii(int flag, Vector_3P fi = NULL);
 
   virtual double interaction_border_ion(int i, double *x, double *f);
 
-  virtual double interaction_border_electron(WavePacket const &packet, double *force, double *erforce, double *ervforce);
+  virtual double interaction_border_electron(WavePacket const &packet,
+                                             double *force, double *erforce,
+                                             double *ervforce);
 
-  virtual std::pair<double, double>
-  interaction_electron_kinetic(WavePacket const &packet, int spin, double *erforce, double *ervfroce);
+  virtual double interaction_electron_kinetic(WavePacket const &packet,
+                                              int spin, double *erforce,
+                                              double *ervfroce);
 
-  virtual std::pair<double, double>
-  interaction_electron_kinetic(double width, double pwidth, int spin, double *erforce, double *ervfroce);
+  virtual double interaction_electron_kinetic(double width, int spin,
+                                              double *erforce,
+                                              double *ervfroce);
 
-  std::pair<double, double> coulomb_cutoff(double r, double cutoff) const{
-    if (cutoff < 0)
+  std::pair<double, double> coulomb_cutoff(double r, double cutoff) const {
+                if (cutoff < 0)
       return std::make_pair<double, double>(1.0, 0.0);
 
-    auto x = r / cutoff;
-    return std::make_pair<double, double>(
-        (((20.0 * x - 70.0) * x + 84.0) * x - 35.0) * x * x * x * x + 1, //energy
-        (((140.0 * x - 420.0) * x + 420.0) * x - 140.0) * x * x * x / cutoff //denergy
-        );
+                auto x = r / cutoff;
+                return std::make_pair<double, double>(
+                    (((20.0 * x - 70.0) * x + 84.0) * x - 35.0) * x * x * x *
+                            x +
+                        1, // energy
+                    (((140.0 * x - 420.0) * x + 420.0) * x - 140.0) * x * x *
+                        x / cutoff // denergy
+                );
   }
 
   virtual double interaction_ee_single(WavePacket const &packet_1,

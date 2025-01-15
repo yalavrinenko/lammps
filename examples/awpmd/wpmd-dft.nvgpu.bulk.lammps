@@ -1,6 +1,6 @@
 #PARAMETER SECTION
 variable dvalue equal 0.028 #10e+24 cm^{-3}
-variable tvalue equal 3 #1000K
+variable tvalue equal 30 #1000K
 variable md_steps equal 10000 #Steps
 
 variable density equal ${dvalue}*(1e+24)

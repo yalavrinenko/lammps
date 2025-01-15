@@ -239,8 +239,9 @@ protected:
   bool valid_norms; ///\en norms are valid for the given WP configuration
   bool split_wp; ///<\en (assigned automatically) if on, we really have more than one split per wp
 public:
-
-  std::pair<double, double> interaction_electron_kinetic(WavePacket const &packet, int spin, double *erforce, double *ervfroce) override;
+  double interaction_electron_kinetic(WavePacket const &packet, int spin,
+                                      double *erforce,
+                                      double *ervfroce) override;
 
   double interaction_ee_single(WavePacket const &packet_1,
                                WavePacket const &packet_2, double **eforce,

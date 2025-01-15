@@ -406,15 +406,20 @@ double AWPMD::interaction_border_electron(WavePacket const &packet, double *forc
   return dE;
 }
 
-std::pair<double, double>
-AWPMD::interaction_electron_kinetic(WavePacket const &packet, int spin, double *erforce, double *ervfroce) {
-  return interaction_electron_kinetic(packet.get_width(), packet.get_pwidth(), spin, erforce, ervfroce);
+double AWPMD::interaction_electron_kinetic(WavePacket const &packet, int spin,
+                                           double *erforce, double *ervfroce) {
+  return interaction_electron_kinetic(packet.get_width(), spin, erforce,
+                                      ervfroce);
 }
 
-std::pair<double, double>
-AWPMD::interaction_electron_kinetic(double w, double pw, int spin, double *erforce, double *ervfroce){
-  double pw_eng = pw * pw * h2_me / 2.0;
-  Ee[spin] += pw_eng;
+double AWPMD::interaction_electron_kinetic(double w, int spin, double *erforce,
+                                           double *ervfroce) {
+  // double pw_eng = pw * pw; // pw * pw * h2_me / 2.0;
+  // Ee[spin] += pw_eng;
+
+  auto pw_eng = 0;
+
+  Ee[spin] += 0;
 
   Ew += h2_me * 9. / (8. * w * w);
   auto width_energy = h2_me * 9. / (8. * w * w);
@@ -422,9 +427,7 @@ AWPMD::interaction_electron_kinetic(double w, double pw, int spin, double *erfor
   if (erforce != nullptr)
     *erforce += -2.0 * width_energy / w;
 
-  if (ervfroce != nullptr)
-    *ervfroce += h2_me * pw * one_h;
-  return {pw_eng, width_energy};
+  return width_energy;
 }
 
 double AWPMD::interaction_ee_single(WavePacket const &packet_1,

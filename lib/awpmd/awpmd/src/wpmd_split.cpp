@@ -1208,8 +1208,9 @@ int AWPMD_split::interaction_hartree(int flag, Vector_3P fi, Vector_3P fe_x,
 
 #define HARTREE_FUNC //enable function from AWPMD for pair interaction
 
-std::pair<double, double>
-AWPMD_split::interaction_electron_kinetic(WavePacket const &packet, int spin, double *erforce, double *ervfroce) {
+double AWPMD_split::interaction_electron_kinetic(WavePacket const &packet,
+                                                 int spin, double *erforce,
+                                                 double *ervfroce) {
 #ifdef HARTREE_FUNC
   return AWPMD::interaction_electron_kinetic(packet, spin, erforce, ervfroce);
 #else
@@ -1219,7 +1220,7 @@ AWPMD_split::interaction_electron_kinetic(WavePacket const &packet, int spin, do
 
   WavePacket wjk = conj(wk) * wj;
   cdouble I0 = wjk.integral();
-  cdouble part_jk {1.0, 0.0};
+  cdouble part_jk{1.0, 0.0};
 
   cVector_3 v1 = conj(packet.b) * packet.a - packet.b * conj(packet.a);
   cdouble v = (v1 * v1) / wjk.a;
@@ -1230,7 +1231,7 @@ AWPMD_split::interaction_electron_kinetic(WavePacket const &packet, int spin, do
   auto energy = real(part_jk * I0 * v) * pref - ke;
   Ee[spin] += energy;
 
-  if (erforce){
+  if (erforce) {
     OverlapDeriv o;
     o.set1(wj);
     o.set2(wk, &I0);
@@ -1239,11 +1240,13 @@ AWPMD_split::interaction_electron_kinetic(WavePacket const &packet, int spin, do
     cdouble ajk2 = wjk.a * wjk.a;
     cdouble ajk3 = ajk2 * wjk.a;
     cdouble dv_aj_conj = -2 * wk.a * (3 * wjk.a * wk.a - tv * wjk.b) / ajk3;
-    cdouble dv_ak = -2 * conj(wj.a) * ((3 * wjk.a) * conj(wj.a) + tv * wjk.b) / ajk3;
+    cdouble dv_ak =
+        -2 * conj(wj.a) * ((3 * wjk.a) * conj(wj.a) + tv * wjk.b) / ajk3;
     cVector_3 dv_bj_conj = (-2 * wk.a / ajk2) * tv;
     cVector_3 dv_bk = (2 * conj(wj.a) / ajk2) * tv;
 
-    eterm_deriv({0, spin}, {0, spin}, pref, o, v, dv_aj_conj, dv_ak, dv_bj_conj, dv_bk);
+    eterm_deriv({0, spin}, {0, spin}, pref, o, v, dv_aj_conj, dv_ak, dv_bj_conj,
+                dv_bk);
     forces2phsy({0, spin}, packet, nullptr, erforce, ervfroce);
   }
   return energy;

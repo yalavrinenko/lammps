@@ -160,10 +160,10 @@ void ComputeWPOverlap::init()
     else
       cutghost = comm->cutghostuser;
 
-    if (mycutneigh > cutghost)
+    /* !!! if (mycutneigh > cutghost)
       error->all(FLERR,"Compute wp_overlap cutoff exceeds ghost atom range - "
                  "use comm_modify cutoff command");
-    /* !!! if (force->pair && mycutneigh < force->pair->cutforce + skin)
+    if (force->pair && mycutneigh < force->pair->cutforce + skin)
       if (comm->me == 0)
         error->warning(FLERR,"Compute wp_overlap cutoff less than neighbor cutoff - "
                        "forcing a needless neighbor list build"); */
@@ -330,6 +330,7 @@ void ComputeWPOverlap::compute_array()
       //double width = std::fabs(wpi.get_r()[2]);
       //double width = wpi.get_width();
       double width = (wpi*conj(wpj)).get_width();
+      //double width = abs(wpi.overlap(conj(wpj)));
 
       ibin = static_cast<int> (width*delrinv);
       if (ibin >= nbin) continue;

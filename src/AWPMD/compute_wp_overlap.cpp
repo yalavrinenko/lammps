@@ -251,12 +251,11 @@ void ComputeWPOverlap::init_norm()
 void ComputeWPOverlap::compute_array()
 {
   int i,j,m,ii,jj,inum,jnum,itype,jtype,ipair,jpair,ibin,ihisto;
-  double xtmp,ytmp,ztmp;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double factor_lj,factor_coul;
 
   auto one_h = force->mvh2r;
-  WavePacket packet;
+  WavePacket wpi, wpj;
 
   if (natoms_old != atom->natoms) {
     dynamic = 1;
@@ -281,7 +280,6 @@ void ComputeWPOverlap::compute_array()
   firstneigh = list->firstneigh;
 
   // zero the histogram counts
-
   for (i = 0; i < npairs; i++)
     for (j = 0; j < nbin; j++)
       hist[i][j] = 0;
@@ -303,12 +301,16 @@ void ComputeWPOverlap::compute_array()
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     if (!(mask[i] & groupbit)) continue;
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
+
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
+
+    wpi.init(
+      atom->eradius[i],
+      Vector_3(x[i][0], x[i][1], x[i][2]),
+      Vector_3(v[i][0], v[i][1], v[i][2])*one_h*atom->mass[itype],
+      atom->ervel[i] );
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -319,16 +321,15 @@ void ComputeWPOverlap::compute_array()
       jpair = nwppair[jtype][itype];
       if (!ipair && !jpair) continue;
 
-      //delx = xtmp - x[j][0];
-      //dely = ytmp - x[j][1];
-      //delz = ztmp - x[j][2];
-      //r = sqrt(delx*delx + dely*dely + delz*delz);
-
-      //Vector_3 r{x[i][0], x[i][1], x[i][2]}, p{v[i][0], v[i][1], v[i][2]};
-      //p *= one_h * atom->mass[type[i]];
-      double width = atom->eradius[i];
-      //double pw = atom->ervel[i];
-      //packet.init(width, r, p, pw);
+      wpj.init(
+        atom->eradius[j],
+        Vector_3(x[j]),
+        Vector_3(v[j])*one_h*atom->mass[jtype],
+        atom->ervel[j] );
+      
+      //double width = std::fabs(wpi.get_r()[2]);
+      //double width = wpi.get_width();
+      double width = (wpi*conj(wpj)).get_width();
 
       ibin = static_cast<int> (width*delrinv);
       if (ibin >= nbin) continue;
@@ -364,7 +365,7 @@ void ComputeWPOverlap::compute_array()
 
     for (ibin = 0; ibin < nbin; ibin++) {
       if (normfac != 0.0)
-        dst_val = histall[m][ibin] / normfac; // / normfac;
+        dst_val = histall[m][ibin] / normfac;
       else
         dst_val = 0.0;
       array[ibin][1+2*m] = dst_val;

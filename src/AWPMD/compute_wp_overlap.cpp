@@ -306,11 +306,12 @@ void ComputeWPOverlap::compute_array()
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-    wpi.init(
+    /*wpi.init(
       atom->eradius[i],
       Vector_3(x[i][0], x[i][1], x[i][2]),
       Vector_3(v[i][0], v[i][1], v[i][2])*one_h*atom->mass[itype],
-      atom->ervel[i] );
+      atom->ervel[i] );*/
+    wpi.init(0.86155497, Vector_3(x[i][0], x[i][1], x[i][2]), Vector_3(0, 0, 0), 0);
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -327,12 +328,12 @@ void ComputeWPOverlap::compute_array()
         Vector_3(v[j])*one_h*atom->mass[jtype],
         atom->ervel[j] );
       
-      //double width = std::fabs(wpi.get_r()[2]);
-      //double width = wpi.get_width();
-      double width = (wpi*conj(wpj)).get_width();
-      //double width = abs(wpi.overlap(conj(wpj)));
+      //double dst_val = std::fabs(wpi.get_r()[2]);
+      //double dst_val = wpj.get_width();
+      //double dst_val = (wpi*conj(wpj)).get_width();
+      double dst_val = abs(wpi.overlap(conj(wpj)));
 
-      ibin = static_cast<int> (width*delrinv);
+      ibin = static_cast<int> (dst_val*delrinv);
       if (ibin >= nbin) continue;
 
       for (ihisto = 0; ihisto < ipair; ihisto++) {

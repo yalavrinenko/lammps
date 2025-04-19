@@ -40,6 +40,8 @@ ehthumbs.db
 Thumbs.db
 .lammps_history
 .vs
+.idea
+*.code-workspace
 
 #cmake
 /build*

@@ -172,7 +172,7 @@ namespace LAMMPS_NS {
       MPI_Bcast(&engine_seed, 1, MPI_UNSIGNED_LONG, 0, world);
 
     for (int i = ARG_SHIFT; i < argc; ++i) {
-      auto random_seed = std::abs((int) std::random_device{}());
+      auto random_seed = std::abs((int) std::random_device{}() / 2) + 1;
       if (!std::strcmp(argv[i], "ix")) {
         steppers.add(lmp, stepper_type::ion_r, random_seed, engine_seed).assign_subsystem(
             make_unique<MCVectorSystem<3>>(atom->x, ion_filter));

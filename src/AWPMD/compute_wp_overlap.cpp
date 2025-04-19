@@ -175,8 +175,11 @@ void ComputeWPOverlap::init()
 
   // set 1st column of output array to bin coords
 
-  for (int i = 0; i < nbin; i++)
+  for (int i = 0; i < nbin; i++) {
     array[i][0] = (i+0.5) * delr;
+    for (int m = 0; m < 2*npairs; m++)
+      array[i][m+1] = 0;
+  }
 
   // initialize normalization, finite size correction, and changing atom counts
 
@@ -254,9 +257,6 @@ void ComputeWPOverlap::compute_array()
   int *ilist,*jlist,*numneigh,**firstneigh;
   double factor_lj,factor_coul;
 
-  auto one_h = force->mvh2r;
-  WavePacket wpi, wpj;
-
   if (natoms_old != atom->natoms) {
     dynamic = 1;
     natoms_old = atom->natoms;
@@ -298,6 +298,14 @@ void ComputeWPOverlap::compute_array()
 
   int newton_pair = force->newton_pair;
 
+  // WPMD-related variables
+  double emass_h = atom->mass[jlo[0]] * force->mvh2r;  // assuming that j-particles are electrons
+  WavePacket wpi, wpj;
+
+  // Mean value
+  double mean_val = 0.;
+  int mean_count = 0;
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     if (!(mask[i] & groupbit)) continue;
@@ -311,7 +319,11 @@ void ComputeWPOverlap::compute_array()
       Vector_3(x[i][0], x[i][1], x[i][2]),
       Vector_3(v[i][0], v[i][1], v[i][2])*one_h*atom->mass[itype],
       atom->ervel[i] );*/
-    wpi.init(0.86155497, Vector_3(x[i][0], x[i][1], x[i][2]), Vector_3(0, 0, 0), 0);
+    wpi.init(
+      0.86155497,
+      Vector_3(x[i][0], x[i][1], x[i][2]),
+      Vector_3(v[i][0], v[i][1], v[i][2])*emass_h,
+      0 );
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -321,19 +333,22 @@ void ComputeWPOverlap::compute_array()
       ipair = nwppair[itype][jtype];
       jpair = nwppair[jtype][itype];
       if (!ipair && !jpair) continue;
-
+  
       wpj.init(
         atom->eradius[j],
-        Vector_3(x[j]),
-        Vector_3(v[j])*one_h*atom->mass[jtype],
-        atom->ervel[j] );
+        Vector_3(x[j][0], x[j][1], x[j][2]),
+        Vector_3(v[j][0], v[j][1], v[j][2])*emass_h,
+        0 );
       
-      //double dst_val = std::fabs(wpi.get_r()[2]);
-      //double dst_val = wpj.get_width();
-      //double dst_val = (wpi*conj(wpj)).get_width();
-      double dst_val = abs(wpi.overlap(conj(wpj)));
+      //double q_val = std::fabs(wpi.get_r()[2]);
+      //double q_val = wpj.get_width();
+      //double q_val = (wpi*conj(wpj)).get_width();
+      double q_val = abs(wpi.overlap(conj(wpj)));
+    
+      mean_val += q_val;
+      mean_count++;
 
-      ibin = static_cast<int> (dst_val*delrinv);
+      ibin = static_cast<int> (q_val*delrinv);
       if (ibin >= nbin) continue;
 
       for (ihisto = 0; ihisto < ipair; ihisto++) {
@@ -371,7 +386,9 @@ void ComputeWPOverlap::compute_array()
       else
         dst_val = 0.0;
       array[ibin][1+2*m] = dst_val;
-      array[ibin][2+2*m] = histall[m][ibin];
+      //array[ibin][2+2*m] = histall[m][ibin];
     }
   }
+
+  array[0][2] = mean_val / mean_count;  // Save the mean value of all overlaps
 }

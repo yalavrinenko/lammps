@@ -37,6 +37,8 @@ class ComputeWPOverlap : public Compute {
   double **hist;       // histogram bins
   double **histall;    // summed histogram bins across all procs
 
+  double wp_bound_width;      // IM: width of a bound electron
+
   int *typecount;
   int *icount, *jcount;
   int *duplicates;

@@ -47,6 +47,7 @@ ComputeWPOverlap::ComputeWPOverlap(LAMMPS *lmp, int narg, char **arg) :
   // nargpair = # of pairwise args, starting at iarg = 4
 
   cutflag = 0;
+  wp_bound_width = 0.86155497;
 
   int iarg;
   for (iarg = 4; iarg < narg; iarg++)
@@ -60,6 +61,10 @@ ComputeWPOverlap::ComputeWPOverlap(LAMMPS *lmp, int narg, char **arg) :
       cutoff_user = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutoff_user <= 0.0) cutflag = 0;
       else cutflag = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"wpwidth") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute wp_overlap command");
+      wp_bound_width = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute wp_overlap command");
   }
@@ -320,7 +325,7 @@ void ComputeWPOverlap::compute_array()
       Vector_3(v[i][0], v[i][1], v[i][2])*one_h*atom->mass[itype],
       atom->ervel[i] );*/
     wpi.init(
-      0.86155497,
+      wp_bound_width,
       Vector_3(x[i][0], x[i][1], x[i][2]),
       Vector_3(v[i][0], v[i][1], v[i][2])*emass_h,
       0 );
